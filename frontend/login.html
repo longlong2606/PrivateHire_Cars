@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Log in - PrivateHire Cars</title>
+  
+  <!-- Google Fonts: Plus Jakarta Sans & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    :root {
+      --bg-body: #F8F5EE;
+      --bg-surface: #FFFFFF;
+      --bg-card: #FFFFFF;
+      --bg-card-hover: #FAF7F2;
+      --bg-input: #FFFFFF;
+      
+      --border-subtle: #E8E2D5;
+      --border-medium: #E8E2D5;
+      --border-focus: #3A8B68;
+      --border-error: #B94A48;
+      
+      --primary: #164B3B;
+      --primary-hover: #0f372b;
+      --primary-light: #3A8B68;
+      --primary-glow: rgba(22, 75, 59, 0.25);
+      
+      --accent-gold: #C69C54;
+      --accent-emerald: #3A8B68;
+      
+      --text-white: #FFFFFF;
+      --text-main: #25352E;
+      --text-muted: #5E7168;
+      --text-dim: #84988F;
+      --text-error: #B94A48;
+
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 18px;
+      --radius-xl: 24px;
+      
+      --font-heading: 'Outfit', sans-serif;
+      --font-body: 'Plus Jakarta Sans', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      
+      --shadow-soft: 0 8px 24px rgba(37, 53, 46, 0.06);
+      --shadow-elevated: 0 16px 45px rgba(37, 53, 46, 0.1);
+      --transition-smooth: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-body);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* Ambient glow */
+    .ambient-glow-top {
+      position: fixed;
+      top: -220px;
+      left: 15%;
+      width: 750px;
+      height: 750px;
+      background: radial-gradient(circle, rgba(58, 139, 104, 0.12) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .ambient-glow-bottom {
+      position: fixed;
+      bottom: -220px;
+      right: 10%;
+      width: 650px;
+      height: 650px;
+      background: radial-gradient(circle, rgba(198, 156, 84, 0.10) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .app-container {
+      position: relative;
+      z-index: 1;
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 0 24px 60px 24px;
+    }
+
+    /* Top Navbar */
+    .top-navbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 0;
+      border-bottom: 1px solid var(--border-subtle);
+      margin-bottom: 36px;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .brand-emblem {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #164B3B 0%, #0d2e24 100%);
+      border: 1px solid #C69C54;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #FFFFFF;
+      box-shadow: 0 4px 15px rgba(22, 75, 59, 0.25);
+      position: relative;
+    }
+
+    .brand-emblem::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(198, 156, 84, 0.25) 0%, transparent 60%);
+    }
+
+    .brand-title {
+      font-family: var(--font-heading);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: -0.5px;
+    }
+
+    .brand-title span {
+      background: linear-gradient(90deg, #164B3B 40%, #3A8B68 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-register-nav {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      background: #FFFFFF;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: var(--transition-smooth);
+    }
+
+    .btn-register-nav:hover {
+      border-color: var(--primary-light);
+      color: var(--primary);
+      background: var(--bg-card-hover);
+    }
+
+    /* Main Split Layout */
+    .split-layout-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.95fr;
+      gap: 48px;
+      align-items: start;
+    }
+
+    /* Left Column: Branding, Value Proposition & Services (from wireframe) */
+    .brand-services-col {
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    .hero-badge-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 14px;
+      background: rgba(22, 75, 59, 0.08);
+      border: 1px solid rgba(22, 75, 59, 0.22);
+      border-radius: 100px;
+      color: var(--primary);
+      font-size: 12.5px;
+      font-weight: 600;
+      width: fit-content;
+    }
+
+    .hero-title {
+      font-family: var(--font-heading);
+      font-size: 40px;
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -1px;
+      color: var(--text-main);
+      margin-top: 10px;
+    }
+
+    .hero-title span.highlight-gradient {
+      background: linear-gradient(90deg, #164B3B 0%, #C69C54 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-desc {
+      color: var(--text-muted);
+      font-size: 15px;
+      max-width: 540px;
+      margin-top: 6px;
+    }
+
+    /* Services Box from wireframe */
+    .services-box {
+      background: #FFFFFF;
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-lg);
+      padding: 24px 26px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .services-box-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-subtle);
+      margin-bottom: 14px;
+    }
+
+    .services-box-title {
+      font-family: var(--font-heading);
+      font-size: 16px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .services-list-items {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .service-row-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      background: #FAF7F2;
+      border: 1px solid var(--border-subtle);
+      transition: var(--transition-smooth);
+    }
+
+    .service-row-item:hover {
+      background: rgba(58, 139, 104, 0.08);
+      border-color: var(--primary-light);
+      transform: translateX(3px);
+    }
+
+    .service-icon-square {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: #FFFFFF;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border: 1px solid var(--border-medium);
+    }
+
+    .service-info-text {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    /* Executive Fleet Visual Card (IMAGE box from wireframe) */
+    .fleet-hero-visual {
+      position: relative;
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      border: 1px solid var(--border-medium);
+      background: #F8F5EE;
+      aspect-ratio: 16 / 9;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .fleet-hero-visual img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .fleet-hero-visual:hover img {
+      transform: scale(1.03);
+    }
+
+    .fleet-visual-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent 35%, rgba(22, 75, 59, 0.95) 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 22px;
+    }
+
+    .fleet-specs-pills {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+    }
+
+    .spec-pill {
+      background: rgba(22, 75, 59, 0.85);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(232, 226, 213, 0.35);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #F8F5EE;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .fleet-car-heading {
+      font-family: var(--font-heading);
+      font-size: 19px;
+      font-weight: 700;
+      color: #FFFFFF;
+    }
+
+    /* Right Column: Dedicated Login Card */
+    .login-col-wrapper {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .auth-glass-card {
+      background: #FFFFFF;
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-xl);
+      padding: 40px;
+      box-shadow: var(--shadow-elevated);
+      position: relative;
+    }
+
+    .auth-glass-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 10%;
+      right: 10%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent-gold), transparent);
+    }
+
+    .auth-card-header {
+      margin-bottom: 26px;
+    }
+
+    .auth-title-large {
+      font-family: var(--font-heading);
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+    }
+
+    .auth-subtitle-text {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    .auth-switch-link {
+      color: var(--primary-light);
+      text-decoration: underline;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .auth-switch-link:hover {
+      color: var(--primary);
+    }
+
+    /* Form Fields */
+    .field-group {
+      margin-bottom: 18px;
+      position: relative;
+    }
+
+    .field-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+
+    .field-label .required-stars {
+      color: var(--accent-gold);
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+
+    .field-input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .field-input {
+      width: 100%;
+      height: 46px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-sm);
+      padding: 0 14px 0 42px;
+      color: var(--text-main);
+      font-family: var(--font-body);
+      font-size: 14px;
+      outline: none;
+      transition: var(--transition-smooth);
+    }
+
+    .field-input:focus {
+      border-color: var(--border-focus);
+      background: #FFFFFF;
+      box-shadow: 0 0 0 3px rgba(58, 139, 104, 0.18);
+    }
+
+    .input-icon-left-slot {
+      position: absolute;
+      left: 14px;
+      color: var(--text-dim);
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-icon-right-slot {
+      position: absolute;
+      right: 14px;
+      color: var(--text-dim);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      transition: var(--transition-smooth);
+    }
+
+    .input-icon-right-slot:hover {
+      color: var(--primary);
+    }
+
+    /* Error Validation State (Red border & text ONLY) */
+    .field-group.has-error .field-input {
+      border-color: var(--border-error) !important;
+      background: rgba(185, 74, 72, 0.04);
+      box-shadow: 0 0 0 2px rgba(185, 74, 72, 0.18);
+    }
+
+    .field-group.has-error .input-icon-left-slot {
+      color: var(--border-error);
+    }
+
+    .validation-error-text {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-error);
+      font-size: 12px;
+      font-family: var(--font-mono);
+      margin-top: 5px;
+    }
+
+    .field-group.has-error .validation-error-text {
+      display: flex;
+    }
+
+    /* Remember me & Forgot Password Row */
+    .login-options-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 18px 0 24px 0;
+      font-size: 13px;
+    }
+
+    .remember-checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-muted);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .custom-checkbox-sq {
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+      border: 1.5px solid var(--border-medium);
+      background: var(--bg-input);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: var(--transition-smooth);
+    }
+
+    .custom-checkbox-sq.checked {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    .forgot-pw-link {
+      color: var(--primary);
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    /* Solid Action Button */
+    .btn-login-solid {
+      width: 100%;
+      height: 48px;
+      background: var(--primary);
+      color: #ffffff;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-heading);
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: var(--transition-smooth);
+      box-shadow: 0 4px 15px rgba(22, 75, 59, 0.35);
+    }
+
+    .btn-login-solid:hover {
+      background: var(--primary-hover);
+      box-shadow: 0 6px 20px rgba(22, 75, 59, 0.5);
+      transform: translateY(-1px);
+    }
+
+    /* Divider & Social / Corporate SSO */
+    .auth-divider-line {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin: 24px 0 18px 0;
+      color: var(--text-dim);
+      font-size: 12px;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+    }
+
+    .auth-divider-line::before,
+    .auth-divider-line::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--border-subtle);
+    }
+
+    .sso-buttons-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .btn-sso-item {
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      background: #FAF7F2;
+      border: 1px solid var(--border-medium);
+      color: var(--text-main);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: var(--transition-smooth);
+    }
+
+    .btn-sso-item:hover {
+      border-color: var(--primary-light);
+      background: #FFFFFF;
+      color: var(--primary);
+    }
+
+    /* Testing Toolbar */
+    .demo-testing-bar {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px dashed var(--border-subtle);
+      display: flex;
+      gap: 8px;
+    }
+
+    .demo-test-btn {
+      flex: 1;
+      padding: 7px 10px;
+      background: #FAF7F2;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: var(--transition-smooth);
+    }
+
+    .demo-test-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: #FFFFFF;
+    }
+
+    /* Toast Notification */
+    .toast-notifications-rack {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .toast-pill-item {
+      background: #FFFFFF;
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-md);
+      padding: 12px 18px;
+      color: var(--text-main);
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 10px 30px rgba(37, 53, 46, 0.15);
+      animation: slideInToast 0.25s ease;
+    }
+
+    @keyframes slideInToast {
+      from { transform: translateX(40px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    @media (max-width: 1024px) {
+      .split-layout-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="ambient-glow-top"></div>
+  <div class="ambient-glow-bottom"></div>
+
+  <div class="app-container">
+
+    <!-- Top Navigation Bar -->
+    <header class="top-navbar">
+      <a href="index.html" class="brand-group">
+        <div class="brand-emblem">
+          <i data-lucide="shield" style="width: 22px; height: 22px;"></i>
+        </div>
+        <div class="brand-title">
+          <span>PrivateHire</span> Cars
+        </div>
+      </a>
+
+      <div class="nav-actions" style="display:flex; gap:10px; align-items:center;">
+        <button type="button" onclick="openAcDataModal()" style="display:inline-flex; align-items:center; gap:6px; background:rgba(22,75,59,0.08); border:1px solid rgba(22,75,59,0.25); color:#164B3B; border-radius:8px; padding:8px 14px; font-size:13px; font-weight:600; cursor:pointer;" title="View Registered Database Accounts & AC5 Sent Emails">
+          <i data-lucide="database" style="width: 14px; height: 14px;"></i>
+          <span>Database & Emails (AC4/AC5)</span>
+        </button>
+        <a href="register.html" class="btn-register-nav" style="background:#164B3B; color:#FFFFFF; border:1px solid #164B3B;">
+          <i data-lucide="user-plus" style="width: 14px; height: 14px;"></i>
+          <span>Create an account</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- Main Split Layout -->
+    <main class="split-layout-grid">
+      
+      <!-- 1. LEFT COLUMN: BRANDING & OUR SERVICES (Same as Wireframe Architecture) -->
+      <section class="brand-services-col">
+        <div>
+          <h1 class="hero-title" style="margin-top: 0;">
+            Welcome back to <br>
+            <span class="highlight-gradient">PrivateHire Cars.</span>
+          </h1>
+        </div>
+
+        <!-- Our Services Box (Matching Wireframe) -->
+        <div class="services-box">
+          <div class="services-box-header">
+            <h2 class="services-box-title">
+              <i data-lucide="layers" style="width: 17px; height: 17px; color: var(--primary-light);"></i>
+              Our Services
+            </h2>
+            <span style="font-size: 11px; font-family: var(--font-mono); color: var(--accent-emerald); font-weight: 700;">
+              GUARANTEED FIXED RATES
+            </span>
+          </div>
+
+          <ul class="services-list-items">
+            <li class="service-row-item">
+              <div class="service-icon-square">
+                <i data-lucide="car-taxi-front" style="width: 16px; height: 16px;"></i>
+              </div>
+              <div class="service-info-text">Private hire cars at your service</div>
+            </li>
+
+            <li class="service-row-item">
+              <div class="service-icon-square">
+                <i data-lucide="calendar-check" style="width: 16px; height: 16px;"></i>
+              </div>
+              <div class="service-info-text">Pre-booked &amp; reliable transport</div>
+            </li>
+
+            <li class="service-row-item">
+              <div class="service-icon-square">
+                <i data-lucide="shield-check" style="width: 16px; height: 16px;"></i>
+              </div>
+              <div class="service-info-text">24/7 client coordination &amp; safety</div>
+            </li>
+
+            <li class="service-row-item">
+              <div class="service-icon-square">
+                <i data-lucide="badge-check" style="width: 16px; height: 16px;"></i>
+              </div>
+              <div class="service-info-text">Guaranteed best rates</div>
+            </li>
+
+            <li class="service-row-item">
+              <div class="service-icon-square">
+                <i data-lucide="award" style="width: 16px; height: 16px;"></i>
+              </div>
+              <div class="service-info-text">Extensive fleet &amp; professional drivers</div>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Fleet Visual Card (IMAGE from wireframe) -->
+        <div class="fleet-hero-visual">
+          <img src="https://images.unsplash.com/photo-1563720223185-11003d516935?auto=format&fit=crop&w=1200&q=80" alt="Mercedes S-Class Executive Chauffeur" />
+        </div>
+      </section>
+
+      <!-- 2. RIGHT COLUMN: DEDICATED FRONTEND LOGIN FORM -->
+      <section class="login-col-wrapper">
+        <div class="auth-glass-card">
+          
+          <div class="auth-card-header">
+            <h2 class="auth-title-large">Log in to your account</h2>
+            <p class="auth-subtitle-text">
+              Don't have an account? <a href="register.html" class="auth-switch-link">Create an account</a>
+            </p>
+          </div>
+
+          <form id="login-form" novalidate onsubmit="handleLoginSubmit(event)">
+
+            <!-- 1. Email or Mobile Number *** -->
+            <div class="field-group" id="grp-login-identifier">
+              <label class="field-label">
+                <span>Email or Mobile Number</span>
+                <span class="required-stars">***</span>
+              </label>
+              <div class="field-input-wrapper">
+                <span class="input-icon-left-slot"><i data-lucide="mail" style="width: 16px; height: 16px;"></i></span>
+                <input 
+                  type="text" 
+                  class="field-input" 
+                  id="f-login-identifier" 
+                  value="an.nguyen@enterprise.vn" 
+                  placeholder="name@company.com or +84..." 
+                  oninput="clearFieldError('login-identifier')" 
+                />
+              </div>
+              <div class="validation-error-text" id="err-login-identifier">
+                <i data-lucide="alert-circle" style="width: 14px; height: 14px;"></i>
+                <span>(!) Valid email or mobile number is required</span>
+              </div>
+            </div>
+
+            <!-- 2. Password *** -->
+            <div class="field-group" id="grp-login-password">
+              <label class="field-label">
+                <span>Password</span>
+                <span class="required-stars">***</span>
+              </label>
+              <div class="field-input-wrapper">
+                <span class="input-icon-left-slot"><i data-lucide="lock" style="width: 16px; height: 16px;"></i></span>
+                <input 
+                  type="password" 
+                  class="field-input" 
+                  id="f-login-password" 
+                  value="PrivateHire2026!" 
+                  placeholder="••••••••" 
+                  oninput="clearFieldError('login-password')" 
+                />
+                <span class="input-icon-right-slot" onclick="togglePasswordVisibility('f-login-password')">
+                  <i data-lucide="eye" style="width: 16px; height: 16px;"></i>
+                </span>
+              </div>
+              <div class="validation-error-text" id="err-login-password">
+                <i data-lucide="alert-circle" style="width: 14px; height: 14px;"></i>
+                <span>(!) Password is required</span>
+              </div>
+            </div>
+
+            <!-- 3. Remember Me & Forgot Password -->
+            <div class="login-options-row">
+              <label class="remember-checkbox-label" onclick="toggleRememberMe()">
+                <div class="custom-checkbox-sq checked" id="sq-remember-box">
+                  <i data-lucide="check" style="width: 13px; height: 13px;"></i>
+                </div>
+                <span>Remember this device (30 days)</span>
+              </label>
+              <a href="javascript:void(0)" class="forgot-pw-link" onclick="handleForgotPassword()">Forgot password?</a>
+            </div>
+
+            <!-- 4. Solid Action Button -->
+            <button type="submit" class="btn-login-solid" id="btn-submit-login">
+              <span>LOG IN</span>
+              <i data-lucide="log-in" style="width: 16px; height: 16px;"></i>
+            </button>
+
+            <!-- 5. Single Sign-On (SSO) Options -->
+            <div class="auth-divider-line">Or continue with</div>
+
+            <div class="sso-buttons-row">
+              <button type="button" class="btn-sso-item" onclick="handleSSOLogin('Google')">
+                <i data-lucide="chrome" style="width: 16px; height: 16px; color: #164B3B;"></i>
+                <span>Google</span>
+              </button>
+              <button type="button" class="btn-sso-item" onclick="handleSSOLogin('Corporate SSO')">
+                <i data-lucide="building-2" style="width: 16px; height: 16px; color: #C69C54;"></i>
+                <span>Corporate SSO</span>
+              </button>
+            </div>
+
+          </form>
+
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- Notification Toast Holder -->
+  <div class="toast-notifications-rack" id="toast-rack"></div>
+
+  <script>
+    // Initialize Lucide Icons
+    lucide.createIcons();
+
+    let rememberMeChecked = true;
+
+    function toggleRememberMe() {
+      rememberMeChecked = !rememberMeChecked;
+      const box = document.getElementById('sq-remember-box');
+      if (rememberMeChecked) {
+        box.classList.add('checked');
+      } else {
+        box.classList.remove('checked');
+      }
+    }
+
+    function togglePasswordVisibility(fieldId) {
+      const input = document.getElementById(fieldId);
+      input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
+    function clearFieldError(fieldKey) {
+      const group = document.getElementById(`grp-${fieldKey}`);
+      if (group) group.classList.remove('has-error');
+    }
+
+    function flagFieldError(fieldKey) {
+      const group = document.getElementById(`grp-${fieldKey}`);
+      if (group) group.classList.add('has-error');
+    }
+
+    // Simulate Login Error States
+    function applyLoginErrorStates() {
+      document.getElementById('f-login-identifier').value = "";
+      document.getElementById('f-login-password').value = "";
+      flagFieldError('login-identifier');
+      flagFieldError('login-password');
+      triggerToast("Simulated login validation errors (Empty fields in red)!");
+    }
+
+    // Check for registered email on load
+    document.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
+      const regEmail = localStorage.getItem('registeredEmail');
+      if (regEmail) {
+        document.getElementById('f-login-identifier').value = regEmail;
+        clearFieldError('login-identifier');
+        triggerToast(`Loaded newly registered account: ${regEmail} (AC4)`);
+      }
+    });
+
+    // Pre-fill Valid VIP Account
+    function prefillVIPClient() {
+      const regEmail = localStorage.getItem('registeredEmail');
+      if (regEmail) {
+        document.getElementById('f-login-identifier').value = regEmail;
+        document.getElementById('f-login-password').value = "Password123";
+      } else {
+        document.getElementById('f-login-identifier').value = "john.doe@example.com";
+        document.getElementById('f-login-password').value = "MatKhau@123";
+      }
+      clearFieldError('login-identifier');
+      clearFieldError('login-password');
+      triggerToast("Pre-filled valid database account credentials!");
+    }
+
+    // Handle Real Backend Login Submit (AC4)
+    async function handleLoginSubmit(e) {
+      e.preventDefault();
+
+      const idVal = document.getElementById('f-login-identifier').value.trim();
+      const pwVal = document.getElementById('f-login-password').value.trim();
+      let hasError = false;
+
+      if (!idVal) {
+        flagFieldError('login-identifier');
+        hasError = true;
+      } else {
+        clearFieldError('login-identifier');
+      }
+
+      if (!pwVal) {
+        flagFieldError('login-password');
+        hasError = true;
+      } else {
+        clearFieldError('login-password');
+      }
+
+      if (hasError) {
+        triggerToast("Please enter your email and password.");
+        return;
+      }
+
+      const submitBtn = document.getElementById('btn-submit-login');
+      const origText = submitBtn.innerHTML;
+      submitBtn.innerHTML = `<span>VERIFYING WITH POSTGRESQL (AC4)...</span>`;
+      submitBtn.disabled = true;
+
+      try {
+        const response = await fetch('http://localhost:5000/api/accounts/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: idVal,
+            password: pwVal,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+          submitBtn.innerHTML = origText;
+          submitBtn.disabled = false;
+          flagFieldError('login-identifier');
+          flagFieldError('login-password');
+          triggerToast(data.message || "Invalid email or password", "error");
+          return;
+        }
+
+        // Login verified (AC4)
+        localStorage.setItem('currentUser', JSON.stringify(data.user));
+        triggerToast(`🎉 Login successful! Welcome ${data.user.name} (AC4 Verified)`, "success");
+
+        submitBtn.innerHTML = `<span>LOGIN SUCCESSFUL ✓</span>`;
+        setTimeout(() => {
+          window.location.href = "index.html";
+        }, 1200);
+
+      } catch (err) {
+        console.error('Login error:', err);
+        submitBtn.innerHTML = origText;
+        submitBtn.disabled = false;
+        triggerToast(`Backend server connection error: ${err.message}`, "error");
+      }
+    }
+
+    function handleForgotPassword() {
+      const email = document.getElementById('f-login-identifier').value.trim() || 'your registered email';
+      triggerToast(`Password reset link sent to: ${email}`);
+    }
+
+    function handleSSOLogin(provider) {
+      triggerToast(`Redirecting to secure ${provider} authentication...`);
+    }
+
+    function triggerToast(msg, type = "info") {
+      const rack = document.getElementById('toast-rack');
+      const toast = document.createElement('div');
+      toast.className = 'toast-pill-item';
+      let iconColor = type === 'error' ? '#B94A48' : '#3A8B68';
+      let iconName = type === 'error' ? 'alert-octagon' : 'info';
+      toast.innerHTML = `<i data-lucide="${iconName}" style="width:15px;height:15px;color:${iconColor};"></i> <span>${msg}</span>`;
+      rack.appendChild(toast);
+      lucide.createIcons();
+      setTimeout(() => {
+        toast.remove();
+      }, 3500);
+    }
+  </script>
+  <!-- AC Live Data & Emails Modal -->
+  <div id="ac-modal" style="display:none; position:fixed; inset:0; background:rgba(37,53,46,0.55); backdrop-filter:blur(8px); z-index:9999; align-items:center; justify-content:center; padding:20px;">
+    <div style="background:#FFFFFF; border:1px solid #E8E2D5; border-radius:18px; max-width:960px; width:100%; max-height:90vh; overflow-y:auto; padding:28px; box-shadow:0 25px 60px rgba(37,53,46,0.2);">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #E8E2D5; padding-bottom:16px; margin-bottom:20px;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <i data-lucide="database" style="width:22px; height:22px; color:#164B3B;"></i>
+          <h3 style="font-family:'Outfit', sans-serif; font-size:20px; font-weight:700; color:#164B3B; margin:0;">PostgreSQL Database &amp; Automated Emails (AC4 &amp; AC5)</h3>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <button type="button" onclick="refreshAcModalData()" style="background:#FAF7F2; color:#164B3B; border:1px solid #E8E2D5; border-radius:8px; padding:6px 14px; font-size:12px; font-weight:600; cursor:pointer;">Refresh</button>
+          <button type="button" onclick="closeAcModal()" style="background:transparent; border:none; color:#5E7168; cursor:pointer; font-size:24px; line-height:1;">&times;</button>
+        </div>
+      </div>
+
+      <div style="margin-bottom:24px;">
+        <h4 style="font-size:14px; text-transform:uppercase; letter-spacing:0.5px; color:#164B3B; margin-bottom:10px;">Registered Accounts in Database (<span id="modal-acc-count">0</span>)</h4>
+        <div style="overflow-x:auto;">
+          <table style="width:100%; border-collapse:collapse; font-size:12px; text-align:left; color:#25352E;">
+            <thead>
+              <tr style="border-bottom:1px solid #E8E2D5; color:#5E7168; background:#FAF7F2;">
+                <th style="padding:10px 8px;">Code</th>
+                <th style="padding:10px 8px;">Name</th>
+                <th style="padding:10px 8px;">Email</th>
+                <th style="padding:10px 8px;">Address</th>
+                <th style="padding:10px 8px;">Telephone</th>
+                <th style="padding:10px 8px;">Card (AC3)</th>
+                <th style="padding:10px 8px;">Status</th>
+              </tr>
+            </thead>
+            <tbody id="modal-acc-table">
+              <tr><td colspan="7" style="padding:14px; text-align:center; color:#5E7168;">Loading accounts...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div>
+        <h4 style="font-size:14px; text-transform:uppercase; letter-spacing:0.5px; color:#3A8B68; margin-bottom:10px;">Automated Confirmation Emails Sent (AC5)</h4>
+        <div id="modal-email-list" style="display:flex; flex-direction:column; gap:10px;">
+          <div style="color:#5E7168; font-size:13px; font-style:italic;">No emails sent yet.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function openAcDataModal() {
+      document.getElementById('ac-modal').style.display = 'flex';
+      await refreshAcModalData();
+      lucide.createIcons();
+    }
+    function closeAcModal() {
+      document.getElementById('ac-modal').style.display = 'none';
+    }
+    async function refreshAcModalData() {
+      try {
+        const [accRes, emailRes] = await Promise.all([
+          fetch('http://localhost:5000/api/accounts').then(r => r.json()),
+          fetch('http://localhost:5000/api/accounts/emails').then(r => r.json()),
+        ]);
+        if (accRes.success) {
+          document.getElementById('modal-acc-count').textContent = accRes.count || accRes.data.length;
+          document.getElementById('modal-acc-table').innerHTML = accRes.data.map(a => `
+            <tr style="border-bottom:1px solid #E8E2D5;">
+              <td style="padding:10px 8px; font-weight:bold; color:#164B3B;">${a.account_code}</td>
+              <td style="padding:10px 8px;">${a.name}</td>
+              <td style="padding:10px 8px;">${a.email}</td>
+              <td style="padding:10px 8px; color:#5E7168;">${a.address || '—'}</td>
+              <td style="padding:10px 8px;">${a.telephone}</td>
+              <td style="padding:10px 8px;"><span style="background:rgba(22,75,59,0.08); color:#164B3B; border:1px solid rgba(22,75,59,0.2); padding:2px 6px; border-radius:4px; font-size:11px;">${a.mock_card_ref}</span></td>
+              <td style="padding:10px 8px;"><span style="background:rgba(58,139,104,0.12); color:#3A8B68; border:1px solid rgba(58,139,104,0.3); padding:2px 6px; border-radius:4px; font-size:11px;">${a.status}</span></td>
+            </tr>
+          `).join('');
+        }
+        if (emailRes.success && emailRes.data && emailRes.data.length > 0) {
+          document.getElementById('modal-email-list').innerHTML = emailRes.data.map(e => `
+            <div style="background:#FAF7F2; border:1px solid #E8E2D5; border-radius:10px; padding:12px;">
+              <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                <strong style="color:#164B3B; font-size:13px;">${e.subject}</strong>
+                <span style="background:rgba(58,139,104,0.12); color:#3A8B68; border:1px solid rgba(58,139,104,0.3); padding:2px 6px; border-radius:4px; font-size:11px;">SENT</span>
+              </div>
+              <div style="font-size:11px; color:#5E7168; margin-bottom:6px;">To: <span style="color:#25352E; font-weight:600;">${e.to}</span> &bull; Sent: ${new Date(e.sentAt).toLocaleTimeString()}</div>
+              <pre style="font-size:11px; white-space:pre-wrap; background:#FFFFFF; border:1px solid #E8E2D5; padding:8px; border-radius:6px; color:#25352E; font-family:inherit; margin:0;">${e.preview}</pre>
+            </div>
+          `).join('');
+        }
+      } catch (err) {
+        console.error('Error fetching AC modal data:', err);
+      }
+    }
+  </script>
+</body>
+</html>

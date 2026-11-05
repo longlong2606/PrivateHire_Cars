@@ -1,0 +1,2609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PrivateHire Cars - Premium Private Chauffeur &amp; Ride-Hailing</title>
+  
+  <!-- Google Fonts: Plus Jakarta Sans & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Leaflet Map CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+    :root {
+      --bg-body: #F8F5EE;
+      --bg-surface: #FFFFFF;
+      --bg-card: #FFFFFF;
+      --bg-card-hover: #FAF7F2;
+      --bg-input: #FFFFFF;
+      
+      --border-subtle: #E8E2D5;
+      --border-medium: #E8E2D5;
+      --border-focus: #3A8B68;
+      --border-error: #B94A48;
+      
+      --primary: #164B3B;
+      --primary-hover: #0f372b;
+      --primary-light: #3A8B68;
+      --primary-glow: rgba(22, 75, 59, 0.25);
+      
+      --accent-gold: #C69C54;
+      --accent-emerald: #3A8B68;
+      
+      --text-white: #FFFFFF;
+      --text-main: #25352E;
+      --text-muted: #5E7168;
+      --text-dim: #84988F;
+      --text-error: #B94A48;
+
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 18px;
+      --radius-xl: 24px;
+      
+      --font-heading: 'Outfit', sans-serif;
+      --font-body: 'Plus Jakarta Sans', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      
+      --shadow-soft: 0 8px 24px rgba(37, 53, 46, 0.06);
+      --shadow-elevated: 0 16px 45px rgba(37, 53, 46, 0.1);
+      --transition-smooth: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-body);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* Ambient background gradient glow */
+    .ambient-glow-top {
+      position: fixed;
+      top: -220px;
+      left: 15%;
+      width: 750px;
+      height: 750px;
+      background: radial-gradient(circle, rgba(58, 139, 104, 0.12) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .ambient-glow-bottom {
+      position: fixed;
+      bottom: -220px;
+      right: 10%;
+      width: 650px;
+      height: 650px;
+      background: radial-gradient(circle, rgba(198, 156, 84, 0.10) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .app-container {
+      position: relative;
+      z-index: 1;
+      max-width: 1480px;
+      margin: 0 auto;
+      padding: 0 24px 60px 24px;
+    }
+
+    /* =========================================================================
+       TOP NAVIGATION BAR
+       ========================================================================= */
+    .top-navbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 0;
+      border-bottom: 1px solid var(--border-subtle);
+      margin-bottom: 28px;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .brand-emblem {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #164B3B 0%, #0d2e24 100%);
+      border: 1px solid #C69C54;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #FFFFFF;
+      box-shadow: 0 4px 15px rgba(22, 75, 59, 0.25);
+      position: relative;
+    }
+
+    .brand-emblem::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(198, 156, 84, 0.25) 0%, transparent 60%);
+    }
+
+    .brand-title {
+      font-family: var(--font-heading);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: -0.5px;
+    }
+
+    .brand-title span {
+      background: linear-gradient(90deg, #164B3B 40%, #3A8B68 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .nav-center-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #FFFFFF;
+      backdrop-filter: blur(10px);
+      padding: 6px 16px;
+      border-radius: 100px;
+      border: 1px solid var(--border-subtle);
+      font-size: 13px;
+      color: var(--text-main);
+    }
+
+    .nav-center-badge strong {
+      color: var(--accent-emerald);
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+    }
+
+    .nav-right-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-wireframe-link {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      background: #FFFFFF;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      text-decoration: none;
+      transition: var(--transition-smooth);
+    }
+
+    .btn-wireframe-link:hover {
+      border-color: var(--primary-light);
+      color: var(--primary);
+      background: var(--bg-card-hover);
+    }
+
+    .user-profile-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #FFFFFF;
+      border: 1px solid var(--border-subtle);
+      padding: 6px 14px 6px 8px;
+      border-radius: 100px;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+    }
+
+    .user-profile-badge:hover {
+      border-color: var(--border-focus);
+    }
+
+    .user-avatar-mini {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #164B3B 0%, #3A8B68 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    /* =========================================================================
+       MAIN 2-COLUMN SPLIT LAYOUT (BRANDING & VISIBLE MAP vs REGISTRATION FORM)
+       ========================================================================= */
+    .main-split-layout {
+      display: grid;
+      grid-template-columns: 1.15fr 0.95fr;
+      gap: 36px;
+      align-items: start;
+    }
+
+    /* -------------------------------------------------------------------------
+       LEFT COLUMN: BRANDING, SERVICES & LIVE EMBEDDED MAP
+       ------------------------------------------------------------------------- */
+    .left-column-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .hero-badge-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 14px;
+      background: rgba(22, 75, 59, 0.08);
+      border: 1px solid rgba(22, 75, 59, 0.22);
+      border-radius: 100px;
+      color: var(--primary);
+      font-size: 12.5px;
+      font-weight: 600;
+      width: fit-content;
+    }
+
+    .hero-title {
+      font-family: var(--font-heading);
+      font-size: 38px;
+      font-weight: 800;
+      line-height: 1.18;
+      letter-spacing: -1px;
+      color: var(--text-main);
+      margin-top: 10px;
+    }
+
+    .hero-title span.highlight-gradient {
+      background: linear-gradient(90deg, #164B3B 0%, #C69C54 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-desc {
+      color: var(--text-muted);
+      font-size: 14.5px;
+      max-width: 580px;
+      margin-top: 6px;
+    }
+
+    /* Services Box (Exact 5 services) */
+    .services-box {
+      background: #FFFFFF;
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-lg);
+      padding: 22px 24px;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .services-box-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-subtle);
+      margin-bottom: 14px;
+    }
+
+    .services-box-title {
+      font-family: var(--font-heading);
+      font-size: 16px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .services-list-items {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .service-row-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      background: #FAF7F2;
+      border: 1px solid var(--border-subtle);
+      transition: var(--transition-smooth);
+    }
+
+    .service-row-item:hover {
+      background: rgba(58, 139, 104, 0.08);
+      border-color: var(--primary-light);
+      transform: translateX(3px);
+    }
+
+    .service-icon-square {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: #FFFFFF;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border: 1px solid var(--border-medium);
+    }
+
+    .service-info-text {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    /* -------------------------------------------------------------------------
+       PROMINENT LIVE INTERACTIVE MAP WIDGET (CLEARLY VISIBLE EMBEDDED)
+       ------------------------------------------------------------------------- */
+    .live-map-card-container {
+      background: #FFFFFF;
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-soft);
+      position: relative;
+    }
+
+    .live-map-header {
+      padding: 14px 20px;
+      background: #FAF7F2;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .live-map-header-title {
+      font-family: var(--font-heading);
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .live-radar-pulse {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-emerald);
+      box-shadow: 0 0 10px var(--accent-emerald);
+      animation: radarBlink 1.5s infinite;
+    }
+
+    @keyframes radarBlink {
+      0% { transform: scale(0.9); opacity: 0.7; }
+      50% { transform: scale(1.2); opacity: 1; }
+      100% { transform: scale(0.9); opacity: 0.7; }
+    }
+
+    .map-route-pills {
+      display: flex;
+      gap: 6px;
+    }
+
+    .route-pill-btn {
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: #FFFFFF;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      font-size: 11.5px;
+      font-family: var(--font-mono);
+      cursor: pointer;
+      transition: var(--transition-smooth);
+    }
+
+    .route-pill-btn:hover, .route-pill-btn.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    /* VIP Route Preset Selector Bar */
+    .route-preset-selector-bar {
+      padding: 12px 18px;
+      background: #FAF7F2;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .route-preset-label-col {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+      letter-spacing: 0.5px;
+    }
+
+    .route-preset-buttons-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .route-preset-card-btn {
+      background: #FFFFFF;
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      text-align: left;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+    }
+
+    .route-preset-card-btn:hover {
+      background: #FAF7F2;
+      border-color: var(--primary-light);
+    }
+
+    .route-preset-card-btn.active {
+      background: rgba(22, 75, 59, 0.08);
+      border-color: var(--primary);
+      box-shadow: 0 0 0 1px var(--primary);
+    }
+
+    .btn-preset-main {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--text-main);
+      font-family: var(--font-body);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .route-preset-card-btn.active .btn-preset-main {
+      color: var(--primary);
+    }
+
+    .btn-preset-sub {
+      font-size: 10.5px;
+      color: var(--text-dim);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .route-active-synced-bar {
+      padding: 6px 18px;
+      background: #FAF7F2;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 12px;
+      color: var(--text-muted);
+      overflow-x: auto;
+    }
+
+    .synced-point-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .synced-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+    .synced-dot.pickup { background: var(--accent-emerald); }
+    .synced-dot.dropoff { background: var(--border-error); }
+
+    @media (max-width: 860px) {
+      .route-preset-buttons-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Map Viewport Box & Real-time Telemetry Dashboard */
+    .map-embed-viewport {
+      height: 480px;
+      width: 100%;
+      position: relative;
+      background: #F8F5EE;
+    }
+
+    #embedded-hcmc-map {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Live GPS & ETA Telemetry Status Bar */
+    .telemetry-live-bar {
+      padding: 12px 18px;
+      background: #FAF7F2;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .telemetry-metrics-cluster {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .telemetry-box {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .telemetry-box .t-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+      letter-spacing: 0.5px;
+    }
+
+    .telemetry-box .t-value {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .telemetry-box .t-value.highlight-green {
+      color: var(--accent-emerald);
+    }
+
+    .telemetry-box .t-value.highlight-blue {
+      color: var(--primary);
+    }
+
+    .driver-status-live {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: rgba(58, 139, 104, 0.12);
+      border: 1px solid rgba(58, 139, 104, 0.3);
+      color: var(--accent-emerald);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    /* GPS Locate & Simulation Buttons */
+    .map-action-ctrls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-gps-locate {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--transition-smooth);
+    }
+
+    .btn-gps-locate:hover {
+      background: var(--primary-hover);
+      box-shadow: 0 0 12px rgba(22, 75, 59, 0.4);
+    }
+
+    .btn-sim-rush {
+      background: #FFFFFF;
+      color: var(--text-muted);
+      border: 1px solid var(--border-medium);
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: var(--transition-smooth);
+    }
+
+    .btn-sim-rush:hover {
+      border-color: var(--accent-gold);
+      color: var(--accent-gold);
+    }
+
+    /* Overlay HUD inside Map */
+    .map-hud-overlay {
+      position: absolute;
+      bottom: 16px;
+      left: 16px;
+      right: 16px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-md);
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 999;
+      box-shadow: 0 12px 30px rgba(37, 53, 46, 0.15);
+    }
+
+    .map-marker-tooltip {
+      background: #FFFFFF !important;
+      border: 1px solid var(--border-medium) !important;
+      color: var(--text-main) !important;
+      font-size: 11px !important;
+      font-family: var(--font-body) !important;
+      font-weight: 600 !important;
+      border-radius: 6px !important;
+      padding: 3px 8px !important;
+      box-shadow: 0 4px 15px rgba(37, 53, 46, 0.15) !important;
+    }
+    .map-marker-tooltip::before {
+      border-top-color: #FFFFFF !important;
+    }
+    .map-marker-tooltip.pickup {
+      border-color: var(--accent-emerald) !important;
+      color: var(--accent-emerald) !important;
+    }
+    .map-marker-tooltip.dropoff {
+      border-color: var(--border-error) !important;
+      color: var(--border-error) !important;
+    }
+
+    /* Live GPS Radar Pulse Animation for Passenger Pin */
+    .gps-passenger-pulse {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--accent-emerald);
+      border: 3px solid #fff;
+      box-shadow: 0 0 0 0 rgba(58, 139, 104, 0.8);
+      animation: passengerPulse 1.8s infinite;
+      position: relative;
+    }
+
+    @keyframes passengerPulse {
+      0% { box-shadow: 0 0 0 0 rgba(58, 139, 104, 0.8); }
+      70% { box-shadow: 0 0 0 16px rgba(58, 139, 104, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(58, 139, 104, 0); }
+    }
+
+    .chauffeur-car-badge {
+      background: var(--primary);
+      border: 2px solid var(--accent-gold);
+      color: #fff;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      box-shadow: 0 6px 18px rgba(37, 53, 46, 0.25);
+      white-space: nowrap;
+    }
+
+    .hud-trip-stats {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .hud-stat-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .hud-stat-label {
+      font-size: 10.5px;
+      color: var(--text-dim);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+    }
+
+    .hud-stat-val {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .hud-driver-chip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-left: 14px;
+      border-left: 1px solid var(--border-subtle);
+    }
+
+    .hud-driver-img {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 1.5px solid var(--primary);
+      object-fit: cover;
+    }
+
+    /* -------------------------------------------------------------------------
+       RIGHT COLUMN: REGISTRATION FORM (EXACT SPECIFICATIONS)
+       ------------------------------------------------------------------------- */
+    .registration-col-wrapper {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .auth-glass-card {
+      background: #FFFFFF;
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-xl);
+      padding: 36px;
+      box-shadow: var(--shadow-elevated);
+      position: relative;
+    }
+
+    .auth-glass-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 10%;
+      right: 10%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent-gold), transparent);
+    }
+
+    .auth-card-header {
+      margin-bottom: 22px;
+    }
+
+    .auth-title-large {
+      font-family: var(--font-heading);
+      font-size: 27px;
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: -0.5px;
+      margin-bottom: 4px;
+    }
+
+    .auth-subtitle-text {
+      color: var(--text-muted);
+      font-size: 13.5px;
+    }
+
+    .auth-switch-link {
+      color: var(--primary-light);
+      text-decoration: underline;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .auth-switch-link:hover {
+      color: var(--primary);
+    }
+
+    /* Form Fields */
+    .field-group {
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .field-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+
+    .field-label .required-stars {
+      color: var(--accent-gold);
+      font-family: var(--font-mono);
+      font-size: 11px;
+    }
+
+    .field-input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .field-input {
+      width: 100%;
+      height: 44px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-sm);
+      padding: 0 14px 0 42px;
+      color: var(--text-main);
+      font-family: var(--font-body);
+      font-size: 14px;
+      outline: none;
+      transition: var(--transition-smooth);
+    }
+
+    .field-input:focus {
+      border-color: var(--border-focus);
+      background: #FFFFFF;
+      box-shadow: 0 0 0 3px rgba(58, 139, 104, 0.18);
+    }
+
+    .input-icon-left-slot {
+      position: absolute;
+      left: 14px;
+      color: var(--text-dim);
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-icon-right-slot {
+      position: absolute;
+      right: 14px;
+      color: var(--text-dim);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      transition: var(--transition-smooth);
+    }
+
+    .input-icon-right-slot:hover {
+      color: var(--primary);
+    }
+
+    /* Error Validation State (Red border & text ONLY) */
+    .field-group.has-error .field-input {
+      border-color: var(--border-error) !important;
+      background: rgba(185, 74, 72, 0.04);
+      box-shadow: 0 0 0 2px rgba(185, 74, 72, 0.18);
+    }
+
+    .field-group.has-error .input-icon-left-slot {
+      color: var(--border-error);
+    }
+
+    .validation-error-text {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-error);
+      font-size: 12px;
+      font-family: var(--font-mono);
+      margin-top: 5px;
+    }
+
+    .field-group.has-error .validation-error-text {
+      display: flex;
+    }
+
+    /* Password Strength Track */
+    .password-strength-track {
+      height: 3px;
+      background: var(--border-subtle);
+      border-radius: 2px;
+      margin-top: 5px;
+      overflow: hidden;
+      display: flex;
+      gap: 3px;
+    }
+
+    .strength-segment {
+      flex: 1;
+      height: 100%;
+      background: transparent;
+      transition: background 0.25s;
+    }
+    .strength-segment.active-weak { background: var(--border-error); }
+    .strength-segment.active-med { background: var(--accent-gold); }
+    .strength-segment.active-strong { background: var(--accent-emerald); }
+
+    /* Payment Method Dropdown Container */
+    .payment-section-box {
+      margin-bottom: 20px;
+    }
+
+    .interactive-card-badge {
+      background: #FAF7F2;
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-badge-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-gold-chip {
+      width: 26px;
+      height: 18px;
+      border-radius: 4px;
+      background: linear-gradient(135deg, #fbbf24 0%, #C69C54 100%);
+      border: 1px solid rgba(0,0,0,0.15);
+    }
+
+    .card-number-label {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .card-brand-tag {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: rgba(22, 75, 59, 0.08);
+      border: 1px solid rgba(22, 75, 59, 0.2);
+      color: var(--primary);
+    }
+
+    /* Custom Dropdown Trigger */
+    .dropdown-container-relative {
+      position: relative;
+    }
+
+    .select-card-trigger {
+      width: 100%;
+      height: 44px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-sm);
+      padding: 0 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--text-main);
+      font-size: 13.5px;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+    }
+
+    .select-card-trigger:hover {
+      border-color: var(--border-focus);
+      background: #FAF7F2;
+    }
+
+    .select-card-menu {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      margin-top: 5px;
+      background: #FFFFFF;
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      box-shadow: var(--shadow-elevated);
+      z-index: 100;
+      display: none;
+    }
+
+    .select-card-menu.open {
+      display: block;
+    }
+
+    .select-card-option {
+      padding: 11px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-subtle);
+      cursor: pointer;
+      font-size: 13.5px;
+      color: var(--text-main);
+      transition: background 0.15s;
+    }
+
+    .select-card-option:last-child {
+      border-bottom: none;
+    }
+
+    .select-card-option:hover {
+      background: rgba(58, 139, 104, 0.08);
+    }
+
+    .select-card-option.selected {
+      background: rgba(22, 75, 59, 0.08);
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    /* Terms Checkbox */
+    .terms-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin: 18px 0;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .custom-checkbox-sq {
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+      border: 1.5px solid var(--border-medium);
+      background: var(--bg-input);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+      transition: var(--transition-smooth);
+    }
+
+    .custom-checkbox-sq.checked {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    .terms-text-label {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* Solid Action Button */
+    .btn-register-solid {
+      width: 100%;
+      height: 48px;
+      background: var(--primary);
+      color: #ffffff;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-heading);
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: var(--transition-smooth);
+      box-shadow: 0 4px 15px rgba(22, 75, 59, 0.35);
+    }
+
+    .btn-register-solid:hover {
+      background: var(--primary-hover);
+      box-shadow: 0 6px 20px rgba(22, 75, 59, 0.5);
+      transform: translateY(-1px);
+    }
+
+    /* Testing State Toolbar */
+    .demo-testing-bar {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px dashed var(--border-subtle);
+      display: flex;
+      gap: 8px;
+    }
+
+    .demo-test-btn {
+      flex: 1;
+      padding: 7px 10px;
+      background: #FAF7F2;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: var(--transition-smooth);
+    }
+
+    .demo-test-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      background: #FFFFFF;
+    }
+
+    /* Confirmation Modal */
+    .modal-overlay-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(37, 53, 46, 0.55);
+      backdrop-filter: blur(10px);
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-overlay-backdrop.open {
+      display: flex;
+    }
+
+    .modal-dialog-card {
+      background: #FFFFFF;
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-xl);
+      padding: 36px;
+      max-width: 480px;
+      width: 100%;
+      text-align: center;
+      box-shadow: var(--shadow-elevated);
+      animation: popIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0.92); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .modal-icon-badge {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: rgba(58, 139, 104, 0.15);
+      color: var(--accent-emerald);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px auto;
+    }
+
+    /* Notifications Rack */
+    .toast-notifications-rack {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .toast-pill-item {
+      background: #FFFFFF;
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-md);
+      padding: 12px 18px;
+      color: var(--text-main);
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: var(--shadow-elevated);
+      animation: slideInToast 0.25s ease;
+    }
+
+    @keyframes slideInToast {
+      from { transform: translateX(40px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* Responsive */
+    @media (max-width: 1080px) {
+      .main-split-layout {
+        grid-template-columns: 1fr;
+      }
+      .map-embed-viewport {
+        height: 320px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .auth-glass-card {
+        padding: 22px 18px;
+      }
+      .hero-title {
+        font-size: 30px;
+      }
+      .nav-center-badge {
+        display: none;
+      }
+      .map-hud-overlay {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+      .hud-driver-chip {
+        padding-left: 0;
+        border-left: none;
+        padding-top: 6px;
+        border-top: 1px solid var(--border-subtle);
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="ambient-glow-top"></div>
+  <div class="ambient-glow-bottom"></div>
+
+  <div class="app-container">
+
+    <!-- ===================================================================
+         TOP NAVIGATION BAR
+         =================================================================== -->
+    <header class="top-navbar">
+      <div class="brand-group">
+        <div class="brand-emblem">
+          <i data-lucide="shield" style="width: 22px; height: 22px;"></i>
+        </div>
+        <div class="brand-title">
+          <span>PrivateHire</span> Cars
+        </div>
+      </div>
+
+      <div class="nav-center-badge">
+        <span class="live-radar-pulse"></span>
+        <span>Executive Chauffeur Dispatch System</span>
+        <strong>ONLINE 24/7</strong>
+      </div>
+
+      <div class="nav-right-actions">
+        <!-- Shortcut link to AC Database & Emails -->
+        <button type="button" class="btn-wireframe-link" onclick="openAcDataModal()" style="background: rgba(22, 75, 59, 0.08); border-color: rgba(22, 75, 59, 0.25); color: #164B3B; cursor: pointer;" title="View Database Accounts & Emails (AC4/AC5)">
+          <i data-lucide="database" style="width: 14px; height: 14px;"></i>
+          <span>Database (AC4/AC5)</span>
+        </button>
+
+        <!-- Shortcut link to Register -->
+        <a href="register.html" class="btn-wireframe-link" style="background: rgba(58, 139, 104, 0.12); border-color: rgba(58, 139, 104, 0.35); color: #3A8B68;" title="Go to Dedicated Registration Page">
+          <i data-lucide="user-plus" style="width: 14px; height: 14px;"></i>
+          <span>Register Page</span>
+        </a>
+
+        <!-- Shortcut link to Login -->
+        <a href="login.html" class="btn-wireframe-link" style="background: #164B3B; border-color: #164B3B; color: #FFFFFF;" title="Go to Sign In">
+          <i data-lucide="log-in" style="width: 14px; height: 14px;"></i>
+          <span>Log in</span>
+        </a>
+
+        <!-- Shortcut link back to wireframe mode -->
+        <a href="wireframe.html" class="btn-wireframe-link" title="Open Original Wireframe Review">
+          <i data-lucide="layout" style="width: 14px; height: 14px;"></i>
+          <span>Wireframe Mode</span>
+        </a>
+
+        <!-- User profile badge -->
+        <div class="user-profile-badge">
+          <div class="user-avatar-mini" id="top-nav-avatar">NV</div>
+          <span style="font-size: 13px; font-weight: 600;" id="top-nav-username">VIP Guest</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- ===================================================================
+         MAIN SPLIT LAYOUT:
+         Left: Branding, Services & Prominent Visible Map
+         Right: Full Registration Form (Exact Requirements)
+         =================================================================== -->
+    <main class="main-split-layout">
+      
+      <!-- ---------------------------------------------------------------
+           1. LEFT COLUMN: BRANDING, OUR SERVICES & LIVE EMBEDDED MAP
+           --------------------------------------------------------------- -->
+      <section class="left-column-wrapper">
+        
+        <div>
+          <h1 class="hero-title" style="margin-top: 0;">
+            Prestige transport for <br>
+            <span class="highlight-gradient">executives &amp; VIP clients.</span>
+          </h1>
+
+          <p class="hero-desc">
+            Experience reliable pre-booked airport transfers, point-to-point business travel, and luxury city transport with Vietnam's most dependable private hire fleet.
+          </p>
+        </div>
+
+        <!-- Our Services List (Exact Prompt Requirements) -->
+        <div class="services-box">
+          <div class="services-box-header">
+            <h2 class="services-box-title">
+              <i data-lucide="layers" style="width: 17px; height: 17px; color: var(--primary-light);"></i>
+              Our Services
+            </h2>
+            <span style="font-size: 11px; font-family: var(--font-mono); color: var(--accent-emerald); font-weight: 700;">
+              GUARANTEED FIXED RATES
+            </span>
+          </div>
+
+          <ul class="services-list-items">
+            <!-- [icon] Private hire cars at your service -->
+            <li class="service-row-item">
+              <div class="service-icon-square">
+                <i data-lucide="car-taxi-front" style="width: 16px; height: 16px;"></i>
+              </div>
+              <div class="service-info-text">Private hire cars at your service</div>
+            </li>
+
+            <!-- [icon] Pre-booked & reliable transport -->
+            <li class="service-row-item">
+              <div class="service-icon-square">
+                <i data-lucide="calendar-check" style="width: 16px; height: 16px;"></i>
+              </div>
+              <div class="service-info-text">Pre-booked &amp; reliable transport</div>
+            </li>
+
+            <!-- [icon] 24/7 client coordination & safety -->
+            <li class="service-row-item">
+              <div class="service-icon-square">
+                <i data-lucide="shield-check" style="width: 16px; height: 16px;"></i>
+              </div>
+              <div class="service-info-text">24/7 client coordination &amp; safety</div>
+            </li>
+
+            <!-- [icon] Guaranteed best rates -->
+            <li class="service-row-item">
+              <div class="service-icon-square">
+                <i data-lucide="badge-check" style="width: 16px; height: 16px;"></i>
+              </div>
+              <div class="service-info-text">Guaranteed best rates</div>
+            </li>
+
+            <!-- [icon] Extensive fleet & professional drivers -->
+            <li class="service-row-item">
+              <div class="service-icon-square">
+                <i data-lucide="award" style="width: 16px; height: 16px;"></i>
+              </div>
+              <div class="service-info-text">Extensive fleet &amp; professional drivers</div>
+            </li>
+          </ul>
+        </div>
+
+        <!-- -------------------------------------------------------------
+             PROMINENT LIVE INTERACTIVE MAP WIDGET WITH REAL-TIME GPS & ETA
+             ------------------------------------------------------------- -->
+        <div class="live-map-card-container">
+          
+          <!-- Top Control Header: Map View & Info -->
+          <div class="live-map-header">
+            <div class="live-map-header-title">
+              <span class="live-radar-pulse"></span>
+              <span>Live Chauffeur GPS Telemetry</span>
+            </div>
+
+            <!-- Map View Layer Switcher -->
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 11px; font-family: var(--font-mono); color: var(--text-dim);">MAP VIEW:</span>
+              <div class="map-route-pills">
+                <button class="route-pill-btn active" id="btn-l-street" onclick="changeMapTileStyle('street')">Street</button>
+                <button class="route-pill-btn" id="btn-l-dark" onclick="changeMapTileStyle('dark')">Night</button>
+                <button class="route-pill-btn" id="btn-l-sat" onclick="changeMapTileStyle('satellite')">Satellite</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- VIP Route Preset Selector (Clear Purpose & Explicit Role) -->
+          <div class="route-preset-selector-bar">
+            <div class="route-preset-label-col">
+              <div style="display:flex; align-items:center; gap:6px;">
+                <i data-lucide="route" style="width: 14px; height: 14px; color: var(--primary-light);"></i>
+                <span>SELECT PRE-BOOKED VIP ROUTE (AUTO-FILLS FORM &amp; MAP):</span>
+              </div>
+              <span style="font-size: 10px; color: var(--accent-emerald);">● FIXED PRICE GUARANTEE</span>
+            </div>
+
+            <div class="route-preset-buttons-row">
+              <button class="route-preset-card-btn active" id="btn-r-d7" onclick="switchRoutePreset('d7-sgn')">
+                <div class="btn-preset-main">
+                  <span>District 7 ➔ SGN</span>
+                  <i data-lucide="check" class="preset-active-check" style="width: 12px; height: 12px; margin-left: auto;"></i>
+                </div>
+                <div class="btn-preset-sub">123 Nguyen Van Linh ➔ Airport VIP (450K)</div>
+              </button>
+
+              <button class="route-preset-card-btn" id="btn-r-d1" onclick="switchRoutePreset('d1-sgn')">
+                <div class="btn-preset-main">
+                  <span>District 1 ➔ SGN</span>
+                  <i data-lucide="check" class="preset-active-check" style="width: 12px; height: 12px; margin-left: auto; display:none;"></i>
+                </div>
+                <div class="btn-preset-sub">Park Hyatt D1 ➔ Airport VIP (350K)</div>
+              </button>
+
+              <button class="route-preset-card-btn" id="btn-r-l81" onclick="switchRoutePreset('l81-d7')">
+                <div class="btn-preset-main">
+                  <span>Landmark 81 ➔ D7</span>
+                  <i data-lucide="check" class="preset-active-check" style="width: 12px; height: 12px; margin-left: auto; display:none;"></i>
+                </div>
+                <div class="btn-preset-sub">Landmark 81 ➔ Crescent Mall (420K)</div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Active Synced Route Bar showing live pickup & destination synced to registration form -->
+          <div class="route-active-synced-bar">
+            <div class="synced-point-badge">
+              <span class="synced-dot pickup"></span>
+              <span>Pickup: <strong id="synced-pickup-name" style="color:var(--text-main);">123 Nguyen Van Linh, District 7</strong></span>
+            </div>
+            <i data-lucide="arrow-right" style="width: 12px; height: 12px; color: var(--text-dim);"></i>
+            <div class="synced-point-badge">
+              <span class="synced-dot dropoff"></span>
+              <span>Dropoff: <strong id="synced-dropoff-name" style="color:var(--text-main);">Tan Son Nhat Airport (SGN)</strong></span>
+            </div>
+            <span style="margin-left: auto; font-family: var(--font-mono); font-size: 11px; color: var(--primary);" id="synced-sync-tag">⚡ Form Address Synced</span>
+          </div>
+
+          <!-- Real-Time Telemetry Bar: Live Distance in Meters & Countdown ETA -->
+          <div class="telemetry-live-bar">
+            <div class="telemetry-metrics-cluster">
+              <div class="telemetry-box">
+                <span class="t-label">LIVE STATUS</span>
+                <span class="driver-status-live" id="t-live-status">● EN ROUTE TO YOU</span>
+              </div>
+
+              <div class="telemetry-box">
+                <span class="t-label">DISTANCE TO DRIVER</span>
+                <span class="t-value highlight-blue" id="t-live-distance">480 METERS</span>
+              </div>
+
+              <div class="telemetry-box">
+                <span class="t-label">ESTIMATED PICKUP ETA</span>
+                <span class="t-value highlight-green" id="t-live-eta">2 MINS 15 SECS</span>
+              </div>
+
+              <div class="telemetry-box">
+                <span class="t-label">SPEED</span>
+                <span class="t-value" id="t-live-speed">38 km/h</span>
+              </div>
+            </div>
+
+            <div class="map-action-ctrls">
+              <button class="btn-gps-locate" onclick="locateUserGPSPosition()" title="Locate my real-time GPS position">
+                <i data-lucide="crosshair" style="width: 14px; height: 14px;"></i>
+                <span>Locate Me</span>
+              </button>
+              <button class="btn-sim-rush" onclick="rushDriverSimulation()" title="Speed up car simulation to test arrival">
+                <i data-lucide="zap" style="width: 13px; height: 13px;"></i>
+                <span>Rush Driver (3x)</span>
+              </button>
+              <button class="btn-sim-rush" onclick="resetDriverSimulation()" title="Reset car position">
+                <i data-lucide="rotate-ccw" style="width: 13px; height: 13px;"></i>
+                <span>Reset</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Embedded Map Canvas -->
+          <div class="map-embed-viewport">
+            <div id="embedded-hcmc-map"></div>
+
+            <!-- Overlay Real-Time HUD -->
+            <div class="map-hud-overlay">
+              <div class="hud-trip-stats">
+                <div class="hud-stat-item">
+                  <span class="hud-stat-label">Route</span>
+                  <span class="hud-stat-val" id="hud-route-label">14.2 km • 28 mins</span>
+                </div>
+                <div class="hud-stat-item">
+                  <span class="hud-stat-label">Fixed Quote</span>
+                  <span class="hud-stat-val" style="color: var(--accent-emerald);" id="hud-price-label">450,000 VND</span>
+                </div>
+              </div>
+
+              <div class="hud-driver-chip">
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80" alt="Chauffeur" class="hud-driver-img" />
+                <div>
+                  <div style="font-size: 13px; font-weight: 700; color: #fff;">Tran Hoang Nam (★ 4.99)</div>
+                  <div style="font-size: 11px; font-family: var(--font-mono); color: var(--primary-light);">Mercedes S-Class (51H-998.88)</div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ---------------------------------------------------------------
+           2. RIGHT COLUMN: MAIN FORM (EXACT SPECIFICATIONS)
+           --------------------------------------------------------------- -->
+      <section class="registration-col-wrapper">
+        <div class="auth-glass-card">
+          
+          <div class="auth-card-header">
+            <h2 class="auth-title-large" id="form-auth-heading">Create an account</h2>
+            <p class="auth-subtitle-text">
+              Already have an account? <a href="login.html" class="auth-switch-link">Log in</a>
+            </p>
+          </div>
+
+          <form id="auth-main-form" novalidate onsubmit="handleRegistrationSubmit(event)">
+
+            <!-- 1. Full Name *** (Shows Error State) -->
+            <div class="field-group has-error" id="grp-fullname">
+              <label class="field-label">
+                <span>Full Name</span>
+                <span class="required-stars">***</span>
+              </label>
+              <div class="field-input-wrapper">
+                <span class="input-icon-left-slot"><i data-lucide="user" style="width: 16px; height: 16px;"></i></span>
+                <input 
+                  type="text" 
+                  class="field-input" 
+                  id="f-fullname" 
+                  value="" 
+                  placeholder="Enter your full name" 
+                  oninput="clearFieldError('fullname')" 
+                />
+              </div>
+              <div class="validation-error-text" id="err-fullname">
+                <i data-lucide="alert-circle" style="width: 14px; height: 14px;"></i>
+                <span>(!) Full Name is required</span>
+              </div>
+            </div>
+
+            <!-- 2. Mobile Number *** (Normal State: "+84 901 234 567") -->
+            <div class="field-group" id="grp-mobile">
+              <label class="field-label">
+                <span>Mobile Number</span>
+                <span class="required-stars">***</span>
+              </label>
+              <div class="field-input-wrapper">
+                <span class="input-icon-left-slot"><i data-lucide="phone" style="width: 16px; height: 16px;"></i></span>
+                <input 
+                  type="text" 
+                  class="field-input" 
+                  id="f-mobile" 
+                  value="+84 901 234 567" 
+                  placeholder="+84 ..." 
+                  oninput="clearFieldError('mobile')" 
+                />
+              </div>
+              <div class="validation-error-text" id="err-mobile">
+                <i data-lucide="alert-circle" style="width: 14px; height: 14px;"></i>
+                <span>(!) Valid mobile number is required</span>
+              </div>
+            </div>
+
+            <!-- 3. Email *** (Shows Error State: "user@invalid") -->
+            <div class="field-group has-error" id="grp-email">
+              <label class="field-label">
+                <span>Email</span>
+                <span class="required-stars">***</span>
+              </label>
+              <div class="field-input-wrapper">
+                <span class="input-icon-left-slot"><i data-lucide="mail" style="width: 16px; height: 16px;"></i></span>
+                <input 
+                  type="email" 
+                  class="field-input" 
+                  id="f-email" 
+                  value="user@invalid" 
+                  placeholder="name@company.com" 
+                  oninput="clearFieldError('email')" 
+                />
+              </div>
+              <div class="validation-error-text" id="err-email">
+                <i data-lucide="alert-circle" style="width: 14px; height: 14px;"></i>
+                <span>(!) Invalid email format</span>
+              </div>
+            </div>
+
+            <!-- 4. Address *** (Normal State: "123 Nguyen Van Linh, District 7, HCMC") -->
+            <div class="field-group" id="grp-address">
+              <label class="field-label">
+                <span>Address</span>
+                <span class="required-stars">***</span>
+              </label>
+              <div class="field-input-wrapper">
+                <span class="input-icon-left-slot"><i data-lucide="map-pin" style="width: 16px; height: 16px;"></i></span>
+                <input 
+                  type="text" 
+                  class="field-input" 
+                  id="f-address" 
+                  value="123 Nguyen Van Linh, District 7, HCMC" 
+                  placeholder="Enter pickup address" 
+                  oninput="clearFieldError('address')" 
+                />
+              </div>
+              <div class="validation-error-text" id="err-address">
+                <i data-lucide="alert-circle" style="width: 14px; height: 14px;"></i>
+                <span>(!) Address is required</span>
+              </div>
+            </div>
+
+            <!-- 5. Password *** (Normal State: "••••••••" with hidden eye icon) -->
+            <div class="field-group" id="grp-password">
+              <label class="field-label">
+                <span>Password</span>
+                <span class="required-stars">***</span>
+              </label>
+              <div class="field-input-wrapper">
+                <span class="input-icon-left-slot"><i data-lucide="lock" style="width: 16px; height: 16px;"></i></span>
+                <input 
+                  type="password" 
+                  class="field-input" 
+                  id="f-password" 
+                  value="12345678" 
+                  placeholder="••••••••" 
+                  oninput="evalPasswordStrength()" 
+                />
+                <span class="input-icon-right-slot" onclick="togglePasswordVisibility('f-password')">
+                  <i data-lucide="eye" style="width: 16px; height: 16px;"></i>
+                </span>
+              </div>
+              <div class="password-strength-track">
+                <div class="strength-segment active-med" id="st-seg-1"></div>
+                <div class="strength-segment active-med" id="st-seg-2"></div>
+                <div class="strength-segment" id="st-seg-3"></div>
+              </div>
+            </div>
+
+            <!-- 6. Confirm Password *** (Shows Error State: "•••••••") -->
+            <div class="field-group has-error" id="grp-confirmpassword">
+              <label class="field-label">
+                <span>Confirm Password</span>
+                <span class="required-stars">***</span>
+              </label>
+              <div class="field-input-wrapper">
+                <span class="input-icon-left-slot"><i data-lucide="check-check" style="width: 16px; height: 16px;"></i></span>
+                <input 
+                  type="password" 
+                  class="field-input" 
+                  id="f-confirmpassword" 
+                  value="1234567" 
+                  placeholder="•••••••" 
+                  oninput="clearFieldError('confirmpassword')" 
+                />
+                <span class="input-icon-right-slot" onclick="togglePasswordVisibility('f-confirmpassword')">
+                  <i data-lucide="eye" style="width: 16px; height: 16px;"></i>
+                </span>
+              </div>
+              <div class="validation-error-text" id="err-confirmpassword">
+                <i data-lucide="alert-circle" style="width: 14px; height: 14px;"></i>
+                <span>(!) Passwords do not match</span>
+              </div>
+            </div>
+
+            <!-- 7. Payment Method Dropdown: Default Payment Method (Mock Cards) *** -->
+            <div class="payment-section-box">
+              <label class="field-label">
+                <span>Default Payment Method (Mock Cards)</span>
+                <span class="required-stars">***</span>
+              </label>
+
+              <!-- Interactive Selected Card Badge Preview -->
+              <div class="interactive-card-badge">
+                <div class="card-badge-left">
+                  <div class="card-gold-chip"></div>
+                  <div>
+                    <div class="card-number-label" id="badge-card-number">Visa (Mock Card) **** 4242</div>
+                    <div style="font-size: 11px; color: var(--text-dim);">Primary Corporate Billing Card</div>
+                  </div>
+                </div>
+                <div class="card-brand-tag" id="badge-card-type">VISA</div>
+              </div>
+
+              <!-- Dropdown Trigger -->
+              <div class="dropdown-container-relative">
+                <div class="select-card-trigger" onclick="toggleCardDropdownMenu()">
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <i data-lucide="credit-card" style="width: 16px; height: 16px; color: var(--primary-light);"></i>
+                    <span id="trigger-card-title">Visa (Mock Card) **** 4242</span>
+                  </div>
+                  <i data-lucide="chevron-down" id="card-dropdown-arrow" style="width: 16px; height: 16px; transition: transform 0.2s;"></i>
+                </div>
+
+                <!-- Dropdown Menu showing exact 3 mock cards -->
+                <div class="select-card-menu open" id="dropdown-card-options">
+                  <div class="select-card-option selected" onclick="pickCardOption('Visa (Mock Card) **** 4242', 'VISA')">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                      <i data-lucide="check" style="width:14px; height:14px; color:var(--primary-light);"></i>
+                      <span>Visa (Mock Card) **** 4242</span>
+                    </div>
+                    <span style="font-family:var(--font-mono); font-size:11px; color:var(--text-dim);">Selected</span>
+                  </div>
+
+                  <div class="select-card-option" onclick="pickCardOption('Mastercard (Mock Card) **** 5555', 'MASTERCARD')">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                      <i data-lucide="credit-card" style="width:14px; height:14px; color:var(--text-dim);"></i>
+                      <span>Mastercard (Mock Card) **** 5555</span>
+                    </div>
+                    <span style="font-family:var(--font-mono); font-size:11px; color:var(--text-dim);">Option</span>
+                  </div>
+
+                  <div class="select-card-option" onclick="pickCardOption('American Express (Mock Card) **** 1007', 'AMEX')">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                      <i data-lucide="credit-card" style="width:14px; height:14px; color:var(--text-dim);"></i>
+                      <span>American Express (Mock Card) **** 1007</span>
+                    </div>
+                    <span style="font-family:var(--font-mono); font-size:11px; color:var(--text-dim);">Corporate</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 8. Footer: Terms Checkbox & Solid Register Button -->
+            <div class="terms-row" onclick="toggleAgreement()">
+              <div class="custom-checkbox-sq checked" id="sq-terms-box">
+                <i data-lucide="check" style="width: 14px; height: 14px;"></i>
+              </div>
+              <div class="terms-text-label">
+                [x] I agree to the <a href="javascript:void(0)" class="auth-switch-link">Terms &amp; Privacy Policy</a> and VIP chauffeur service agreement.
+              </div>
+            </div>
+
+            <button type="submit" class="btn-register-solid" id="btn-submit-registration">
+              <span>REGISTER</span>
+              <i data-lucide="arrow-right" style="width: 16px; height: 16px;"></i>
+            </button>
+
+            <!-- Quick Testing Helpers Toolbar -->
+            <div class="demo-testing-bar">
+              <button type="button" class="demo-test-btn" onclick="applyStrictPromptErrors()">
+                <i data-lucide="alert-triangle" style="width: 13px; height: 13px; color: #ef4444;"></i>
+                <span>Simulate Error States</span>
+              </button>
+              <button type="button" class="demo-test-btn" onclick="applyValidDemoProfile()">
+                <i data-lucide="check-circle-2" style="width: 13px; height: 13px; color: #10b981;"></i>
+                <span>Pre-fill Valid VIP Data</span>
+              </button>
+            </div>
+
+          </form>
+
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- Booking Confirmation Modal -->
+  <div class="modal-overlay-backdrop" id="booking-confirmed-modal">
+    <div class="modal-dialog-card">
+      <div class="modal-icon-badge">
+        <i data-lucide="check" style="width: 30px; height: 30px;"></i>
+      </div>
+      <h3 style="font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 6px;">Chauffeur Dispatched!</h3>
+      <p style="color: var(--text-muted); font-size: 13.5px; margin-bottom: 20px;">
+        Mercedes-Benz S-Class (51H-998.88) is navigating to your pickup location.
+      </p>
+
+      <div style="background: var(--bg-input); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 14px 16px; text-align: left; margin-bottom: 20px; font-size: 13px;">
+        <div style="display:flex; justify-content:space-between; margin-bottom: 6px;">
+          <span style="color:var(--text-dim);">Passenger:</span>
+          <span style="color:#fff; font-weight:600;" id="modal-client-name">Nguyen Van An</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom: 6px;">
+          <span style="color:var(--text-dim);">Charged to:</span>
+          <span style="color:#fff; font-weight:600;" id="modal-card-label">Visa (Mock Card) **** 4242</span>
+        </div>
+        <div style="display:flex; justify-content:space-between;">
+          <span style="color:var(--text-dim);">Guaranteed Rate:</span>
+          <span style="color:var(--accent-emerald); font-weight:700;">450,000 VND (All tolls included)</span>
+        </div>
+      </div>
+
+      <button class="btn-register-solid" onclick="closeBookingConfirmedModal()">
+        <span>TRACK CHAUFFEUR ON LIVE MAP</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Notifications Rack -->
+  <div class="toast-notifications-rack" id="toast-rack"></div>
+
+  <script>
+    // Initialize Lucide Icons
+    lucide.createIcons();
+
+    // App State Management
+    let activeCardSelected = "Visa (Mock Card) **** 4242";
+    let activeCardBrand = "VISA";
+    let isTermsChecked = true;
+    let authModeCurrent = "register";
+    let leafletEmbeddedMap = null;
+    let mapRouteLine = null;
+    let mapPickupMarker = null;
+    let mapDropoffMarker = null;
+    let mapCarMarker = null;
+    let currentTileLayer = null;
+    let activeMapStyle = 'street';
+
+    // Telemetry & Driver Simulation State
+    let liveDriverPosition = null;
+    let livePassengerPosition = [10.7296, 106.7218]; // 123 Nguyen Van Linh, D7
+    let currentDestinationPosition = [10.8185, 106.6588]; // Tan Son Nhat Airport SGN
+    let driverSimulationTimer = null;
+    let simulationSpeedMultiplier = 1;
+    let currentRouteWaypoints = [];
+    let driverProgressFraction = 0;
+
+    // Free, high-resolution tile layers with ZERO watermarks & NO API key required
+    const tileProviders = {
+      street: {
+        layer: () => L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+          maxZoom: 19,
+          attribution: '&copy; Esri World Street Map'
+        })
+      },
+      dark: {
+        layer: () => L.layerGroup([
+          L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', { maxZoom: 16 }),
+          L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', { maxZoom: 16 })
+        ])
+      },
+      satellite: {
+        layer: () => L.layerGroup([
+          L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19 }),
+          L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19 })
+        ])
+      }
+    };
+
+    // Calculate exact spherical distance in meters
+    function computeDistanceMeters(lat1, lon1, lat2, lon2) {
+      const R = 6371e3; // Earth radius in metres
+      const rad = Math.PI / 180;
+      const phi1 = lat1 * rad;
+      const phi2 = lat2 * rad;
+      const deltaPhi = (lat2 - lat1) * rad;
+      const deltaLambda = (lon2 - lon1) * rad;
+
+      const a = Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) +
+                Math.cos(phi1) * Math.cos(phi2) *
+                Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return Math.round(R * c);
+    }
+
+    function initEmbeddedMap() {
+      const mapContainer = document.getElementById('embedded-hcmc-map');
+      if (!mapContainer) return;
+
+      const defaultCenter = [10.7769, 106.7009];
+      leafletEmbeddedMap = L.map('embedded-hcmc-map', {
+        zoomControl: true,
+        attributionControl: false
+      }).setView(defaultCenter, 12);
+
+      // Default: World Street Map (shows streets, bridges, airport, rivers clearly)
+      currentTileLayer = tileProviders.street.layer();
+      currentTileLayer.addTo(leafletEmbeddedMap);
+
+      // Allow clicking on map to reposition pickup point
+      leafletEmbeddedMap.on('click', (e) => {
+        setNewPassengerPickupLocation(e.latlng.lat, e.latlng.lng, "Selected Pickup Spot");
+      });
+
+      // Render initial route: D7 -> SGN
+      switchRoutePreset('d7-sgn');
+    }
+
+    function changeMapTileStyle(styleKey) {
+      if (!leafletEmbeddedMap || !tileProviders[styleKey]) return;
+
+      document.querySelectorAll('#btn-l-street, #btn-l-dark, #btn-l-sat').forEach(b => b.classList.remove('active'));
+      if (styleKey === 'street') document.getElementById('btn-l-street').classList.add('active');
+      if (styleKey === 'dark') document.getElementById('btn-l-dark').classList.add('active');
+      if (styleKey === 'satellite') document.getElementById('btn-l-sat').classList.add('active');
+
+      if (currentTileLayer) {
+        leafletEmbeddedMap.removeLayer(currentTileLayer);
+      }
+
+      currentTileLayer = tileProviders[styleKey].layer();
+      currentTileLayer.addTo(leafletEmbeddedMap);
+      activeMapStyle = styleKey;
+
+      triggerToast(`Switched map style to: ${styleKey.toUpperCase()}`);
+    }
+
+    // Real-time GPS Geolocation API
+    function locateUserGPSPosition() {
+      if (!navigator.geolocation) {
+        triggerToast("Geolocation is not supported by your browser.");
+        return;
+      }
+
+      triggerToast("Accessing device GPS coordinates...");
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+          setNewPassengerPickupLocation(lat, lon, "Your Live GPS Location (Precision: High)");
+          triggerToast("Successfully pinpointed your real-time GPS location!");
+        },
+        (error) => {
+          triggerToast("GPS access permission denied. Using 123 Nguyen Van Linh, D7.");
+          setNewPassengerPickupLocation(10.7296, 106.7218, "123 Nguyen Van Linh, D7 (Default GPS)");
+        },
+        { enableHighAccuracy: true, timeout: 8000 }
+      );
+    }
+
+    // Set new pickup location
+    function setNewPassengerPickupLocation(lat, lon, label) {
+      livePassengerPosition = [lat, lon];
+
+      if (mapPickupMarker && leafletEmbeddedMap) {
+        mapPickupMarker.setLatLng(livePassengerPosition);
+        mapPickupMarker.setTooltipContent(label);
+      }
+
+      // Re-initialize driver route to approach this pickup location
+      setupRouteAndDriverTrajectory(livePassengerPosition, currentDestinationPosition, label);
+    }
+
+    function switchRoutePreset(presetKey) {
+      document.querySelectorAll('#btn-r-d7, #btn-r-d1, #btn-r-l81').forEach(btn => {
+        btn.classList.remove('active');
+        const check = btn.querySelector('.preset-active-check');
+        if (check) check.style.display = 'none';
+      });
+      
+      let pCoord, dCoord, statsText, priceText, pLabel, dLabel, formAddressVal;
+
+      if (presetKey === 'd7-sgn') {
+        const b = document.getElementById('btn-r-d7');
+        if (b) {
+          b.classList.add('active');
+          const check = b.querySelector('.preset-active-check');
+          if (check) check.style.display = 'block';
+        }
+        pCoord = hcmLocations.d7;
+        dCoord = hcmLocations.sgn;
+        pLabel = "Pickup: 123 Nguyen Van Linh, D7";
+        dLabel = "Dropoff: Tan Son Nhat Airport SGN";
+        statsText = "14.2 km • 28 mins (Traffic: Light)";
+        priceText = "450,000 VND";
+        formAddressVal = "123 Nguyen Van Linh, District 7, HCMC";
+      } else if (presetKey === 'd1-sgn') {
+        const b = document.getElementById('btn-r-d1');
+        if (b) {
+          b.classList.add('active');
+          const check = b.querySelector('.preset-active-check');
+          if (check) check.style.display = 'block';
+        }
+        pCoord = hcmLocations.d1;
+        dCoord = hcmLocations.sgn;
+        pLabel = "Pickup: Park Hyatt Saigon, D1";
+        dLabel = "Dropoff: Tan Son Nhat Airport SGN";
+        statsText = "8.6 km • 18 mins (Direct Highway)";
+        priceText = "350,000 VND";
+        formAddressVal = "Park Hyatt Saigon, 2 Lam Son Square, District 1, HCMC";
+      } else {
+        const b = document.getElementById('btn-r-l81');
+        if (b) {
+          b.classList.add('active');
+          const check = b.querySelector('.preset-active-check');
+          if (check) check.style.display = 'block';
+        }
+        pCoord = hcmLocations.l81;
+        dCoord = hcmLocations.d7;
+        pLabel = "Pickup: Landmark 81 Tower";
+        dLabel = "Dropoff: Crescent Mall, D7";
+        statsText = "11.4 km • 22 mins (Via Thu Thiem)";
+        priceText = "420,000 VND";
+        formAddressVal = "Landmark 81 Tower, 720A Dien Bien Phu, Binh Thanh, HCMC";
+      }
+
+      // Update HUD and Synced Bar
+      document.getElementById('hud-route-label').innerText = statsText;
+      document.getElementById('hud-price-label').innerText = priceText;
+      document.getElementById('synced-pickup-name').innerText = pLabel.replace("Pickup: ", "");
+      document.getElementById('synced-dropoff-name').innerText = dLabel.replace("Dropoff: ", "");
+
+      // Synchronize Form Address field & add visual pulse
+      const addrInput = document.getElementById('f-address');
+      if (addrInput) {
+        addrInput.value = formAddressVal;
+        clearFieldError('address');
+        addrInput.style.borderColor = "#164B3B";
+        addrInput.style.boxShadow = "0 0 0 3px rgba(22, 75, 59, 0.25)";
+        setTimeout(() => {
+          addrInput.style.borderColor = "";
+          addrInput.style.boxShadow = "";
+        }, 1200);
+      }
+
+      livePassengerPosition = pCoord;
+      currentDestinationPosition = dCoord;
+
+      setupRouteAndDriverTrajectory(pCoord, dCoord, pLabel, dLabel);
+      triggerToast(`Selected: ${pLabel} ➔ ${dLabel}. Form address updated!`);
+      lucide.createIcons();
+    }
+
+    function setupRouteAndDriverTrajectory(pCoord, dCoord, pLabel, dLabel) {
+      if (!leafletEmbeddedMap) return;
+
+      if (mapRouteLine) leafletEmbeddedMap.removeLayer(mapRouteLine);
+      if (mapPickupMarker) leafletEmbeddedMap.removeLayer(mapPickupMarker);
+      if (mapDropoffMarker) leafletEmbeddedMap.removeLayer(mapDropoffMarker);
+      if (mapCarMarker) leafletEmbeddedMap.removeLayer(mapCarMarker);
+
+      // Route line from Pickup to Dropoff
+      const midPoint = [(pCoord[0]+dCoord[0])/2 + 0.012, (pCoord[1]+dCoord[1])/2 - 0.008];
+      currentRouteWaypoints = [pCoord, midPoint, dCoord];
+
+      mapRouteLine = L.polyline(currentRouteWaypoints, {
+        color: '#164B3B',
+        weight: 6,
+        opacity: 0.95,
+        dashArray: '8, 8'
+      }).addTo(leafletEmbeddedMap);
+
+      // Draggable Pickup Pin with pulse ring
+      const pIcon = L.divIcon({
+        className: 'custom-map-pin',
+        html: `<div class="gps-passenger-pulse"></div>`
+      });
+      mapPickupMarker = L.marker(pCoord, { icon: pIcon, draggable: true }).addTo(leafletEmbeddedMap);
+      mapPickupMarker.bindTooltip(pLabel || "Pickup Location (Drag to change)", { permanent: true, direction: 'top', className: 'map-marker-tooltip pickup' });
+      
+      mapPickupMarker.on('dragend', (e) => {
+        const pos = e.target.getLatLng();
+        setNewPassengerPickupLocation(pos.lat, pos.lng, "Adjusted Pickup Spot");
+      });
+
+      // Dropoff Pin
+      const dIcon = L.divIcon({
+        className: 'custom-map-pin',
+        html: `<div style="width:18px;height:18px;background:#B94A48;border:3px solid #fff;border-radius:50%;box-shadow:0 0 14px rgba(185,74,72,0.6);"></div>`
+      });
+      mapDropoffMarker = L.marker(dCoord, { icon: dIcon }).addTo(leafletEmbeddedMap);
+      mapDropoffMarker.bindTooltip(dLabel || "Destination", { permanent: true, direction: 'top', className: 'map-marker-tooltip dropoff' });
+
+      // Chauffeur Car starts approaching from ~650m away on adjacent street
+      const carStartOffset = [pCoord[0] + 0.0045, pCoord[1] - 0.0048];
+      liveDriverPosition = [...carStartOffset];
+
+      const carIcon = L.divIcon({
+        className: 'car-map-pin',
+        html: `<div class="chauffeur-car-badge"><span style="width:7px;height:7px;background:#C69C54;border-radius:50%;display:inline-block;"></span> Mercedes S450 (51H-998.88)</div>`
+      });
+      mapCarMarker = L.marker(liveDriverPosition, { icon: carIcon }).addTo(leafletEmbeddedMap);
+
+      leafletEmbeddedMap.fitBounds(L.latLngBounds([pCoord, liveDriverPosition, dCoord]), { padding: [60, 60] });
+
+      // Start / restart live driver telemetry & animation loop
+      startDriverAnimationLoop(carStartOffset, pCoord);
+    }
+
+    function startDriverAnimationLoop(startCoord, targetCoord) {
+      if (driverSimulationTimer) clearInterval(driverSimulationTimer);
+      driverProgressFraction = 0;
+      simulationSpeedMultiplier = 1;
+
+      updateTelemetryMetrics(startCoord, targetCoord);
+
+      driverSimulationTimer = setInterval(() => {
+        // Step driver closer to passenger
+        const stepRate = 0.015 * simulationSpeedMultiplier;
+        driverProgressFraction += stepRate;
+
+        if (driverProgressFraction >= 1) {
+          driverProgressFraction = 1;
+          liveDriverPosition = [targetCoord[0], targetCoord[1]];
+          mapCarMarker.setLatLng(liveDriverPosition);
+
+          // Arrived state
+          const statusElem = document.getElementById('t-live-status');
+          if (statusElem) {
+            statusElem.innerHTML = "● ARRIVED AT PICKUP SPOT!";
+            statusElem.style.color = "#10b981";
+          }
+          const distElem = document.getElementById('t-live-distance');
+          if (distElem) {
+            distElem.innerText = "0 METERS (HERE)";
+            distElem.classList.remove('highlight-blue');
+            distElem.classList.add('highlight-green');
+          }
+          const etaElem = document.getElementById('t-live-eta');
+          if (etaElem) etaElem.innerText = "ARRIVED (0 SECS)";
+          const speedElem = document.getElementById('t-live-speed');
+          if (speedElem) speedElem.innerText = "0 km/h (Parked)";
+
+          clearInterval(driverSimulationTimer);
+          triggerToast("Chauffeur Tran Hoang Nam has arrived at your pickup location!");
+          return;
+        }
+
+        // Interpolate position along line to target
+        const currentLat = startCoord[0] + (targetCoord[0] - startCoord[0]) * driverProgressFraction;
+        const currentLon = startCoord[1] + (targetCoord[1] - startCoord[1]) * driverProgressFraction;
+        liveDriverPosition = [currentLat, currentLon];
+
+        mapCarMarker.setLatLng(liveDriverPosition);
+        updateTelemetryMetrics(liveDriverPosition, targetCoord);
+      }, 1000);
+    }
+
+    function updateTelemetryMetrics(driverCoord, passengerCoord) {
+      const distMeters = computeDistanceMeters(driverCoord[0], driverCoord[1], passengerCoord[0], passengerCoord[1]);
+      
+      // Calculate realistic ETA based on ~38 km/h (10.5 m/s)
+      const speedMPS = 10.5;
+      const etaSeconds = Math.round(distMeters / speedMPS);
+      const etaMins = Math.floor(etaSeconds / 60);
+      const etaSecs = etaSeconds % 60;
+
+      // Update distance display in METERS
+      const distElem = document.getElementById('t-live-distance');
+      if (distElem) {
+        if (distMeters < 1000) {
+          distElem.innerText = `${distMeters} METERS`;
+        } else {
+          distElem.innerText = `${distMeters} m (${(distMeters/1000).toFixed(1)} km)`;
+        }
+      }
+
+      // Update ETA display
+      const etaElem = document.getElementById('t-live-eta');
+      if (etaElem) {
+        if (etaMins > 0) {
+          etaElem.innerText = `${etaMins} MINS ${etaSecs} SECS`;
+        } else {
+          etaElem.innerText = `${etaSecs} SECS (ARRIVING)`;
+        }
+      }
+
+      // Update speed display
+      const speedElem = document.getElementById('t-live-speed');
+      if (speedElem) {
+        speedElem.innerText = `${Math.round(36 + Math.random() * 6)} km/h`;
+      }
+      const statusElem = document.getElementById('t-live-status');
+      if (statusElem) {
+        statusElem.innerHTML = "● EN ROUTE TO YOU";
+      }
+    }
+
+    // Rush driver simulation (3.5x speed)
+    function rushDriverSimulation() {
+      simulationSpeedMultiplier = 3.5;
+      triggerToast("Rushing driver simulation (3.5x speed) — arriving shortly!");
+    }
+
+    // Reset driver simulation
+    function resetDriverSimulation() {
+      if (livePassengerPosition) {
+        setupRouteAndDriverTrajectory(livePassengerPosition, currentDestinationPosition);
+        triggerToast("Driver simulation reset to starting point.");
+      }
+    }
+    function toggleCardDropdownMenu() {
+      const menu = document.getElementById('dropdown-card-options');
+      const arrow = document.getElementById('card-dropdown-arrow');
+      menu.classList.toggle('open');
+      if (menu.classList.contains('open')) {
+        arrow.style.transform = 'rotate(180deg)';
+      } else {
+        arrow.style.transform = 'rotate(0deg)';
+      }
+    }
+
+    // Pick card option from dropdown
+    function pickCardOption(cardName, brand) {
+      activeCardSelected = cardName;
+      activeCardBrand = brand;
+
+      document.getElementById('badge-card-number').innerText = cardName;
+      document.getElementById('badge-card-type').innerText = brand;
+      document.getElementById('trigger-card-title').innerText = cardName;
+
+      document.querySelectorAll('.select-card-option').forEach(opt => {
+        if (opt.innerText.includes(cardName)) {
+          opt.classList.add('selected');
+        } else {
+          opt.classList.remove('selected');
+        }
+      });
+
+      triggerToast(`Payment card selected: ${cardName}`);
+    }
+
+    // Password visibility toggle
+    function togglePasswordVisibility(fieldId) {
+      const input = document.getElementById(fieldId);
+      input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
+    // Terms agreement checkbox
+    function toggleAgreement() {
+      isTermsChecked = !isTermsChecked;
+      const box = document.getElementById('sq-terms-box');
+      if (isTermsChecked) {
+        box.classList.add('checked');
+      } else {
+        box.classList.remove('checked');
+      }
+    }
+
+    // Clear input validation error
+    function clearFieldError(fieldKey) {
+      const group = document.getElementById(`grp-${fieldKey}`);
+      if (group) group.classList.remove('has-error');
+    }
+
+    // Flag input validation error
+    function flagFieldError(fieldKey) {
+      const group = document.getElementById(`grp-${fieldKey}`);
+      if (group) group.classList.add('has-error');
+    }
+
+    // Simulate Prompt-exact validation errors
+    function applyStrictPromptErrors() {
+      document.getElementById('f-fullname').value = "";
+      document.getElementById('f-mobile').value = "+84 901 234 567";
+      document.getElementById('f-email').value = "user@invalid";
+      document.getElementById('f-address').value = "123 Nguyen Van Linh, District 7, HCMC";
+      document.getElementById('f-password').value = "12345678";
+      document.getElementById('f-confirmpassword').value = "1234567";
+
+      flagFieldError('fullname');
+      flagFieldError('email');
+      flagFieldError('confirmpassword');
+
+      triggerToast("Simulated validation error states from prompt specifications!");
+    }
+
+    // Pre-fill valid VIP profile
+    function applyValidDemoProfile() {
+      document.getElementById('f-fullname').value = "Nguyen Van An";
+      document.getElementById('f-mobile').value = "+84 901 234 567";
+      document.getElementById('f-email').value = "an.nguyen@enterprise.vn";
+      document.getElementById('f-address').value = "123 Nguyen Van Linh, District 7, HCMC";
+      document.getElementById('f-password').value = "ChauffeurVIP2026!";
+      document.getElementById('f-confirmpassword').value = "ChauffeurVIP2026!";
+
+      clearFieldError('fullname');
+      clearFieldError('mobile');
+      clearFieldError('email');
+      clearFieldError('address');
+      clearFieldError('password');
+      clearFieldError('confirmpassword');
+
+      evalPasswordStrength();
+      triggerToast("Pre-filled valid VIP passenger details!");
+    }
+
+    // Password strength check
+    function evalPasswordStrength() {
+      clearFieldError('password');
+      const val = document.getElementById('f-password').value;
+      const s1 = document.getElementById('st-seg-1');
+      const s2 = document.getElementById('st-seg-2');
+      const s3 = document.getElementById('st-seg-3');
+
+      s1.className = 'strength-segment';
+      s2.className = 'strength-segment';
+      s3.className = 'strength-segment';
+
+      if (val.length > 0 && val.length < 6) {
+        s1.classList.add('active-weak');
+      } else if (val.length >= 6 && val.length < 10) {
+        s1.classList.add('active-med');
+        s2.classList.add('active-med');
+      } else if (val.length >= 10) {
+        s1.classList.add('active-strong');
+        s2.classList.add('active-strong');
+        s3.classList.add('active-strong');
+      }
+    }
+
+    // Check logged in user on startup
+    window.addEventListener("DOMContentLoaded", () => {
+      const savedUser = localStorage.getItem('currentUser');
+      if (savedUser) {
+        try {
+          const u = JSON.parse(savedUser);
+          if (document.getElementById('top-nav-username') && u.name) {
+            document.getElementById('top-nav-username').innerText = u.name.split(' ')[0] || u.name;
+            const initials = u.name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase() || 'PH';
+            document.getElementById('top-nav-avatar').innerText = initials;
+          }
+        } catch (e) {}
+      }
+    });
+
+    // Handle Registration Submit with Backend API (AC1 - AC5)
+    async function handleRegistrationSubmit(e) {
+      e.preventDefault();
+
+      let hasInvalidField = false;
+      const name = document.getElementById('f-fullname').value.trim();
+      const mobile = document.getElementById('f-mobile') ? document.getElementById('f-mobile').value.trim() : '+84 901 234 567';
+      const email = document.getElementById('f-email').value.trim();
+      const address = document.getElementById('f-address') ? document.getElementById('f-address').value.trim() : '123 Nguyen Van Linh, District 7, HCMC';
+      const pw = document.getElementById('f-password').value;
+      const cpw = document.getElementById('f-confirmpassword').value;
+
+      // 1. Full name
+      if (!name) {
+        flagFieldError('fullname');
+        hasInvalidField = true;
+      } else {
+        clearFieldError('fullname');
+      }
+
+      // 2. Email
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        flagFieldError('email');
+        hasInvalidField = true;
+      } else {
+        clearFieldError('email');
+      }
+
+      // 3. Confirm Password
+      if (pw !== cpw || !cpw) {
+        flagFieldError('confirmpassword');
+        hasInvalidField = true;
+      } else {
+        clearFieldError('confirmpassword');
+      }
+
+      if (hasInvalidField) {
+        triggerToast("Please review the highlighted fields in red before registering.");
+        return;
+      }
+
+      // Button loading effect
+      const submitBtn = document.getElementById('btn-submit-registration');
+      const originalText = submitBtn.innerHTML;
+      submitBtn.innerHTML = `<span>SAVING TO BACKEND (AC1 - AC5)...</span>`;
+      submitBtn.disabled = true;
+
+      try {
+        const response = await fetch('http://localhost:5000/api/accounts/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name,
+            telephone: mobile || '+84 901 234 567',
+            email,
+            address: address || '123 Nguyen Van Linh, District 7, HCMC',
+            password: pw,
+            confirmPassword: cpw,
+            mockCardRef: activeCardSelected,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+          submitBtn.innerHTML = originalText;
+          submitBtn.disabled = false;
+          if (data.errors?.email) {
+            flagFieldError('email');
+            const errSpan = document.querySelector('#err-email span');
+            if (errSpan) errSpan.textContent = '(!) ' + data.errors.email;
+          }
+          triggerToast(data.message || data.errors?.email || "Registration failed", "error");
+          return;
+        }
+
+        // Success (AC1, AC4, AC5)
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+
+        localStorage.setItem('currentUser', JSON.stringify(data.account));
+        localStorage.setItem('registeredEmail', data.account.email);
+
+        // Update top nav
+        document.getElementById('top-nav-username').innerText = name.split(' ')[0] || 'VIP';
+        const initials = name.split(' ').map(w => w[0]).join('').substring(0,2).toUpperCase() || 'NV';
+        document.getElementById('top-nav-avatar').innerText = initials;
+
+        // Open modal
+        document.getElementById('modal-client-name').innerText = name;
+        document.getElementById('modal-card-label').innerText = activeCardSelected;
+        document.getElementById('booking-confirmed-modal').classList.add('open');
+
+        triggerToast(`🎉 Account ${data.account.accountCode} saved to Database & Email Sent (AC5)!`);
+      } catch (err) {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+        triggerToast(`Backend error: ${err.message}`, "error");
+      }
+    }
+
+    // Switch between Register and Login
+    function toggleFormAuthMode() {
+      const heading = document.getElementById('form-auth-heading');
+      const submitBtn = document.getElementById('btn-submit-registration');
+
+      if (authModeCurrent === 'register') {
+        authModeCurrent = 'login';
+        heading.innerText = 'Welcome Back';
+        submitBtn.innerHTML = `<span>LOG IN</span> <i data-lucide="log-in" style="width:16px;height:16px;"></i>`;
+        triggerToast("Switched to Login mode.");
+      } else {
+        authModeCurrent = 'register';
+        heading.innerText = 'Create an account';
+        submitBtn.innerHTML = `<span>REGISTER</span> <i data-lucide="arrow-right" style="width:16px;height:16px;"></i>`;
+        triggerToast("Switched to Register mode.");
+      }
+      lucide.createIcons();
+    }
+
+    function closeBookingConfirmedModal() {
+      document.getElementById('booking-confirmed-modal').classList.remove('open');
+      triggerToast("Tracking Tran Hoang Nam on the live map.");
+    }
+
+    // Interactive Toast Notification
+    function triggerToast(msg, type = "info") {
+      const rack = document.getElementById('toast-rack');
+      const toast = document.createElement('div');
+      toast.className = 'toast-pill-item';
+      let iconColor = type === 'error' ? '#B94A48' : '#3A8B68';
+      let iconName = type === 'error' ? 'alert-octagon' : 'info';
+      toast.innerHTML = `<i data-lucide="${iconName}" style="width:15px;height:15px;color:${iconColor};"></i> <span>${msg}</span>`;
+      rack.appendChild(toast);
+      lucide.createIcons();
+      setTimeout(() => {
+        toast.remove();
+      }, 3500);
+    }
+
+    // Window load & auto init
+    window.addEventListener('DOMContentLoaded', () => {
+      initEmbeddedMap();
+      setTimeout(() => {
+        if (leafletEmbeddedMap) leafletEmbeddedMap.invalidateSize();
+      }, 300);
+    });
+
+    window.addEventListener('resize', () => {
+      if (leafletEmbeddedMap) leafletEmbeddedMap.invalidateSize();
+    });
+  </script>
+  <!-- AC Live Data & Emails Modal -->
+  <div id="ac-modal" style="display:none; position:fixed; inset:0; background:rgba(37,53,46,0.55); backdrop-filter:blur(8px); z-index:9999; align-items:center; justify-content:center; padding:20px;">
+    <div style="background:#FFFFFF; border:1px solid #E8E2D5; border-radius:18px; max-width:960px; width:100%; max-height:90vh; overflow-y:auto; padding:28px; box-shadow:0 25px 60px rgba(37,53,46,0.2);">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #E8E2D5; padding-bottom:16px; margin-bottom:20px;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <i data-lucide="database" style="width:22px; height:22px; color:#164B3B;"></i>
+          <h3 style="font-family:'Outfit', sans-serif; font-size:20px; font-weight:700; color:#164B3B; margin:0;">PostgreSQL Database &amp; Automated Emails (AC4 &amp; AC5)</h3>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <button type="button" onclick="refreshAcModalData()" style="background:#FAF7F2; color:#164B3B; border:1px solid #E8E2D5; border-radius:8px; padding:6px 14px; font-size:12px; font-weight:600; cursor:pointer;">Refresh</button>
+          <button type="button" onclick="closeAcModal()" style="background:transparent; border:none; color:#5E7168; cursor:pointer; font-size:24px; line-height:1;">&times;</button>
+        </div>
+      </div>
+
+      <div style="margin-bottom:24px;">
+        <h4 style="font-size:14px; text-transform:uppercase; letter-spacing:0.5px; color:#164B3B; margin-bottom:10px;">Registered Accounts in Database (<span id="modal-acc-count">0</span>)</h4>
+        <div style="overflow-x:auto;">
+          <table style="width:100%; border-collapse:collapse; font-size:12px; text-align:left; color:#25352E;">
+            <thead>
+              <tr style="border-bottom:1px solid #E8E2D5; color:#5E7168; background:#FAF7F2;">
+                <th style="padding:10px 8px;">Code</th>
+                <th style="padding:10px 8px;">Name</th>
+                <th style="padding:10px 8px;">Email</th>
+                <th style="padding:10px 8px;">Address</th>
+                <th style="padding:10px 8px;">Telephone</th>
+                <th style="padding:10px 8px;">Card (AC3)</th>
+                <th style="padding:10px 8px;">Status</th>
+              </tr>
+            </thead>
+            <tbody id="modal-acc-table">
+              <tr><td colspan="7" style="padding:14px; text-align:center; color:#5E7168;">Loading accounts...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div>
+        <h4 style="font-size:14px; text-transform:uppercase; letter-spacing:0.5px; color:#3A8B68; margin-bottom:10px;">Automated Confirmation Emails Sent (AC5)</h4>
+        <div id="modal-email-list" style="display:flex; flex-direction:column; gap:10px;">
+          <div style="color:#5E7168; font-size:13px; font-style:italic;">No emails sent yet.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function openAcDataModal() {
+      document.getElementById('ac-modal').style.display = 'flex';
+      await refreshAcModalData();
+      lucide.createIcons();
+    }
+    function closeAcModal() {
+      document.getElementById('ac-modal').style.display = 'none';
+    }
+    async function refreshAcModalData() {
+      try {
+        const [accRes, emailRes] = await Promise.all([
+          fetch('http://localhost:5000/api/accounts').then(r => r.json()),
+          fetch('http://localhost:5000/api/accounts/emails').then(r => r.json()),
+        ]);
+        if (accRes.success) {
+          document.getElementById('modal-acc-count').textContent = accRes.count || accRes.data.length;
+          document.getElementById('modal-acc-table').innerHTML = accRes.data.map(a => `
+            <tr style="border-bottom:1px solid #E8E2D5;">
+              <td style="padding:10px 8px; font-weight:bold; color:#164B3B;">${a.account_code}</td>
+              <td style="padding:10px 8px;">${a.name}</td>
+              <td style="padding:10px 8px;">${a.email}</td>
+              <td style="padding:10px 8px; color:#5E7168;">${a.address || '—'}</td>
+              <td style="padding:10px 8px;">${a.telephone}</td>
+              <td style="padding:10px 8px;"><span style="background:rgba(22,75,59,0.08); color:#164B3B; border:1px solid rgba(22,75,59,0.2); padding:2px 6px; border-radius:4px; font-size:11px;">${a.mock_card_ref}</span></td>
+              <td style="padding:10px 8px;"><span style="background:rgba(58,139,104,0.12); color:#3A8B68; border:1px solid rgba(58,139,104,0.3); padding:2px 6px; border-radius:4px; font-size:11px;">${a.status}</span></td>
+            </tr>
+          `).join('');
+        }
+        if (emailRes.success && emailRes.data && emailRes.data.length > 0) {
+          document.getElementById('modal-email-list').innerHTML = emailRes.data.map(e => `
+            <div style="background:#FAF7F2; border:1px solid #E8E2D5; border-radius:10px; padding:12px;">
+              <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                <strong style="color:#164B3B; font-size:13px;">${e.subject}</strong>
+                <span style="background:rgba(58,139,104,0.12); color:#3A8B68; border:1px solid rgba(58,139,104,0.3); padding:2px 6px; border-radius:4px; font-size:11px;">SENT</span>
+              </div>
+              <div style="font-size:11px; color:#5E7168; margin-bottom:6px;">To: <span style="color:#25352E; font-weight:600;">${e.to}</span> &bull; Sent: ${new Date(e.sentAt).toLocaleTimeString()}</div>
+              <pre style="font-size:11px; white-space:pre-wrap; background:#FFFFFF; border:1px solid #E8E2D5; padding:8px; border-radius:6px; color:#25352E; font-family:inherit; margin:0;">${e.preview}</pre>
+            </div>
+          `).join('');
+        }
+      } catch (err) {
+        console.error('Error fetching AC modal data:', err);
+      }
+    }
+  </script>
+</body>
+</html>

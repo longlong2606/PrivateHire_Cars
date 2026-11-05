@@ -1,0 +1,23 @@
+{
+  "name": "scrum-backend",
+  "version": "1.0.0",
+  "description": "Backend API for Scrum Project using Express and PostgreSQL",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "db:init": "node src/database/init-db.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "nodemailer": "^10.3.1",
+    "pg": "^8.13.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9",
+    "pg-mem": "^3.0.14"
+  }
+}

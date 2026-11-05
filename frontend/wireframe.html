@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wireframe - PrivateHire Cars Registration</title>
+  <style>
+    /* ==========================================================================
+       WIREFRAME THEME & DESIGN TOKENS
+       Strict Wireframe Mode: Dark/Grayscale palette, Wireframe placeholders,
+       Blue/White Action Button, Red validation errors only.
+       ========================================================================== */
+    :root {
+      --wf-bg-body: #121214;
+      --wf-bg-canvas: #18181b;
+      --wf-bg-card: #202024;
+      --wf-bg-card-subtle: #27272a;
+      --wf-bg-input: #18181b;
+      --wf-bg-dropdown: #202024;
+      --wf-bg-dropdown-hover: #2e2e34;
+      --wf-bg-dropdown-active: #2a2a30;
+
+      --wf-border-subtle: #2e2e34;
+      --wf-border-default: #404048;
+      --wf-border-focus: #71717a;
+      --wf-border-error: #B94A48;
+
+      --wf-text-white: #ffffff;
+      --wf-text-primary: #f4f4f5;
+      --wf-text-secondary: #a1a1aa;
+      --wf-text-muted: #71717a;
+      --wf-text-placeholder: #52525b;
+      --wf-text-error: #B94A48;
+
+      --wf-btn-blue: #164B3B;
+      --wf-btn-blue-hover: #0f372b;
+      --wf-btn-text: #ffffff;
+
+      --wf-font-mono: "SF Mono", "JetBrains Mono", Menlo, Consolas, "Courier New", monospace;
+      --wf-font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--wf-bg-body);
+      color: var(--wf-text-primary);
+      font-family: var(--wf-font-sans);
+      line-height: 1.5;
+      padding: 24px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Controls Bar for Wireframe Review */
+    .wf-toolbar {
+      max-width: 1400px;
+      margin: 0 auto 24px auto;
+      background: var(--wf-bg-card);
+      border: 1px dashed var(--wf-border-default);
+      padding: 14px 20px;
+      border-radius: 6px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .wf-toolbar-title {
+      font-family: var(--wf-font-mono);
+      font-size: 13px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--wf-text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .wf-pill-badge {
+      background: var(--wf-bg-card-subtle);
+      border: 1px solid var(--wf-border-default);
+      color: var(--wf-text-primary);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+    }
+
+    .wf-toolbar-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .wf-view-btn {
+      background: var(--wf-bg-card-subtle);
+      border: 1px solid var(--wf-border-default);
+      color: var(--wf-text-secondary);
+      font-family: var(--wf-font-mono);
+      font-size: 12px;
+      padding: 6px 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .wf-view-btn:hover {
+      border-color: var(--wf-text-secondary);
+      color: var(--wf-text-primary);
+    }
+
+    .wf-view-btn.active {
+      background: var(--wf-text-white);
+      color: #000000;
+      border-color: var(--wf-text-white);
+      font-weight: 600;
+    }
+
+    /* Review Viewport Wrapper */
+    .wf-viewport-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+    }
+
+    .wf-section-title {
+      font-family: var(--wf-font-mono);
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--wf-text-secondary);
+      border-bottom: 1px solid var(--wf-border-subtle);
+      padding-bottom: 8px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .wf-tag {
+      font-size: 11px;
+      color: var(--wf-text-muted);
+    }
+
+    /* ==========================================================================
+       WIREFRAME PLACEHOLDER COMPONENTS (Strict rules)
+       ========================================================================== */
+    /* Circular Logo Placeholder */
+    .wf-logo-circle {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 1.5px dashed var(--wf-border-focus);
+      background: var(--wf-bg-card-subtle);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--wf-font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--wf-text-secondary);
+      letter-spacing: 1px;
+      flex-shrink: 0;
+    }
+
+    /* Square Icon Placeholder */
+    .wf-icon-box {
+      width: 22px;
+      height: 22px;
+      border: 1.5px solid var(--wf-border-focus);
+      background: var(--wf-bg-card-subtle);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--wf-font-mono);
+      font-size: 9px;
+      font-weight: 600;
+      color: var(--wf-text-secondary);
+      text-transform: lowercase;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
+    /* Large Square Image Placeholder */
+    .wf-image-box {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      max-width: 420px;
+      border: 2px dashed var(--wf-border-default);
+      background: var(--wf-bg-canvas);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-top: 24px;
+    }
+
+    /* Diagonal guide lines inside wireframe image placeholder */
+    .wf-image-box::before,
+    .wf-image-box::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .wf-image-box::before {
+      background: linear-gradient(to top right, transparent calc(50% - 1px), var(--wf-border-subtle) calc(50% - 1px), var(--wf-border-subtle) calc(50% + 1px), transparent calc(50% + 1px));
+    }
+
+    .wf-image-box::after {
+      background: linear-gradient(to bottom right, transparent calc(50% - 1px), var(--wf-border-subtle) calc(50% - 1px), var(--wf-border-subtle) calc(50% + 1px), transparent calc(50% + 1px));
+    }
+
+    .wf-image-label {
+      position: relative;
+      z-index: 2;
+      background: var(--wf-bg-card);
+      border: 1px solid var(--wf-border-default);
+      color: var(--wf-text-primary);
+      padding: 6px 20px;
+      font-family: var(--wf-font-mono);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      border-radius: 4px;
+    }
+
+    /* ==========================================================================
+       FORM SYSTEM & WIREFRAME STATES
+       ========================================================================== */
+    .wf-form-group {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .wf-label {
+      font-family: var(--wf-font-mono);
+      font-size: 12px;
+      color: var(--wf-text-secondary);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .wf-req-stars {
+      color: var(--wf-text-secondary);
+      letter-spacing: 1px;
+    }
+
+    .wf-input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .wf-input {
+      width: 100%;
+      height: 42px;
+      background: var(--wf-bg-input);
+      border: 1px solid var(--wf-border-default);
+      border-radius: 6px;
+      padding: 0 14px;
+      color: var(--wf-text-white);
+      font-family: var(--wf-font-sans);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+
+    .wf-input:focus {
+      border-color: var(--wf-border-focus);
+    }
+
+    /* Error Validation States - ONLY RED ELEMENTS */
+    .wf-form-group.has-error .wf-input {
+      border: 1.5px solid var(--wf-border-error) !important;
+      background: rgba(239, 68, 68, 0.03);
+    }
+
+    .wf-error-message {
+      color: var(--wf-text-error);
+      font-family: var(--wf-font-mono);
+      font-size: 12px;
+      font-weight: 500;
+      margin-top: 5px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Password Input with eye icon placeholder */
+    .wf-input-with-icon {
+      padding-right: 42px;
+    }
+
+    .wf-input-icon-slot {
+      position: absolute;
+      right: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    /* ==========================================================================
+       PAYMENT METHOD DROPDOWN (Expanded / Open State)
+       ========================================================================== */
+    .wf-dropdown-container {
+      position: relative;
+      margin-bottom: 20px;
+    }
+
+    .wf-dropdown-trigger {
+      width: 100%;
+      height: 44px;
+      background: var(--wf-bg-input);
+      border: 1px solid var(--wf-border-focus);
+      border-radius: 6px 6px 0 0;
+      padding: 0 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--wf-text-white);
+      font-family: var(--wf-font-sans);
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .wf-dropdown-menu {
+      width: 100%;
+      background: var(--wf-bg-dropdown);
+      border: 1px solid var(--wf-border-focus);
+      border-top: none;
+      border-radius: 0 0 6px 6px;
+      overflow: hidden;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    }
+
+    .wf-dropdown-item {
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 14px;
+      color: var(--wf-text-primary);
+      border-bottom: 1px solid var(--wf-border-subtle);
+      background: var(--wf-bg-card);
+      cursor: pointer;
+      font-family: var(--wf-font-sans);
+    }
+
+    .wf-dropdown-item:last-child {
+      border-bottom: none;
+    }
+
+    .wf-dropdown-item.selected {
+      background: var(--wf-bg-dropdown-hover);
+      font-weight: 600;
+      color: var(--wf-text-white);
+    }
+
+    .wf-dropdown-item-meta {
+      font-family: var(--wf-font-mono);
+      font-size: 10px;
+      color: var(--wf-text-muted);
+      border: 1px solid var(--wf-border-default);
+      padding: 1px 6px;
+      border-radius: 3px;
+    }
+
+    /* ==========================================================================
+       CHECKBOX & SUBMIT BUTTON
+       ========================================================================== */
+    .wf-checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 20px 0;
+      user-select: none;
+    }
+
+    .wf-checkbox-box {
+      width: 18px;
+      height: 18px;
+      background: var(--wf-bg-card-subtle);
+      border: 1.5px solid var(--wf-border-focus);
+      border-radius: 3px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--wf-font-mono);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--wf-text-white);
+      flex-shrink: 0;
+    }
+
+    .wf-checkbox-label {
+      font-size: 13px;
+      color: var(--wf-text-secondary);
+      line-height: 1.4;
+    }
+
+    .wf-btn-register {
+      width: 100%;
+      height: 46px;
+      background-color: var(--wf-btn-blue);
+      color: var(--wf-btn-text);
+      border: none;
+      border-radius: 6px;
+      font-family: var(--wf-font-mono);
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.15s ease;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .wf-btn-register:hover {
+      background-color: var(--wf-btn-blue-hover);
+    }
+
+    /* Links & Secondary text */
+    .wf-link {
+      color: #93c5fd;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    .wf-subtext {
+      color: var(--wf-text-secondary);
+      font-size: 13px;
+      margin-bottom: 24px;
+    }
+
+    /* ==========================================================================
+       DESKTOP (SPLIT LAYOUT) WIREFRAME CONTAINER
+       ========================================================================== */
+    .wf-desktop-card {
+      background: var(--wf-bg-canvas);
+      border: 1px solid var(--wf-border-default);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
+    }
+
+    .wf-desktop-browser-header {
+      background: #141417;
+      border-bottom: 1px solid var(--wf-border-subtle);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .wf-browser-dots {
+      display: flex;
+      gap: 6px;
+    }
+
+    .wf-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--wf-border-default);
+    }
+
+    .wf-browser-bar {
+      background: var(--wf-bg-body);
+      border: 1px solid var(--wf-border-subtle);
+      border-radius: 4px;
+      padding: 4px 12px;
+      font-family: var(--wf-font-mono);
+      font-size: 11px;
+      color: var(--wf-text-muted);
+      flex: 1;
+      max-width: 480px;
+    }
+
+    .wf-desktop-split-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 760px;
+    }
+
+    /* Left Column: Branding, Services List, Large Image */
+    .wf-left-col {
+      background: var(--wf-bg-card);
+      border-right: 1px solid var(--wf-border-default);
+      padding: 48px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .wf-brand-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 36px;
+    }
+
+    .wf-brand-name {
+      font-family: var(--wf-font-sans);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--wf-text-white);
+      letter-spacing: -0.5px;
+    }
+
+    .wf-services-section {
+      margin-bottom: 24px;
+    }
+
+    .wf-services-heading {
+      font-family: var(--wf-font-mono);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--wf-text-white);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 20px;
+      border-bottom: 1px dashed var(--wf-border-default);
+      padding-bottom: 8px;
+    }
+
+    .wf-services-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .wf-service-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+      color: var(--wf-text-primary);
+    }
+
+    /* Right Column: Registration Form */
+    .wf-right-col {
+      background: var(--wf-bg-canvas);
+      padding: 48px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .wf-form-container {
+      max-width: 460px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .wf-form-title {
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--wf-text-white);
+      margin-bottom: 6px;
+      letter-spacing: -0.5px;
+    }
+
+    /* ==========================================================================
+       MOBILE (SINGLE COLUMN) WIREFRAME CONTAINER
+       ========================================================================== */
+    .wf-mobile-container {
+      width: 100%;
+      max-width: 420px;
+      margin: 0 auto;
+      background: var(--wf-bg-canvas);
+      border: 1px solid var(--wf-border-default);
+      border-radius: 28px;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    .wf-mobile-notch-bar {
+      height: 28px;
+      background: #101012;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+      font-family: var(--wf-font-mono);
+      font-size: 10px;
+      color: var(--wf-text-muted);
+      border-bottom: 1px solid var(--wf-border-subtle);
+    }
+
+    .wf-mobile-brand-bar {
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid var(--wf-border-subtle);
+      background: var(--wf-bg-card);
+    }
+
+    .wf-mobile-brand-bar .wf-logo-circle {
+      width: 36px;
+      height: 36px;
+      font-size: 9px;
+    }
+
+    .wf-mobile-brand-bar .wf-brand-name {
+      font-size: 17px;
+    }
+
+    .wf-mobile-body {
+      padding: 24px 20px 32px 20px;
+    }
+
+    .wf-mobile-body .wf-form-title {
+      font-size: 22px;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 1024px) {
+      .wf-desktop-split-grid {
+        grid-template-columns: 1fr;
+      }
+      .wf-left-col {
+        border-right: none;
+        border-bottom: 1px solid var(--wf-border-default);
+        padding: 32px 24px;
+      }
+      .wf-right-col {
+        padding: 32px 24px;
+      }
+      .wf-image-box {
+        max-width: 320px;
+      }
+    }
+
+    /* Annotations Legend */
+    .wf-legend {
+      margin-top: 30px;
+      background: var(--wf-bg-card);
+      border: 1px solid var(--wf-border-default);
+      border-radius: 8px;
+      padding: 20px 24px;
+    }
+
+    .wf-legend-title {
+      font-family: var(--wf-font-mono);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--wf-text-white);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .wf-legend-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 14px;
+      font-size: 12px;
+      color: var(--wf-text-secondary);
+    }
+
+    .wf-legend-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .wf-legend-code {
+      font-family: var(--wf-font-mono);
+      color: var(--wf-text-white);
+      background: var(--wf-bg-body);
+      padding: 1px 6px;
+      border-radius: 3px;
+      border: 1px solid var(--wf-border-subtle);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Wireframe Mode Header Bar -->
+  <div class="wf-toolbar">
+    <div class="wf-toolbar-title">
+      <span>PrivateHire Cars Wireframe Review</span>
+      <span class="wf-pill-badge">Grayscale / Dark Theme</span>
+      <span class="wf-pill-badge">Strict Wireframe Mode</span>
+    </div>
+    <div class="wf-toolbar-actions">
+      <button class="wf-view-btn active" onclick="setView('all')">Side-by-Side View</button>
+      <button class="wf-view-btn" onclick="setView('desktop')">Desktop View (1440px)</button>
+      <button class="wf-view-btn" onclick="setView('mobile')">Mobile View (375px)</button>
+    </div>
+  </div>
+
+  <div class="wf-viewport-container">
+
+    <!-- ====================================================================
+         SECTION 1: DESKTOP / WEB (SPLIT LAYOUT)
+         ==================================================================== -->
+    <div id="desktop-section">
+      <div class="wf-section-title">
+        <span>Desktop / Web Wireframe (Split Layout)</span>
+        <span class="wf-tag">Left: Branding &amp; Services / Right: Registration Form</span>
+      </div>
+
+      <div class="wf-desktop-card">
+        <!-- Mock Browser Top Chrome -->
+        <div class="wf-desktop-browser-header">
+          <div class="wf-browser-dots">
+            <div class="wf-dot"></div>
+            <div class="wf-dot"></div>
+            <div class="wf-dot"></div>
+          </div>
+          <div class="wf-browser-bar">https://privatehirecars.mock/register</div>
+        </div>
+
+        <div class="wf-desktop-split-grid">
+          
+          <!-- 1. LEFT COLUMN (DESKTOP ONLY) / BRANDING -->
+          <div class="wf-left-col">
+            <div>
+              <!-- Circular Logo Placeholder + Brand Name -->
+              <div class="wf-brand-header">
+                <div class="wf-logo-circle">LOGO</div>
+                <div class="wf-brand-name">PrivateHire Cars</div>
+              </div>
+
+              <!-- Heading: Our Services -->
+              <div class="wf-services-section">
+                <h2 class="wf-services-heading">Our Services</h2>
+                
+                <!-- List of Services with [icon] wireframe placeholders -->
+                <ul class="wf-services-list">
+                  <li class="wf-service-item">
+                    <span class="wf-icon-box">icon</span>
+                    <span>Private hire cars at your service</span>
+                  </li>
+                  <li class="wf-service-item">
+                    <span class="wf-icon-box">icon</span>
+                    <span>Pre-booked &amp; reliable transport</span>
+                  </li>
+                  <li class="wf-service-item">
+                    <span class="wf-icon-box">icon</span>
+                    <span>24/7 client coordination &amp; safety</span>
+                  </li>
+                  <li class="wf-service-item">
+                    <span class="wf-icon-box">icon</span>
+                    <span>Guaranteed best rates</span>
+                  </li>
+                  <li class="wf-service-item">
+                    <span class="wf-icon-box">icon</span>
+                    <span>Extensive fleet &amp; professional drivers</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Large square placeholder box with "IMAGE" in the center -->
+            <div class="wf-image-box">
+              <div class="wf-image-label">IMAGE</div>
+            </div>
+          </div>
+
+          <!-- 2. RIGHT COLUMN (DESKTOP) / MAIN FORM -->
+          <div class="wf-right-col">
+            <div class="wf-form-container">
+              
+              <!-- Heading and Sub-text -->
+              <h1 class="wf-form-title">Create an account</h1>
+              <p class="wf-subtext">Already have an account? <a href="login.html" class="wf-link" title="Open Frontend Login">Log in</a></p>
+
+              <!-- FORM FIELDS & VALIDATION STATES -->
+              <form onsubmit="return false;">
+
+                <!-- 1. Full Name *** (Error State: Empty) -->
+                <div class="wf-form-group has-error">
+                  <label class="wf-label">
+                    Full Name <span class="wf-req-stars">***</span>
+                  </label>
+                  <div class="wf-input-wrap">
+                    <input type="text" class="wf-input" value="" placeholder="Enter your full name" />
+                  </div>
+                  <div class="wf-error-message">(!) Full Name is required</div>
+                </div>
+
+                <!-- 2. Mobile Number *** (Normal State) -->
+                <div class="wf-form-group">
+                  <label class="wf-label">
+                    Mobile Number <span class="wf-req-stars">***</span>
+                  </label>
+                  <div class="wf-input-wrap">
+                    <input type="text" class="wf-input" value="+84 901 234 567" />
+                  </div>
+                </div>
+
+                <!-- 3. Email *** (Error State: Invalid email) -->
+                <div class="wf-form-group has-error">
+                  <label class="wf-label">
+                    Email <span class="wf-req-stars">***</span>
+                  </label>
+                  <div class="wf-input-wrap">
+                    <input type="email" class="wf-input" value="user@invalid" />
+                  </div>
+                  <div class="wf-error-message">(!) Invalid email format</div>
+                </div>
+
+                <!-- 4. Address *** (Normal State) -->
+                <div class="wf-form-group">
+                  <label class="wf-label">
+                    Address <span class="wf-req-stars">***</span>
+                  </label>
+                  <div class="wf-input-wrap">
+                    <input type="text" class="wf-input" value="123 Nguyen Van Linh, District 7, HCMC" />
+                  </div>
+                </div>
+
+                <!-- 5. Password *** (Normal State: Masked with Eye Icon Placeholder) -->
+                <div class="wf-form-group">
+                  <label class="wf-label">
+                    Password <span class="wf-req-stars">***</span>
+                  </label>
+                  <div class="wf-input-wrap">
+                    <input type="text" class="wf-input wf-input-with-icon" value="••••••••" />
+                    <span class="wf-input-icon-slot">
+                      <span class="wf-icon-box" title="Password eye toggle">icon</span>
+                    </span>
+                  </div>
+                </div>
+
+                <!-- 6. Confirm Password *** (Error State: Passwords do not match) -->
+                <div class="wf-form-group has-error">
+                  <label class="wf-label">
+                    Confirm Password <span class="wf-req-stars">***</span>
+                  </label>
+                  <div class="wf-input-wrap">
+                    <input type="text" class="wf-input wf-input-with-icon" value="•••••••" />
+                    <span class="wf-input-icon-slot">
+                      <span class="wf-icon-box" title="Password eye toggle">icon</span>
+                    </span>
+                  </div>
+                  <div class="wf-error-message">(!) Passwords do not match</div>
+                </div>
+
+                <!-- 7. Payment Method Dropdown: Default Payment Method (Mock Cards) *** -->
+                <!-- Shown expanded/open with the 3 exact mock cards -->
+                <div class="wf-form-group wf-dropdown-container">
+                  <label class="wf-label">
+                    Default Payment Method (Mock Cards) <span class="wf-req-stars">***</span>
+                  </label>
+                  
+                  <!-- Trigger representing selected state -->
+                  <div class="wf-dropdown-trigger">
+                    <span>Visa (Mock Card) **** 4242</span>
+                    <span class="wf-icon-box">icon</span>
+                  </div>
+
+                  <!-- Expanded Open Dropdown Menu showing all 3 options -->
+                  <div class="wf-dropdown-menu">
+                    <div class="wf-dropdown-item selected">
+                      <span>Visa (Mock Card) **** 4242</span>
+                      <span class="wf-dropdown-item-meta">Active Selection</span>
+                    </div>
+                    <div class="wf-dropdown-item">
+                      <span>Mastercard (Mock Card) **** 5555</span>
+                      <span class="wf-dropdown-item-meta">Option</span>
+                    </div>
+                    <div class="wf-dropdown-item">
+                      <span>American Express (Mock Card) **** 1007</span>
+                      <span class="wf-dropdown-item-meta">Option</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 8. Footer: Checkbox & Solid Register Button -->
+                <div class="wf-checkbox-group">
+                  <div class="wf-checkbox-box">[x]</div>
+                  <span class="wf-checkbox-label">I agree to the Terms &amp; Privacy Policy</span>
+                </div>
+
+                <button type="submit" class="wf-btn-register">REGISTER</button>
+
+              </form>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================================================================
+         SECTION 2: MOBILE (SINGLE COLUMN)
+         ==================================================================== -->
+    <div id="mobile-section">
+      <div class="wf-section-title">
+        <span>Mobile Wireframe (Single Column)</span>
+        <span class="wf-tag">Compact 375px Device Frame / Linear Flow</span>
+      </div>
+
+      <div class="wf-mobile-container">
+        <!-- Mock Mobile Device Status Bar -->
+        <div class="wf-mobile-notch-bar">
+          <span>09:41</span>
+          <span>[icon] 5G [icon]</span>
+        </div>
+
+        <!-- Top Mobile Branding Bar -->
+        <div class="wf-mobile-brand-bar">
+          <div class="wf-logo-circle">LOGO</div>
+          <div class="wf-brand-name">PrivateHire Cars</div>
+        </div>
+
+        <!-- Mobile Form Content -->
+        <div class="wf-mobile-body">
+          <h1 class="wf-form-title">Create an account</h1>
+          <p class="wf-subtext">Already have an account? <a href="login.html" class="wf-link" title="Open Frontend Login">Log in</a></p>
+
+          <form onsubmit="return false;">
+
+            <!-- 1. Full Name *** (Error State: Empty) -->
+            <div class="wf-form-group has-error">
+              <label class="wf-label">
+                Full Name <span class="wf-req-stars">***</span>
+              </label>
+              <div class="wf-input-wrap">
+                <input type="text" class="wf-input" value="" placeholder="Enter your full name" />
+              </div>
+              <div class="wf-error-message">(!) Full Name is required</div>
+            </div>
+
+            <!-- 2. Mobile Number *** (Normal State) -->
+            <div class="wf-form-group">
+              <label class="wf-label">
+                Mobile Number <span class="wf-req-stars">***</span>
+              </label>
+              <div class="wf-input-wrap">
+                <input type="text" class="wf-input" value="+84 901 234 567" />
+              </div>
+            </div>
+
+            <!-- 3. Email *** (Error State: Invalid format) -->
+            <div class="wf-form-group has-error">
+              <label class="wf-label">
+                Email <span class="wf-req-stars">***</span>
+              </label>
+              <div class="wf-input-wrap">
+                <input type="email" class="wf-input" value="user@invalid" />
+              </div>
+              <div class="wf-error-message">(!) Invalid email format</div>
+            </div>
+
+            <!-- 4. Address *** (Normal State) -->
+            <div class="wf-form-group">
+              <label class="wf-label">
+                Address <span class="wf-req-stars">***</span>
+              </label>
+              <div class="wf-input-wrap">
+                <input type="text" class="wf-input" value="123 Nguyen Van Linh, District 7, HCMC" />
+              </div>
+            </div>
+
+            <!-- 5. Password *** (Normal State) -->
+            <div class="wf-form-group">
+              <label class="wf-label">
+                Password <span class="wf-req-stars">***</span>
+              </label>
+              <div class="wf-input-wrap">
+                <input type="text" class="wf-input wf-input-with-icon" value="••••••••" />
+                <span class="wf-input-icon-slot">
+                  <span class="wf-icon-box">icon</span>
+                </span>
+              </div>
+            </div>
+
+            <!-- 6. Confirm Password *** (Error State: Passwords do not match) -->
+            <div class="wf-form-group has-error">
+              <label class="wf-label">
+                Confirm Password <span class="wf-req-stars">***</span>
+              </label>
+              <div class="wf-input-wrap">
+                <input type="text" class="wf-input wf-input-with-icon" value="•••••••" />
+                <span class="wf-input-icon-slot">
+                  <span class="wf-icon-box">icon</span>
+                </span>
+              </div>
+              <div class="wf-error-message">(!) Passwords do not match</div>
+            </div>
+
+            <!-- 7. Payment Method Dropdown (Expanded / Open State) -->
+            <div class="wf-form-group wf-dropdown-container">
+              <label class="wf-label">
+                Default Payment Method (Mock Cards) <span class="wf-req-stars">***</span>
+              </label>
+              
+              <div class="wf-dropdown-trigger">
+                <span style="font-size: 13px;">Visa (Mock Card) **** 4242</span>
+                <span class="wf-icon-box">icon</span>
+              </div>
+
+              <div class="wf-dropdown-menu">
+                <div class="wf-dropdown-item selected">
+                  <span style="font-size: 13px;">Visa (Mock Card) **** 4242</span>
+                  <span class="wf-dropdown-item-meta">Active</span>
+                </div>
+                <div class="wf-dropdown-item">
+                  <span style="font-size: 13px;">Mastercard (Mock Card) **** 5555</span>
+                  <span class="wf-dropdown-item-meta">Option</span>
+                </div>
+                <div class="wf-dropdown-item">
+                  <span style="font-size: 13px;">American Express (Mock Card) **** 1007</span>
+                  <span class="wf-dropdown-item-meta">Option</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 8. Footer Checkbox & Register Button -->
+            <div class="wf-checkbox-group">
+              <div class="wf-checkbox-box">[x]</div>
+              <span class="wf-checkbox-label">I agree to the Terms &amp; Privacy Policy</span>
+            </div>
+
+            <button type="submit" class="wf-btn-register">REGISTER</button>
+
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====================================================================
+         DESIGN SPECIFICATIONS & COMPONENT ANNOTATION LEGEND
+         ==================================================================== -->
+    <div class="wf-legend">
+      <div class="wf-legend-title">
+        <span class="wf-icon-box">icon</span>
+        <span>UI/UX Wireframe Review &amp; Design System Guidelines</span>
+      </div>
+      <div class="wf-legend-grid">
+        <div class="wf-legend-item">
+          <span>•</span>
+          <div>
+            <strong>Strict Grayscale / Dark Wireframe:</strong> All backgrounds are #121214 / #18181b / #202024. Text uses pure white (#fff) for high contrast and muted grays (#a1a1aa, #71717a) for secondary labels.
+          </div>
+        </div>
+        <div class="wf-legend-item">
+          <span>•</span>
+          <div>
+            <strong>Action Button:</strong> Solid Blue (<span class="wf-legend-code">#2563eb</span>) with crisp white text (<span class="wf-legend-code">#ffffff</span>) to emphasize primary call-to-action per specifications.
+          </div>
+        </div>
+        <div class="wf-legend-item">
+          <span>•</span>
+          <div>
+            <strong>Validation Red Policy:</strong> The only color elements in red are error state borders (<span class="wf-legend-code">#ef4444</span>) and validation messages (<span class="wf-legend-code">(!) ...</span>).
+          </div>
+        </div>
+        <div class="wf-legend-item">
+          <span>•</span>
+          <div>
+            <strong>Wireframe Placeholders:</strong> 100% abstract representations (<span class="wf-legend-code">LOGO</span> circle, <span class="wf-legend-code">IMAGE</span> large square with diagonal guides, and <span class="wf-legend-code">icon</span> boxed placeholders).
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function setView(mode) {
+      const desktop = document.getElementById('desktop-section');
+      const mobile = document.getElementById('mobile-section');
+      const buttons = document.querySelectorAll('.wf-view-btn');
+      
+      buttons.forEach(b => b.classList.remove('active'));
+
+      if (mode === 'all') {
+        desktop.style.display = 'block';
+        mobile.style.display = 'block';
+        buttons[0].classList.add('active');
+      } else if (mode === 'desktop') {
+        desktop.style.display = 'block';
+        mobile.style.display = 'none';
+        buttons[1].classList.add('active');
+      } else if (mode === 'mobile') {
+        desktop.style.display = 'none';
+        mobile.style.display = 'block';
+        buttons[2].classList.add('active');
+      }
+    }
+  </script>
+</body>
+</html>
