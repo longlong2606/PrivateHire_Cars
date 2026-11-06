@@ -14,17 +14,24 @@ let dbStatus = {
   error: null,
 };
 
-// Cấu hình pool kết nối PostgreSQL thực tế
-const realPool = new Pool({
-  host: dbStatus.host,
-  port: dbStatus.port,
-  user: dbStatus.user,
-  password: process.env.DB_PASSWORD || 'postgres',
-  database: dbStatus.database,
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 3000, // Timeout sau 3 giây nếu không kết nối được
-});
+// Cấu hình pool kết nối PostgreSQL thực tế (Hỗ trợ DATABASE_URL trên Render/Railway/Supabase/Neon)
+const connectionString = process.env.DATABASE_URL;
+const realPool = connectionString
+  ? new Pool({
+      connectionString,
+      ssl: process.env.DATABASE_SSL === 'false' ? false : { rejectUnauthorized: false },
+      connectionTimeoutMillis: 5000,
+    })
+  : new Pool({
+      host: dbStatus.host,
+      port: dbStatus.port,
+      user: dbStatus.user,
+      password: process.env.DB_PASSWORD || 'postgres',
+      database: dbStatus.database,
+      max: 20,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 3000,
+    });
 
 // Hàm khởi tạo bảng từ schema.sql
 const executeSchema = async (targetPool) => {

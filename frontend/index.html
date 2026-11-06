@@ -1,15 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Create an account - PrivateHire Cars</title>
-  
+
   <!-- Google Fonts: Plus Jakarta Sans & Outfit -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-  
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
@@ -20,20 +23,20 @@
       --bg-card: #FFFFFF;
       --bg-card-hover: #FAF7F2;
       --bg-input: #FFFFFF;
-      
+
       --border-subtle: #E8E2D5;
       --border-medium: #E8E2D5;
       --border-focus: #3A8B68;
       --border-error: #B94A48;
-      
+
       --primary: #164B3B;
       --primary-hover: #0f372b;
       --primary-light: #3A8B68;
       --primary-glow: rgba(22, 75, 59, 0.25);
-      
+
       --accent-gold: #C69C54;
       --accent-emerald: #3A8B68;
-      
+
       --text-white: #FFFFFF;
       --text-main: #25352E;
       --text-muted: #5E7168;
@@ -44,17 +47,21 @@
       --radius-md: 12px;
       --radius-lg: 18px;
       --radius-xl: 24px;
-      
+
       --font-heading: 'Outfit', sans-serif;
       --font-body: 'Plus Jakarta Sans', sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
-      
+
       --shadow-soft: 0 8px 24px rgba(37, 53, 46, 0.06);
       --shadow-elevated: 0 16px 45px rgba(37, 53, 46, 0.1);
       --transition-smooth: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
     body {
       background-color: var(--bg-body);
@@ -644,9 +651,23 @@
       color: var(--text-main);
     }
 
-    .card-badge-pill.visa { color: #164B3B; background: rgba(22, 75, 59, 0.08); border-color: rgba(22, 75, 59, 0.25); }
-    .card-badge-pill.mc { color: #C69C54; background: rgba(198, 156, 84, 0.15); border-color: rgba(198, 156, 84, 0.35); }
-    .card-badge-pill.amex { color: #3A8B68; background: rgba(58, 139, 104, 0.15); border-color: rgba(58, 139, 104, 0.35); }
+    .card-badge-pill.visa {
+      color: #164B3B;
+      background: rgba(22, 75, 59, 0.08);
+      border-color: rgba(22, 75, 59, 0.25);
+    }
+
+    .card-badge-pill.mc {
+      color: #C69C54;
+      background: rgba(198, 156, 84, 0.15);
+      border-color: rgba(198, 156, 84, 0.35);
+    }
+
+    .card-badge-pill.amex {
+      color: #3A8B68;
+      background: rgba(58, 139, 104, 0.15);
+      border-color: rgba(58, 139, 104, 0.35);
+    }
 
     .card-name-title {
       font-size: 13.5px;
@@ -821,8 +842,15 @@
     }
 
     @keyframes slideInToast {
-      from { transform: translateX(40px); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
+      from {
+        transform: translateX(40px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
     }
 
     /* Mobile Responsive (Single Column) */
@@ -831,9 +859,11 @@
         grid-template-columns: 1fr;
         gap: 32px;
       }
+
       .brand-services-col {
         order: 2;
       }
+
       .login-col-wrapper {
         order: 1;
       }
@@ -843,15 +873,18 @@
       .auth-glass-card {
         padding: 24px 20px;
       }
+
       .field-row-split {
         grid-template-columns: 1fr;
       }
+
       .hero-title {
         font-size: 32px;
       }
     }
   </style>
 </head>
+
 <body>
 
   <div class="ambient-glow-top"></div>
@@ -880,7 +913,7 @@
 
     <!-- Main Split Layout (Desktop: 2 Columns / Mobile: 1 Column) -->
     <main class="split-layout-grid">
-      
+
       <!-- ===============================================================
            1. LEFT COLUMN (Desktop only / Branding & Services)
            =============================================================== -->
@@ -944,7 +977,8 @@
 
         <!-- Large Fleet Image Visual (IMAGE Placeholder from wireframe) -->
         <div class="fleet-hero-visual">
-          <img src="https://images.unsplash.com/photo-1563720223185-11003d516935?auto=format&fit=crop&w=1200&q=80" alt="Executive Chauffeur Fleet Mercedes S-Class" />
+          <img src="https://images.unsplash.com/photo-1563720223185-11003d516935?auto=format&fit=crop&w=1200&q=80"
+            alt="Executive Chauffeur Fleet Mercedes S-Class" />
         </div>
       </section>
 
@@ -953,7 +987,7 @@
            =============================================================== -->
       <section class="login-col-wrapper">
         <div class="auth-glass-card">
-          
+
           <!-- Heading & Sub-text -->
           <div class="auth-card-header">
             <h2 class="auth-title-large">Create an account</h2>
@@ -973,15 +1007,10 @@
                   <span class="required-stars">***</span>
                 </label>
                 <div class="field-input-wrapper">
-                  <span class="input-icon-left-slot"><i data-lucide="user" style="width: 16px; height: 16px;"></i></span>
-                  <input 
-                    type="text" 
-                    class="field-input" 
-                    id="f-full-name" 
-                    value="" 
-                    placeholder="Enter your legal full name"
-                    oninput="validateField('full-name')"
-                  />
+                  <span class="input-icon-left-slot"><i data-lucide="user"
+                      style="width: 16px; height: 16px;"></i></span>
+                  <input type="text" class="field-input" id="f-full-name" value=""
+                    placeholder="Enter your legal full name" oninput="validateField('full-name')" />
                 </div>
                 <!-- Error text below: (!) Full Name is required (in red) -->
                 <div class="validation-error-text" id="err-full-name">
@@ -997,15 +1026,10 @@
                   <span class="required-stars">***</span>
                 </label>
                 <div class="field-input-wrapper">
-                  <span class="input-icon-left-slot"><i data-lucide="phone" style="width: 16px; height: 16px;"></i></span>
-                  <input 
-                    type="tel" 
-                    class="field-input" 
-                    id="f-mobile" 
-                    value="" 
-                    placeholder="+84..."
-                    oninput="validateField('mobile')"
-                  />
+                  <span class="input-icon-left-slot"><i data-lucide="phone"
+                      style="width: 16px; height: 16px;"></i></span>
+                  <input type="tel" class="field-input" id="f-mobile" value="" placeholder="Enter your phone number..."
+                    oninput="validateField('mobile')" />
                 </div>
                 <div class="validation-error-text" id="err-mobile">
                   <i data-lucide="alert-circle" style="width: 14px; height: 14px;"></i>
@@ -1020,15 +1044,10 @@
                   <span class="required-stars">***</span>
                 </label>
                 <div class="field-input-wrapper">
-                  <span class="input-icon-left-slot"><i data-lucide="mail" style="width: 16px; height: 16px;"></i></span>
-                  <input 
-                    type="email" 
-                    class="field-input" 
-                    id="f-email" 
-                    value="" 
-                    placeholder="name@company.com"
-                    oninput="validateField('email')"
-                  />
+                  <span class="input-icon-left-slot"><i data-lucide="mail"
+                      style="width: 16px; height: 16px;"></i></span>
+                  <input type="email" class="field-input" id="f-email" value="" placeholder="name@company.com"
+                    oninput="validateField('email')" />
                 </div>
                 <!-- Error text below: (!) Invalid email format (in red) -->
                 <div class="validation-error-text" id="err-email">
@@ -1044,15 +1063,10 @@
                   <span class="required-stars">***</span>
                 </label>
                 <div class="field-input-wrapper">
-                  <span class="input-icon-left-slot"><i data-lucide="map-pin" style="width: 16px; height: 16px;"></i></span>
-                  <input 
-                    type="text" 
-                    class="field-input" 
-                    id="f-address" 
-                    value="" 
-                    placeholder="Pickup or home address"
-                    oninput="validateField('address')"
-                  />
+                  <span class="input-icon-left-slot"><i data-lucide="map-pin"
+                      style="width: 16px; height: 16px;"></i></span>
+                  <input type="text" class="field-input" id="f-address" value="" placeholder="Pickup or home address"
+                    oninput="validateField('address')" />
                 </div>
                 <div class="validation-error-text" id="err-address">
                   <i data-lucide="alert-circle" style="width: 14px; height: 14px;"></i>
@@ -1062,7 +1076,7 @@
 
               <!-- 5 & 6. Password & Confirm Password Row -->
               <div class="field-row-split">
-                
+
                 <!-- Password *** -->
                 <div class="field-group" id="grp-password">
                   <label class="field-label" for="f-password">
@@ -1070,16 +1084,12 @@
                     <span class="required-stars">***</span>
                   </label>
                   <div class="field-input-wrapper">
-                    <span class="input-icon-left-slot"><i data-lucide="lock" style="width: 16px; height: 16px;"></i></span>
-                    <input 
-                      type="password" 
-                      class="field-input" 
-                      id="f-password" 
-                      value="" 
-                      placeholder="••••••••"
-                      oninput="validateField('password')"
-                    />
-                    <span class="input-icon-right-slot" onclick="togglePasswordVisibility('f-password', 'eye-pw-icon')" title="Show / Hide password">
+                    <span class="input-icon-left-slot"><i data-lucide="lock"
+                        style="width: 16px; height: 16px;"></i></span>
+                    <input type="password" class="field-input" id="f-password" value="" placeholder="••••••••"
+                      oninput="validateField('password')" />
+                    <span class="input-icon-right-slot" onclick="togglePasswordVisibility('f-password', 'eye-pw-icon')"
+                      title="Show / Hide password">
                       <i data-lucide="eye" id="eye-pw-icon" style="width: 16px; height: 16px;"></i>
                     </span>
                   </div>
@@ -1096,16 +1106,13 @@
                     <span class="required-stars">***</span>
                   </label>
                   <div class="field-input-wrapper">
-                    <span class="input-icon-left-slot"><i data-lucide="lock-keyhole" style="width: 16px; height: 16px;"></i></span>
-                    <input 
-                      type="password" 
-                      class="field-input" 
-                      id="f-confirm-password" 
-                      value="" 
-                      placeholder="••••••••"
-                      oninput="validateField('confirm-password')"
-                    />
-                    <span class="input-icon-right-slot" onclick="togglePasswordVisibility('f-confirm-password', 'eye-confirm-icon')" title="Show / Hide password">
+                    <span class="input-icon-left-slot"><i data-lucide="lock-keyhole"
+                        style="width: 16px; height: 16px;"></i></span>
+                    <input type="password" class="field-input" id="f-confirm-password" value="" placeholder="••••••••"
+                      oninput="validateField('confirm-password')" />
+                    <span class="input-icon-right-slot"
+                      onclick="togglePasswordVisibility('f-confirm-password', 'eye-confirm-icon')"
+                      title="Show / Hide password">
                       <i data-lucide="eye" id="eye-confirm-icon" style="width: 16px; height: 16px;"></i>
                     </span>
                   </div>
@@ -1128,9 +1135,11 @@
                 <div class="dropdown-container" id="payment-dropdown-container">
                   <!-- Trigger box showing selected: Visa (Mock Card) **** 4242 -->
                   <div class="dropdown-trigger-btn" onclick="togglePaymentDropdown()">
-                    <span class="input-icon-left-slot"><i data-lucide="credit-card" style="width: 16px; height: 16px;"></i></span>
+                    <span class="input-icon-left-slot"><i data-lucide="credit-card"
+                        style="width: 16px; height: 16px;"></i></span>
                     <span id="selected-card-label" style="font-weight: 600;">Visa (Mock Card) **** 4242</span>
-                    <span class="dropdown-chevron-icon"><i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i></span>
+                    <span class="dropdown-chevron-icon"><i data-lucide="chevron-down"
+                        style="width: 16px; height: 16px;"></i></span>
                   </div>
 
                   <!-- Dropdown Menu Expanded showing exact 3 options -->
@@ -1141,7 +1150,8 @@
                         <span class="card-badge-pill visa">VISA</span>
                         <span class="card-name-title">Visa (Mock Card) **** 4242</span>
                       </div>
-                      <span class="card-selected-check"><i data-lucide="check" style="width: 16px; height: 16px;"></i></span>
+                      <span class="card-selected-check"><i data-lucide="check"
+                          style="width: 16px; height: 16px;"></i></span>
                     </div>
 
                     <!-- Option 2: Mastercard (Mock Card) **** 5555 -->
@@ -1150,16 +1160,19 @@
                         <span class="card-badge-pill mc">MC</span>
                         <span class="card-name-title">Mastercard (Mock Card) **** 5555</span>
                       </div>
-                      <span class="card-selected-check"><i data-lucide="check" style="width: 16px; height: 16px;"></i></span>
+                      <span class="card-selected-check"><i data-lucide="check"
+                          style="width: 16px; height: 16px;"></i></span>
                     </div>
 
                     <!-- Option 3: American Express (Mock Card) **** 1007 -->
-                    <div class="dropdown-item" onclick="selectPaymentMethod('American Express (Mock Card) **** 1007', this)">
+                    <div class="dropdown-item"
+                      onclick="selectPaymentMethod('American Express (Mock Card) **** 1007', this)">
                       <div class="card-item-left">
                         <span class="card-badge-pill amex">AMEX</span>
                         <span class="card-name-title">American Express (Mock Card) **** 1007</span>
                       </div>
-                      <span class="card-selected-check"><i data-lucide="check" style="width: 16px; height: 16px;"></i></span>
+                      <span class="card-selected-check"><i data-lucide="check"
+                          style="width: 16px; height: 16px;"></i></span>
                     </div>
                   </div>
                 </div>
@@ -1195,9 +1208,9 @@
   <div class="toast-notifications-rack" id="toast-rack"></div>
 
   <script>
-    const API_BASE = (function() {
+    const API_BASE = (function () {
       if (window.location.protocol === 'file:') return 'http://localhost:5000';
-      if (window.location.port === '5173') return '';
+      if (window.location.port === '5173' || window.location.port === '5000' || !window.location.port) return '';
       return `http://${window.location.hostname || 'localhost'}:5000`;
     })();
 
@@ -1268,7 +1281,7 @@
         if (data.success && data.data) {
           registeredAccountsCache = data.data;
         }
-      } catch (e) {}
+      } catch (e) { }
     }
 
     // Dynamic Mock Cards from Backend (AC3)
@@ -1433,7 +1446,7 @@
     // Handle Real Backend Form Submit (AC1 - AC5)
     async function handleRegisterSubmit(e) {
       e.preventDefault();
-      
+
       const fullName = document.getElementById('f-full-name').value.trim();
       const mobile = document.getElementById('f-mobile').value.trim();
       const email = document.getElementById('f-email').value.trim();
@@ -1616,21 +1629,28 @@
     }
   </script>
   <!-- AC Live Data & Emails Modal -->
-  <div id="ac-modal" style="display:none; position:fixed; inset:0; background:rgba(37,53,46,0.55); backdrop-filter:blur(8px); z-index:9999; align-items:center; justify-content:center; padding:20px;">
-    <div style="background:#FFFFFF; border:1px solid #E8E2D5; border-radius:18px; max-width:960px; width:100%; max-height:90vh; overflow-y:auto; padding:28px; box-shadow:0 25px 60px rgba(37,53,46,0.2);">
-      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #E8E2D5; padding-bottom:16px; margin-bottom:20px;">
+  <div id="ac-modal"
+    style="display:none; position:fixed; inset:0; background:rgba(37,53,46,0.55); backdrop-filter:blur(8px); z-index:9999; align-items:center; justify-content:center; padding:20px;">
+    <div
+      style="background:#FFFFFF; border:1px solid #E8E2D5; border-radius:18px; max-width:960px; width:100%; max-height:90vh; overflow-y:auto; padding:28px; box-shadow:0 25px 60px rgba(37,53,46,0.2);">
+      <div
+        style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #E8E2D5; padding-bottom:16px; margin-bottom:20px;">
         <div style="display:flex; align-items:center; gap:10px;">
           <i data-lucide="database" style="width:22px; height:22px; color:#164B3B;"></i>
-          <h3 style="font-family:'Outfit', sans-serif; font-size:20px; font-weight:700; color:#164B3B; margin:0;">PostgreSQL Database &amp; Automated Emails (AC4 &amp; AC5)</h3>
+          <h3 style="font-family:'Outfit', sans-serif; font-size:20px; font-weight:700; color:#164B3B; margin:0;">
+            PostgreSQL Database &amp; Automated Emails (AC4 &amp; AC5)</h3>
         </div>
         <div style="display:flex; gap:10px; align-items:center;">
-          <button type="button" onclick="refreshAcModalData()" style="background:#FAF7F2; color:#164B3B; border:1px solid #E8E2D5; border-radius:8px; padding:6px 14px; font-size:12px; font-weight:600; cursor:pointer;">Refresh</button>
-          <button type="button" onclick="closeAcModal()" style="background:transparent; border:none; color:#5E7168; cursor:pointer; font-size:24px; line-height:1;">&times;</button>
+          <button type="button" onclick="refreshAcModalData()"
+            style="background:#FAF7F2; color:#164B3B; border:1px solid #E8E2D5; border-radius:8px; padding:6px 14px; font-size:12px; font-weight:600; cursor:pointer;">Refresh</button>
+          <button type="button" onclick="closeAcModal()"
+            style="background:transparent; border:none; color:#5E7168; cursor:pointer; font-size:24px; line-height:1;">&times;</button>
         </div>
       </div>
 
       <div style="margin-bottom:24px;">
-        <h4 style="font-size:14px; text-transform:uppercase; letter-spacing:0.5px; color:#164B3B; margin-bottom:10px;">Registered Accounts in Database (<span id="modal-acc-count">0</span>)</h4>
+        <h4 style="font-size:14px; text-transform:uppercase; letter-spacing:0.5px; color:#164B3B; margin-bottom:10px;">
+          Registered Accounts in Database (<span id="modal-acc-count">0</span>)</h4>
         <div style="overflow-x:auto;">
           <table style="width:100%; border-collapse:collapse; font-size:12px; text-align:left; color:#25352E;">
             <thead>
@@ -1645,14 +1665,17 @@
               </tr>
             </thead>
             <tbody id="modal-acc-table">
-              <tr><td colspan="7" style="padding:14px; text-align:center; color:#5E7168;">Loading accounts...</td></tr>
+              <tr>
+                <td colspan="7" style="padding:14px; text-align:center; color:#5E7168;">Loading accounts...</td>
+              </tr>
             </tbody>
           </table>
         </div>
       </div>
 
       <div>
-        <h4 style="font-size:14px; text-transform:uppercase; letter-spacing:0.5px; color:#3A8B68; margin-bottom:10px;">Automated Confirmation Emails Sent (AC5)</h4>
+        <h4 style="font-size:14px; text-transform:uppercase; letter-spacing:0.5px; color:#3A8B68; margin-bottom:10px;">
+          Automated Confirmation Emails Sent (AC5)</h4>
         <div id="modal-email-list" style="display:flex; flex-direction:column; gap:10px;">
           <div style="color:#5E7168; font-size:13px; font-style:italic;">No emails sent yet.</div>
         </div>
@@ -1707,4 +1730,5 @@
     }
   </script>
 </body>
+
 </html>

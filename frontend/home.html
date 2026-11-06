@@ -1849,7 +1849,7 @@
   <script>
     const API_BASE = (function() {
       if (window.location.protocol === 'file:') return 'http://localhost:5000';
-      if (window.location.port === '5173') return '';
+      if (window.location.port === '5173' || window.location.port === '5000' || !window.location.port) return '';
       return `http://${window.location.hostname || 'localhost'}:5000`;
     })();
 

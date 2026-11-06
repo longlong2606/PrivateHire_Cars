@@ -1,8 +1,11 @@
 {
-  "name": "scrum-project",
+  "name": "privatehire-cars",
   "version": "1.0.0",
   "description": "SCRUM Project - Sprint 1: Frontend, Backend, PostgreSQL and Accounts Table",
+  "main": "backend/src/server.js",
   "scripts": {
+    "start": "node backend/src/server.js",
+    "build": "cd backend && npm install",
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:backend": "cd backend && npm run dev",
     "dev:frontend": "cd frontend && npm run dev",

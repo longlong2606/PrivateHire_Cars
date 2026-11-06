@@ -27,8 +27,16 @@ app.use((req, res, next) => {
 app.use('/api/health', healthRoutes);
 app.use('/api/accounts', accountRoutes);
 
-// Root route
-app.get('/', (req, res) => {
+const path = require('path');
+const fs = require('fs');
+
+const frontendDir = path.join(__dirname, '../../frontend');
+
+// Serve static frontend files (HTML, CSS, JS, images, icons)
+app.use(express.static(frontendDir));
+
+// API Root Route
+app.get('/api', (req, res) => {
   res.json({
     message: '🚀 SCRUM Backend API is running!',
     endpoints: {
@@ -41,9 +49,21 @@ app.get('/', (req, res) => {
   });
 });
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({ success: false, message: 'Endpoint không tồn tại' });
+// Root route - serve index.html (Register page)
+app.get('/', (req, res) => {
+  res.sendFile(path.join(frontendDir, 'index.html'));
+});
+
+// Catch-all route for frontend HTML navigation or 404
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api')) {
+    return res.status(404).json({ success: false, message: 'Endpoint không tồn tại' });
+  }
+  const requestedFile = path.join(frontendDir, req.path);
+  if (fs.existsSync(requestedFile) && fs.statSync(requestedFile).isFile()) {
+    return res.sendFile(requestedFile);
+  }
+  res.sendFile(path.join(frontendDir, 'index.html'));
 });
 
 // Khởi chạy server và kết nối DB
