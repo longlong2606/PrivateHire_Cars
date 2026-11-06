@@ -52,12 +52,22 @@ const startServer = async () => {
     // Kết nối database trước khi lắng nghe port
     await initConnection();
 
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, () => {
       console.log('=========================================================');
       console.log(`🚀 [Backend Server] Đang chạy tại: http://localhost:${PORT}`);
       console.log(`🌐 [API Docs/Health]: http://localhost:${PORT}/api/health`);
       console.log(`📊 [Database Status]: http://localhost:${PORT}/api/health/db`);
       console.log('=========================================================');
+    });
+
+    server.on('error', (err) => {
+      if (err.code === 'EADDRINUSE') {
+        console.error(`⚠️ [Cổng ${PORT} đang bận] Một tiến trình khác đang chạy trên cổng ${PORT}.`);
+        console.error(`👉 Hãy đóng cửa sổ node cũ hoặc chạy file run-all.bat để tự động giải phóng.`);
+      } else {
+        console.error('❌ Lỗi máy chủ:', err.message);
+      }
+      process.exit(1);
     });
   } catch (error) {
     console.error('❌ Không thể khởi động server:', error.message);
