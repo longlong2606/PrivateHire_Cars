@@ -619,12 +619,14 @@
       submitBtn.disabled = true;
 
       try {
-        const response = await fetch(`${API_BASE}/api/accounts/login`, {
+        const rememberDevice = document.getElementById('chk-remember-device') ? document.getElementById('chk-remember-device').checked : true;
+        const response = await fetch(`${API_BASE}/api/auth/login`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             email: idVal,
             password: pwVal,
+            rememberDevice,
           }),
         });
 
@@ -639,14 +641,22 @@
           return;
         }
 
-        // Login verified (AC4)
+        // Login verified & session token issued
+        if (data.sessionToken) {
+          localStorage.setItem('sessionToken', data.sessionToken);
+        }
         localStorage.setItem('currentUser', JSON.stringify(data.user));
-        showToast(`🎉 Login successful! Welcome ${data.user.name} (AC4 Verified)`, "success");
+        localStorage.setItem('registeredEmail', data.user.email);
+        if (rememberDevice) {
+          localStorage.setItem('rememberDevice', 'true');
+        }
+
+        showToast(`🎉 Login successful! Session token issued. Welcome ${data.user.name}`, "success");
 
         submitBtn.innerHTML = `<span>LOGIN SUCCESSFUL ✓</span>`;
         setTimeout(() => {
           window.location.href = "home.html";
-        }, 1200);
+        }, 1000);
 
       } catch (err) {
         console.error('Login error:', err);

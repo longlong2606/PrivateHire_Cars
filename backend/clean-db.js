@@ -35,9 +35,38 @@ async function cleanDatabase() {
 
   try {
     const client = await pool.connect();
-    await client.query('TRUNCATE TABLE accounts RESTART IDENTITY CASCADE');
-    console.log('✅ Đã xóa toàn bộ dữ liệu trong bảng "accounts"!');
-    console.log('✅ ID tài khoản đã được reset về số 1 (ACC-XXXXXX).');
+    // Tạo bảng nếu chưa có trước khi truncate
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS sessions (
+        id SERIAL PRIMARY KEY,
+        session_token VARCHAR(255) UNIQUE NOT NULL,
+        account_id INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+        ip_address VARCHAR(100),
+        user_agent VARCHAR(255),
+        expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE TABLE IF NOT EXISTS bookings (
+        id SERIAL PRIMARY KEY,
+        booking_code VARCHAR(50) UNIQUE NOT NULL,
+        account_id INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+        pickup_address VARCHAR(255) NOT NULL,
+        dropoff_address VARCHAR(255) NOT NULL,
+        pickup_time TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        passenger_name VARCHAR(100) NOT NULL,
+        passenger_phone VARCHAR(50) NOT NULL,
+        car_type VARCHAR(50) DEFAULT 'Executive Saloon',
+        fare_amount NUMERIC(10, 2) NOT NULL DEFAULT 45.00,
+        payment_method VARCHAR(50) DEFAULT 'MOCK_CARD',
+        card_ref_used VARCHAR(100),
+        status VARCHAR(50) DEFAULT 'CONFIRMED',
+        notes TEXT,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    await client.query('TRUNCATE TABLE accounts, sessions, bookings RESTART IDENTITY CASCADE');
+    console.log('✅ Đã xóa toàn bộ dữ liệu trong bảng "accounts", "sessions", "bookings"!');
+    console.log('✅ ID tài khoản và cuốc xe đã được reset về số 1.');
     console.log('💳 Bảng thẻ test "mock_cards" (AC3) vẫn được bảo toàn nguyên vẹn.');
     client.release();
     await pool.end();

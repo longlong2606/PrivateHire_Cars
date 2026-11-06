@@ -5,6 +5,9 @@ require('dotenv').config();
 const { initConnection } = require('./config/db');
 const healthRoutes = require('./routes/healthRoutes');
 const accountRoutes = require('./routes/accountRoutes');
+const authRoutes = require('./routes/authRoutes');
+const customerRoutes = require('./routes/customerRoutes');
+const bookingRoutes = require('./routes/bookingRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -26,6 +29,9 @@ app.use((req, res, next) => {
 // Routes
 app.use('/api/health', healthRoutes);
 app.use('/api/accounts', accountRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/customers', customerRoutes);
+app.use('/api/bookings', bookingRoutes);
 
 const path = require('path');
 const fs = require('fs');
@@ -44,7 +50,18 @@ app.get('/api', (req, res) => {
       dbStatus: '/api/health/db',
       accounts: '/api/accounts',
       mockCards: '/api/accounts/mock-cards',
-      testDatabaseIO: '/api/accounts/test-db-io',
+      auth: {
+        login: 'POST /api/auth/login',
+        logout: 'POST /api/auth/logout',
+        session: 'GET /api/auth/session',
+      },
+      customers: {
+        profile: 'GET /api/customers/:id (Protected: own profile only)',
+      },
+      bookings: {
+        create: 'POST /api/bookings (Protected: visitors blocked)',
+        myBookings: 'GET /api/bookings/my-bookings (Protected: own bookings only)',
+      },
     },
   });
 });

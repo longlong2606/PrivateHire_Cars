@@ -42,3 +42,44 @@ VALUES
     ('MOCK_JCB_3528', 'JCB Mock', '•••• •••• •••• 3528 (JCB Test Card)', '10/27', TRUE),
     ('MOCK_AMEX_3782', 'Amex Mock', '•••• •••••• •3782 (Amex Test Card)', '05/30', TRUE)
 ON CONFLICT (card_code) DO NOTHING;
+
+-- ===================================================================
+-- CUSTOMER SESSIONS TABLE (Sign-in, Sign-out and Session Handling)
+-- ===================================================================
+CREATE TABLE IF NOT EXISTS sessions (
+    id SERIAL PRIMARY KEY,
+    session_token VARCHAR(255) UNIQUE NOT NULL,
+    account_id INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    ip_address VARCHAR(100),
+    user_agent VARCHAR(255),
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(session_token);
+CREATE INDEX IF NOT EXISTS idx_sessions_account_id ON sessions(account_id);
+
+-- ===================================================================
+-- CUSTOMER BOOKINGS TABLE (Protected: visitors cannot submit online bookings)
+-- ===================================================================
+CREATE TABLE IF NOT EXISTS bookings (
+    id SERIAL PRIMARY KEY,
+    booking_code VARCHAR(50) UNIQUE NOT NULL,
+    account_id INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    pickup_address VARCHAR(255) NOT NULL,
+    dropoff_address VARCHAR(255) NOT NULL,
+    pickup_time TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    passenger_name VARCHAR(100) NOT NULL,
+    passenger_phone VARCHAR(50) NOT NULL,
+    car_type VARCHAR(50) DEFAULT 'Executive Saloon',
+    fare_amount NUMERIC(10, 2) NOT NULL DEFAULT 45.00,
+    payment_method VARCHAR(50) DEFAULT 'MOCK_CARD',
+    card_ref_used VARCHAR(100),
+    status VARCHAR(50) DEFAULT 'CONFIRMED',
+    notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_bookings_account_id ON bookings(account_id);
+CREATE INDEX IF NOT EXISTS idx_bookings_code ON bookings(booking_code);
+

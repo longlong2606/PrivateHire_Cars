@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const AccountModel = require('../models/accountModel');
 const db = require('../config/db');
 const { sendConfirmationEmail, getEmailHistory } = require('../services/emailService');
+const authController = require('./authController');
 
 // Standard Email RFC-compliant regex
 const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -164,56 +165,11 @@ const register = async (req, res) => {
 };
 
 /**
- * [AC4]: SIGN IN WITH REGISTERED ACCOUNT
- * AC4: A valid registration saves an account that can be used to sign in.
+ * [AC4]: SIGN IN WITH REGISTERED ACCOUNT & ISSUE SESSION TOKEN
+ * Delegates to authController for unified session handling
  */
-const login = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please provide both email and password',
-      });
-    }
-
-    const account = await AccountModel.findByEmail(email.trim());
-    if (!account) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid email or password',
-      });
-    }
-
-    const isMatch = await bcrypt.compare(password, account.password_hash);
-    if (!isMatch) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid email or password',
-      });
-    }
-
-    res.json({
-      success: true,
-      message: `Sign in successful! Welcome ${account.name}`,
-      user: {
-        id: account.id,
-        accountCode: account.account_code,
-        name: account.name,
-        email: account.email,
-        mockCardRef: account.mock_card_ref,
-        status: account.status,
-      },
-    });
-  } catch (error) {
-    console.error('Error during sign in:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error during sign in',
-      error: error.message,
-    });
-  }
+const login = (req, res) => {
+  return authController.login(req, res);
 };
 
 // Retrieve all registered accounts
