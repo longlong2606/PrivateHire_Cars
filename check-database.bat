@@ -13,3 +13,4 @@ node check-db.js
 
 echo.
 pause
+

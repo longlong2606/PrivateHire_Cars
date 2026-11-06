@@ -50,3 +50,4 @@ async function cleanDatabase() {
 }
 
 cleanDatabase();
+
