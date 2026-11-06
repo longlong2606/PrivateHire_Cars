@@ -16,17 +16,12 @@ CREATE TABLE IF NOT EXISTS accounts (
 CREATE INDEX IF NOT EXISTS idx_accounts_email ON accounts(email);
 CREATE INDEX IF NOT EXISTS idx_accounts_account_code ON accounts(account_code);
 
-INSERT INTO accounts (account_code, name, email, address, telephone, password_hash, mock_card_ref, status)
-VALUES 
-    (
-        'ACC-10001', 'John Doe', 'john.doe@example.com', '123 Oxford Street, London', '0712345678', 
-        '$2b$10$XltJeJwW/Oz71H7M.m5n5uVKyNFtJ4jwe8usfhKeB7zmhedCWabdS', '•••• •••• •••• 4242 (Visa Test Card)', 'ACTIVE'
-    ),
-    (
-        'ACC-10002', 'Jane Smith', 'jane.smith@example.com', '456 Baker Street, London', '0798765432', 
-        '$2b$10$XltJeJwW/Oz71H7M.m5n5uVKyNFtJ4jwe8usfhKeB7zmhedCWabdS', '•••• •••• •••• 5555 (Mastercard Test Card)', 'ACTIVE'
-    )
-ON CONFLICT (email) DO NOTHING;
+-- Seed accounts can be registered fresh via the registration form
+-- INSERT INTO accounts (account_code, name, email, address, telephone, password_hash, mock_card_ref, status)
+-- VALUES 
+--     ('ACC-10001', 'John Doe', 'john.doe@example.com', '123 Oxford Street, London', '0712345678', '$2b$10$XltJeJwW/Oz71H7M.m5n5uVKyNFtJ4jwe8usfhKeB7zmhedCWabdS', '•••• •••• •••• 4242 (Visa Test Card)', 'ACTIVE'),
+--     ('ACC-10002', 'Jane Smith', 'jane.smith@example.com', '456 Baker Street, London', '0798765432', '$2b$10$XltJeJwW/Oz71H7M.m5n5uVKyNFtJ4jwe8usfhKeB7zmhedCWabdS', '•••• •••• •••• 5555 (Mastercard Test Card)', 'ACTIVE')
+-- ON CONFLICT (email) DO NOTHING;
 
 
 
