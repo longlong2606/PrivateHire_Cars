@@ -1,40 +1,63 @@
-# 🚀 DỰ ÁN SCRUM - HOÀN THIỆN ĐẦY ĐỦ BƯỚC 1 ĐẾN BƯỚC 5
+# 🚀 PRIVATEHIRE CARS - SPRINT 1 IMPLEMENTATION
 
-Dự án phát triển ứng dụng quản lý đăng ký theo mô hình Scrum/Agile, hoàn thiện trọn vẹn từ **Bước 1** đến **Bước 5** và thỏa mãn **100% cả 5 tiêu chí Acceptance Criteria (AC1 - AC5)**.
+> **📌 SPRINT SCOPE / GOAL:**  
+> *"Set up the local frontend/backend project and database connection. Create the account schema and registration endpoint, validate required fields and unique email addresses, hash passwords, and store the selected mock-card reference with masked display."*
 
----
-
-## 📋 ĐỐI CHIẾU 5 TIÊU CHÍ ACCEPTANCE CRITERIA
-
-| Tiêu chí | Nội dung chi tiết | Trạng thái thực tế |
-| :--- | :--- | :---: |
-| **AC1** | Khách hàng có thể đăng ký tài khoản bằng: Tên, Email, Địa chỉ, Số điện thoại, Mật khẩu và Thẻ giả lập được chọn. | ✅ **Đã hoàn thành**: Form đăng ký với đầy đủ 7 ô nhập liệu. |
-| **AC2** | Thiếu thông tin bắt buộc, email không đúng định dạng hoặc email đã đăng ký sẽ báo lỗi và chặn tạo tài khoản. | ✅ **Đã hoàn thành**: Kiểm tra validation cả Frontend và Backend, báo lỗi chi tiết từng trường. |
-| **AC3** | Thông tin thẻ sử dụng danh sách thẻ test cho sẵn và hiển thị dưới dạng masked reference (không cần thẻ thật). | ✅ **Đã hoàn thành**: Dropdown hiển thị thẻ test dạng `•••• •••• •••• 4242 (Visa Test Card)`. |
-| **AC4** | Đăng ký hợp lệ lưu tài khoản vào cơ sở dữ liệu để có thể dùng đăng nhập. | ✅ **Đã hoàn thành**: Mật khẩu băm bằng BCrypt, lưu vào DB và có form đăng nhập test ngay. |
-| **AC5** | Sau khi đăng ký thành công, gửi email xác nhận đến địa chỉ email đã đăng ký. | ✅ **Đã hoàn thành**: Tự động tạo và gửi email xác nhận, hiển thị trực quan trên giao diện. |
+Dự án phát triển ứng dụng quản lý đăng ký xe theo mô hình Scrum/Agile, hoàn thiện **100% chính xác theo đúng phạm vi Scope** được giao.
 
 ---
 
-## 🛠️ CHI TIẾT 5 BƯỚC CÔNG VIỆC
+## 📋 BẢNG ĐỐI CHIẾU CHI TIẾT THEO TỪNG MỤC CỦA SCOPE
 
-1. **Khởi tạo ứng dụng**: Setup Backend Express + Frontend React (Vite) + PostgreSQL.
-2. **Kết nối database**: Kết nối PostgreSQL qua Pool, hỗ trợ fallback pg-mem cho nhóm chạy ngay.
-3. **Tạo bảng tài khoản**: Bảng `accounts` (chứa mã tài khoản, tên, email, địa chỉ, điện thoại, mật khẩu băm, thẻ giả lập) và bảng `mock_cards`.
-4. **Viết chức năng đăng ký ở backend**: Nhận dữ liệu từ form, kiểm tra hợp lệ, băm mật khẩu bằng BCrypt, sinh mã tài khoản duy nhất `ACC-XXXXXX`, lưu vào database và gửi email xác nhận.
-5. **Kiểm tra dữ liệu đăng ký**: Bắt lỗi thiếu trường bắt buộc, kiểm tra định dạng email (Regex), kiểm tra trùng lặp email, kiểm tra khớp mật khẩu xác nhận, kiểm tra thẻ giả lập hợp lệ.
+| # | Yêu cầu trong Scope | Vị trí cài đặt trong mã nguồn | Trạng thái thực tế |
+| :-: | :--- | :--- | :---: |
+| **1** | **Set up local frontend/backend project & database connection** | * **Frontend:** Port 5173 (`frontend/`)<br>* **Backend:** Port 5000 (`backend/src/server.js`)<br>* **Database:** PostgreSQL Pool (`backend/src/config/db.js`) | ✅ **HOÀN THÀNH**<br>Chạy 1-click qua `run-all.bat` |
+| **2** | **Create account schema & registration endpoint** | * **Schema:** Bảng `accounts` (`backend/src/database/schema.sql`)<br>* **Endpoint:** `POST /api/accounts/register` (`backend/src/routes/accountRoutes.js`) | ✅ **HOÀN THÀNH**<br>Tự động đồng bộ bảng khi khởi động |
+| **3** | **Validate required fields & unique email addresses** | * Kiểm tra đủ 6 trường bắt buộc (`accountController.js:28-36`)<br>* Bắt lỗi email sai định dạng & chặn gõ sai tên miền<br>* Kiểm tra trùng lặp email (`AccountModel.findByEmail` & `UNIQUE (email)`) | ✅ **HOÀN THÀNH**<br>Validation 2 lớp cả Frontend & Backend |
+| **4** | **Hash passwords** | * Băm mật khẩu bằng thư viện `bcryptjs` với salt 10 vòng (`accountController.js:88-89`)<br>* Mật khẩu lưu trong DB bắt đầu bằng `$2b$10$...` | ✅ **HOÀN THÀNH**<br>Tuyệt đối không lưu mật khẩu thô |
+| **5** | **Store selected mock-card reference with masked display** | * Bảng `mock_cards` chứa 4 thẻ test cho sẵn<br>* Dropdown cho khách chọn thẻ dạng `•••• •••• •••• 4242 (Visa Test Card)`<br>* Lưu vào cột `mock_card_ref` của bảng `accounts` | ✅ **HOÀN THÀNH**<br>Không yêu cầu thẻ thật theo AC3 |
 
 ---
 
-## 🏃 HƯỚNG DẪN KHỞI CHẠY CHO NHÓM
+## 🏃 HƯỚNG DẪN KHỞI CHẠY VÀ KIỂM TRA DỰ ÁN
 
-```bash
-# 1. Cài đặt toàn bộ thư viện:
-npm run install:all
+### 1. Khởi động ứng dụng Local (1-Click)
+Nhấp đúp chuột vào file:
+👉 **`run-all.bat`** (hoặc chạy lệnh `npm run dev`)
+* **Giao diện Web:** [http://localhost:5173](http://localhost:5173) (Trang Đăng ký & Đăng nhập)
+* **Backend REST API:** [http://localhost:5000/api](http://localhost:5000/api)
 
-# 2. Khởi động đồng thời cả Backend và Frontend:
-npm run dev
+### 2. Kiểm tra Cơ sở dữ liệu (PostgreSQL / DataGrip)
+Nhấp đúp chuột vào file:
+👉 **`check-database.bat`** (hoặc chạy lệnh `npm run db:check`)
+* Tự động in ra bảng 4 thẻ test và danh sách tất cả tài khoản đã băm mật khẩu BCrypt.
+
+### 3. Làm sạch Database để test lại từ đầu
+Nhấp đúp chuột vào file:
+👉 **`clean-database.bat`** (hoặc chạy lệnh `npm run db:clean`)
+* Xóa toàn bộ tài khoản, reset ID về số 1 để đăng ký lại từ đầu.
+
+---
+
+## 🛠️ CẤU TRÚC THƯ MỤC CHÍNH
+```text
+PrivateHire_Cars/
+├── backend/
+│   ├── src/
+│   │   ├── config/db.js              # Kết nối PostgreSQL Pool
+│   │   ├── controllers/accountController.js # Xử lý validate, băm BCrypt, đăng ký, đăng nhập
+│   │   ├── database/schema.sql       # Cấu trúc bảng accounts & mock_cards
+│   │   ├── models/accountModel.js    # Tương tác truy vấn SQL vào database
+│   │   ├── routes/accountRoutes.js   # Endpoint POST /api/accounts/register
+│   │   ├── services/emailService.js  # Dịch vụ gửi email xác nhận AC5
+│   │   └── server.js                 # Máy chủ Express.js
+│   ├── check-db.js                   # Script kiểm tra database tự động
+│   └── clean-db.js                   # Script làm sạch database
+├── frontend/
+│   ├── index.html / register.html    # Form đăng ký khách hàng (AC1, AC2, AC3)
+│   ├── login.html                    # Form đăng nhập chuẩn wireframe (AC4)
+│   └── home.html                     # Trang chủ dashboard sau khi đăng nhập
+├── run-all.bat                       # File khởi động nhanh cả hệ thống
+├── check-database.bat                # File kiểm tra nhanh database
+└── clean-database.bat                # File xóa nhanh database để test lại
 ```
-
-* **Frontend:** [http://localhost:5173](http://localhost:5173) (Giao diện nền trắng, trực quan, dễ thao tác)
-* **Backend API:** [http://localhost:5000](http://localhost:5000)
