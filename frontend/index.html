@@ -1125,7 +1125,7 @@
                   <span class="required-stars">***</span>
                 </label>
 
-                <div class="dropdown-container open" id="payment-dropdown-container">
+                <div class="dropdown-container" id="payment-dropdown-container">
                   <!-- Trigger box showing selected: Visa (Mock Card) **** 4242 -->
                   <div class="dropdown-trigger-btn" onclick="togglePaymentDropdown()">
                     <span class="input-icon-left-slot"><i data-lucide="credit-card" style="width: 16px; height: 16px;"></i></span>
@@ -1228,8 +1228,18 @@
       const items = document.querySelectorAll(".dropdown-item");
       items.forEach(item => item.classList.remove("active"));
       el.classList.add("active");
+      const container = document.getElementById("payment-dropdown-container");
+      if (container) container.classList.remove("open");
       showToast(`Selected Payment Method: ${cardName}`);
     }
+
+    // Close payment dropdown when clicking outside
+    document.addEventListener("click", (e) => {
+      const container = document.getElementById("payment-dropdown-container");
+      if (container && !container.contains(e.target)) {
+        container.classList.remove("open");
+      }
+    });
 
     // Terms Agreement Toggle
     let termsAgreed = true;
