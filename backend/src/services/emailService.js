@@ -102,52 +102,130 @@ const sendConfirmationEmail = async ({ toEmail, name, accountCode, mockCardRef }
 
   try {
     const creds = getCleanCredentials();
-    const transporter = createSmtpTransporter();
-    if (transporter && creds) {
-      const senderName = process.env.EMAIL_FROM_NAME || 'PrivateHIre Cars';
-      let info;
-      try {
-        info = await transporter.sendMail({
-          from: `"${senderName}" <${creds.user}>`,
-          to: toEmail,
-          subject,
-          text: textContent,
-          html: htmlContent,
-        });
-      } catch (firstAttemptErr) {
-        console.warn(`⚠️ [AC5 Email Info] Lần 1 gửi qua Gmail Service chưa thành công (${firstAttemptErr.message}). Đang tự động chuyển sang Port 587 STARTTLS...`);
-        // Fallback to Port 587 STARTTLS
-        const fallbackTransporter = nodemailer.createTransport({
-          host: 'smtp.gmail.com',
-          port: 587,
-          secure: false,
-          requireTLS: true,
-          auth: { user: creds.user, pass: creds.pass },
-          connectionTimeout: 15000,
-          greetingTimeout: 15000,
-          socketTimeout: 20000,
-        });
-        info = await fallbackTransporter.sendMail({
-          from: `"${senderName}" <${creds.user}>`,
-          to: toEmail,
-          subject,
-          text: textContent,
-          html: htmlContent,
-        });
-      }
+    const senderName = process.env.EMAIL_FROM_NAME || 'PrivateHIre Cars';
 
+    // --- Ưu tiên 1: Gửi qua HTTPS API (Bypass 100% việc Render chặn cổng SMTP 25/465/587) ---
+    if (process.env.BREVO_API_KEY) {
+      const apiKey = process.env.BREVO_API_KEY.trim();
+      const senderEmail = (creds?.user || process.env.EMAIL_FROM || 'rotds123456@gmail.com').trim();
+      const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'api-key': apiKey,
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          sender: { name: senderName, email: senderEmail },
+          to: [{ email: toEmail, name: name }],
+          subject,
+          htmlContent,
+          textContent,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(`Brevo API Error (${response.status}): ${JSON.stringify(data)}`);
+      }
       emailRecord.deliveryStatus = 'SMTP_ACCEPTED';
-      emailRecord.messageId = info.messageId;
+      emailRecord.messageId = data.messageId || 'BREVO_HTTPS_OK';
       console.log('======================================================');
-      console.log(`✅ [AC5 Real Email] Đã gửi email thật thành công tới: ${toEmail} qua Gmail SMTP!`);
-      console.log(`   MessageId: ${info.messageId}`);
+      console.log(`✅ [AC5 Real Email] Đã gửi email thật thành công tới: ${toEmail} qua Brevo HTTPS API!`);
+      console.log(`   MessageId: ${emailRecord.messageId}`);
+      console.log('======================================================');
+    } else if (process.env.RESEND_API_KEY) {
+      const apiKey = process.env.RESEND_API_KEY.trim();
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: `${senderName} <onboarding@resend.dev>`,
+          to: [toEmail],
+          subject,
+          html: htmlContent,
+          text: textContent,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(`Resend API Error (${response.status}): ${JSON.stringify(data)}`);
+      }
+      emailRecord.deliveryStatus = 'SMTP_ACCEPTED';
+      emailRecord.messageId = data.id || 'RESEND_HTTPS_OK';
+      console.log('======================================================');
+      console.log(`✅ [AC5 Real Email] Đã gửi email thật thành công tới: ${toEmail} qua Resend HTTPS API!`);
+      console.log(`   MessageId: ${emailRecord.messageId}`);
+      console.log('======================================================');
+    } else if (process.env.EMAIL_WEBHOOK_URL) {
+      const webhookUrl = process.env.EMAIL_WEBHOOK_URL.trim();
+      const response = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: toEmail,
+          name,
+          subject,
+          text: textContent,
+          html: htmlContent,
+        }),
+      });
+      const data = await response.json();
+      emailRecord.deliveryStatus = 'SMTP_ACCEPTED';
+      emailRecord.messageId = data.messageId || 'WEBHOOK_HTTPS_OK';
+      console.log('======================================================');
+      console.log(`✅ [AC5 Real Email] Đã gửi email thật thành công tới: ${toEmail} qua HTTPS Webhook!`);
       console.log('======================================================');
     } else {
-      console.log('======================================================');
-      console.log(`📧 [AC5 Email Service] Confirmation email sent to: ${toEmail}`);
-      console.log(`   Subject: ${subject}`);
-      console.log(`   Account Code: ${accountCode}`);
-      console.log('======================================================');
+      // --- Phương thức 2: Gửi qua Gmail SMTP (Hoạt động tốt khi chạy trên máy tính hoặc host không chặn SMTP) ---
+      const transporter = createSmtpTransporter();
+      if (transporter && creds) {
+        let info;
+        try {
+          info = await transporter.sendMail({
+            from: `"${senderName}" <${creds.user}>`,
+            to: toEmail,
+            subject,
+            text: textContent,
+            html: htmlContent,
+          });
+        } catch (firstAttemptErr) {
+          console.warn(`⚠️ [AC5 Email Info] Lần 1 gửi qua Gmail Service chưa thành công (${firstAttemptErr.message}). Đang tự động chuyển sang Port 587 STARTTLS...`);
+          // Fallback to Port 587 STARTTLS
+          const fallbackTransporter = nodemailer.createTransport({
+            host: 'smtp.gmail.com',
+            port: 587,
+            secure: false,
+            requireTLS: true,
+            auth: { user: creds.user, pass: creds.pass },
+            connectionTimeout: 15000,
+            greetingTimeout: 15000,
+            socketTimeout: 20000,
+          });
+          info = await fallbackTransporter.sendMail({
+            from: `"${senderName}" <${creds.user}>`,
+            to: toEmail,
+            subject,
+            text: textContent,
+            html: htmlContent,
+          });
+        }
+
+        emailRecord.deliveryStatus = 'SMTP_ACCEPTED';
+        emailRecord.messageId = info.messageId;
+        console.log('======================================================');
+        console.log(`✅ [AC5 Real Email] Đã gửi email thật thành công tới: ${toEmail} qua Gmail SMTP!`);
+        console.log(`   MessageId: ${info.messageId}`);
+        console.log('======================================================');
+      } else {
+        console.log('======================================================');
+        console.log(`📧 [AC5 Email Service] Confirmation email sent to: ${toEmail}`);
+        console.log(`   Subject: ${subject}`);
+        console.log(`   Account Code: ${accountCode}`);
+        console.log('======================================================');
+      }
     }
   } catch (err) {
     console.warn(`⚠️ [AC5 Email Warning] Lỗi gửi email qua SMTP: ${err.message}. Đã lưu preview vào hệ thống.`);
