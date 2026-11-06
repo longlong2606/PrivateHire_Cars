@@ -871,14 +871,6 @@
       </a>
 
       <div class="nav-actions">
-        <a href="index.html" class="nav-btn" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px; background:#FFFFFF; color:#25352E; border:1px solid #E8E2D5; border-radius:8px; padding:8px 14px; font-size:13px; font-weight:600;">
-          <i data-lucide="home" style="width: 14px; height: 14px;"></i>
-          <span>Home</span>
-        </a>
-        <button type="button" class="nav-btn" onclick="openAcDataModal()" style="display:inline-flex; align-items:center; gap:6px; background:rgba(22,75,59,0.08); border:1px solid rgba(22,75,59,0.25); color:#164B3B; border-radius:8px; padding:8px 14px; font-size:13px; font-weight:600; cursor:pointer;" title="View Registered Database Accounts & AC5 Sent Emails">
-          <i data-lucide="database" style="width: 14px; height: 14px;"></i>
-          <span>Database & Emails (AC4/AC5)</span>
-        </button>
         <a href="login.html" class="nav-btn primary" title="Go to Sign In">
           <i data-lucide="log-in" style="width: 14px; height: 14px;"></i>
           <span>Log in</span>
@@ -1071,7 +1063,7 @@
               <!-- 5 & 6. Password & Confirm Password Row -->
               <div class="field-row-split">
                 
-                <!-- Password *** (Normal State: Value: •••••••• with hidden eye icon) -->
+                <!-- Password *** -->
                 <div class="field-group" id="grp-password">
                   <label class="field-label" for="f-password">
                     <span>Password</span>
@@ -1083,7 +1075,7 @@
                       type="password" 
                       class="field-input" 
                       id="f-password" 
-                      value="Password123!" 
+                      value="" 
                       placeholder="••••••••"
                       oninput="validateField('password')"
                     />
@@ -1097,8 +1089,8 @@
                   </div>
                 </div>
 
-                <!-- Confirm Password *** (Input field showing Error State: Value: •••••••) -->
-                <div class="field-group has-error" id="grp-confirm-password">
+                <!-- Confirm Password *** -->
+                <div class="field-group" id="grp-confirm-password">
                   <label class="field-label" for="f-confirm-password">
                     <span>Confirm Password</span>
                     <span class="required-stars">***</span>
@@ -1109,8 +1101,8 @@
                       type="password" 
                       class="field-input" 
                       id="f-confirm-password" 
-                      value="DiffPass" 
-                      placeholder="•••••••"
+                      value="" 
+                      placeholder="••••••••"
                       oninput="validateField('confirm-password')"
                     />
                     <span class="input-icon-right-slot" onclick="togglePasswordVisibility('f-confirm-password', 'eye-confirm-icon')" title="Show / Hide password">
