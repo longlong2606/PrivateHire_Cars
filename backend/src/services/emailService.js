@@ -119,7 +119,12 @@ const sendConfirmationEmail = async ({ toEmail, name, accountCode, mockCardRef }
           html: htmlContent,
         }),
       });
-      const data = await response.json();
+      const rawText = await response.text();
+      let data = {};
+      try { data = JSON.parse(rawText); } catch (_) { data = { message: rawText }; }
+      if (!response.ok && response.status >= 400) {
+        throw new Error(`Webhook Error (${response.status}): ${rawText}`);
+      }
       emailRecord.deliveryStatus = 'SMTP_ACCEPTED';
       emailRecord.messageId = data.messageId || 'WEBHOOK_HTTPS_OK';
       console.log('======================================================');
