@@ -1195,6 +1195,12 @@
   <div class="toast-notifications-rack" id="toast-rack"></div>
 
   <script>
+    const API_BASE = (function() {
+      if (window.location.protocol === 'file:') return 'http://localhost:5000';
+      if (window.location.port === '5173') return '';
+      return `http://${window.location.hostname || 'localhost'}:5000`;
+    })();
+
     // Initialize Lucide Icons
     document.addEventListener("DOMContentLoaded", () => {
       lucide.createIcons();
@@ -1257,7 +1263,7 @@
     let registeredAccountsCache = [];
     async function fetchAccountsForValidation() {
       try {
-        const res = await fetch('http://localhost:5000/api/accounts');
+        const res = await fetch(`${API_BASE}/api/accounts`);
         const data = await res.json();
         if (data.success && data.data) {
           registeredAccountsCache = data.data;
@@ -1268,7 +1274,7 @@
     // Dynamic Mock Cards from Backend (AC3)
     async function loadBackendCards() {
       try {
-        const res = await fetch('http://localhost:5000/api/accounts/mock-cards');
+        const res = await fetch(`${API_BASE}/api/accounts/mock-cards`);
         const data = await res.json();
         if (data.success && data.data && data.data.length > 0) {
           const menu = document.getElementById("payment-dropdown-menu");
@@ -1511,7 +1517,7 @@
       submitBtn.disabled = true;
 
       try {
-        const response = await fetch('http://localhost:5000/api/accounts/register', {
+        const response = await fetch(`${API_BASE}/api/accounts/register`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -1666,8 +1672,8 @@
     async function refreshAcModalData() {
       try {
         const [accRes, emailRes] = await Promise.all([
-          fetch('http://localhost:5000/api/accounts').then(r => r.json()),
-          fetch('http://localhost:5000/api/accounts/emails').then(r => r.json()),
+          fetch(`${API_BASE}/api/accounts`).then(r => r.json()),
+          fetch(`${API_BASE}/api/accounts/emails`).then(r => r.json()),
         ]);
         if (accRes.success) {
           document.getElementById('modal-acc-count').textContent = accRes.count || accRes.data.length;
