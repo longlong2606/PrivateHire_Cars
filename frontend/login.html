@@ -346,38 +346,6 @@
       transform: none;
     }
 
-    /* Testing Helper Toolbar (Kept subtle at the bottom of the card) */
-    .testing-helper-row {
-      margin-top: 22px;
-      padding-top: 16px;
-      border-top: 1px dashed var(--border-medium);
-      display: flex;
-      justify-content: space-between;
-      gap: 8px;
-    }
-
-    .btn-helper-tool {
-      flex: 1;
-      padding: 6px 8px;
-      font-size: 11.5px;
-      font-weight: 600;
-      font-family: var(--font-mono);
-      color: #164B3B;
-      background: rgba(22, 75, 59, 0.05);
-      border: 1px solid rgba(22, 75, 59, 0.2);
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 5px;
-      transition: var(--transition-smooth);
-    }
-
-    .btn-helper-tool:hover {
-      background: rgba(22, 75, 59, 0.12);
-    }
-
     /* Toast Notification */
     .toast-rack {
       position: fixed;
@@ -520,18 +488,6 @@
         </button>
 
       </form>
-
-      <!-- Testing Helper Toolbar -->
-      <div class="testing-helper-row">
-        <button type="button" class="btn-helper-tool" onclick="prefillLatestUser()" title="Pre-fill last registered email">
-          <i data-lucide="sparkles" style="width: 12px; height: 12px;"></i>
-          <span>Fill Last Registered</span>
-        </button>
-        <button type="button" class="btn-helper-tool" onclick="openAcDataModal()" title="View Database Accounts">
-          <i data-lucide="database" style="width: 12px; height: 12px;"></i>
-          <span>View Database (AC4)</span>
-        </button>
-      </div>
 
     </div>
 
