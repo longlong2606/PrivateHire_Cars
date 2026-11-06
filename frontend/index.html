@@ -1482,6 +1482,15 @@
         document.getElementById('grp-email').classList.add('has-error');
         document.querySelector('#err-email span').textContent = '(!) Invalid email format';
         hasError = true;
+      } else if (
+        email.toLowerCase().endsWith('@gmai.com') ||
+        email.toLowerCase().endsWith('@gamil.com') ||
+        email.toLowerCase().endsWith('@gmial.com') ||
+        email.toLowerCase().endsWith('@gmal.com')
+      ) {
+        document.getElementById('grp-email').classList.add('has-error');
+        document.querySelector('#err-email span').textContent = '(!) Typo in domain: did you mean @gmail.com?';
+        hasError = true;
       } else {
         document.getElementById('grp-email').classList.remove('has-error');
       }
@@ -1584,12 +1593,18 @@
         localStorage.setItem('registeredEmail', data.account.email);
         localStorage.setItem('currentUser', JSON.stringify(data.account));
 
-        showToast(`🎉 Registration Successful! Code: ${data.account.accountCode}. Confirmation email sent (AC5)`, "success");
+        if (data.emailDeliveryStatus === 'SMTP_ACCEPTED') {
+          showToast(`🎉 Registration Successful! Real confirmation email sent to ${data.account.email} (check Inbox / Spam)`, "success");
+        } else if (data.emailDeliveryStatus === 'SMTP_FAILED') {
+          showToast(`⚠️ Account created (${data.account.accountCode}), but email error: ${data.emailError || 'Check SMTP credentials'}`, "error");
+        } else {
+          showToast(`🎉 Registration Successful! Code: ${data.account.accountCode}. Confirmation email logged (AC5)`, "success");
+        }
 
         submitBtn.innerHTML = `<span>ACCOUNT CREATED (${data.account.accountCode}) ✓</span>`;
         setTimeout(() => {
           window.location.href = "login.html";
-        }, 1500);
+        }, 2200);
 
       } catch (err) {
         console.error('Registration error:', err);
@@ -1713,16 +1728,24 @@
           `).join('');
         }
         if (emailRes.success && emailRes.data && emailRes.data.length > 0) {
-          document.getElementById('modal-email-list').innerHTML = emailRes.data.map(e => `
+          document.getElementById('modal-email-list').innerHTML = emailRes.data.map(e => {
+            let statusBadge = '<span style="background:rgba(58,139,104,0.12); color:#3A8B68; border:1px solid rgba(58,139,104,0.3); padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600;">✅ REAL EMAIL SENT (GMAIL SMTP)</span>';
+            if (e.deliveryStatus === 'SMTP_FAILED') {
+              statusBadge = `<span style="background:rgba(220,38,38,0.12); color:#DC2626; border:1px solid rgba(220,38,38,0.3); padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600;">⚠️ SMTP FAILED: ${e.error || 'Check credentials'}</span>`;
+            } else if (!e.deliveryStatus || e.deliveryStatus === 'LOCAL_PREVIEW') {
+              statusBadge = '<span style="background:rgba(22,75,59,0.08); color:#164B3B; border:1px solid rgba(22,75,59,0.2); padding:2px 8px; border-radius:4px; font-size:11px;">📧 LOCAL PREVIEW</span>';
+            }
+            return `
             <div style="background:#FAF7F2; border:1px solid #E8E2D5; border-radius:10px; padding:12px;">
-              <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; flex-wrap:wrap; gap:6px;">
                 <strong style="color:#164B3B; font-size:13px;">${e.subject}</strong>
-                <span style="background:rgba(58,139,104,0.12); color:#3A8B68; border:1px solid rgba(58,139,104,0.3); padding:2px 6px; border-radius:4px; font-size:11px;">SENT</span>
+                ${statusBadge}
               </div>
-              <div style="font-size:11px; color:#5E7168; margin-bottom:6px;">To: <span style="color:#25352E; font-weight:600;">${e.to}</span> &bull; Sent: ${new Date(e.sentAt).toLocaleTimeString()}</div>
+              <div style="font-size:11px; color:#5E7168; margin-bottom:6px;">To: <span style="color:#25352E; font-weight:600;">${e.to}</span> &bull; Sent: ${new Date(e.sentAt).toLocaleTimeString()}${e.messageId ? ` &bull; ID: ${e.messageId}` : ''}</div>
               <pre style="font-size:11px; white-space:pre-wrap; background:#FFFFFF; border:1px solid #E8E2D5; padding:8px; border-radius:6px; color:#25352E; font-family:inherit; margin:0;">${e.preview}</pre>
             </div>
-          `).join('');
+            `;
+          }).join('');
         }
       } catch (err) {
         console.error('Error fetching AC modal data:', err);

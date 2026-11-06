@@ -34,9 +34,19 @@ const register = async (req, res) => {
     if (!confirmPassword) errors.confirmPassword = 'Password confirmation is required';
     if (!mockCardRef || !mockCardRef.trim()) errors.mockCardRef = 'Please select a mock card reference according to AC3';
 
-    // 2. Check email format
-    if (email && email.trim() && !EMAIL_REGEX.test(email.trim())) {
-      errors.email = 'Invalid email format (e.g. user@example.com)';
+    // 2. Check email format and common domain typos
+    if (email && email.trim()) {
+      const lowerEmail = email.trim().toLowerCase();
+      if (!EMAIL_REGEX.test(lowerEmail)) {
+        errors.email = 'Invalid email format (e.g. user@example.com)';
+      } else if (
+        lowerEmail.endsWith('@gmai.com') ||
+        lowerEmail.endsWith('@gamil.com') ||
+        lowerEmail.endsWith('@gmial.com') ||
+        lowerEmail.endsWith('@gmal.com')
+      ) {
+        errors.email = 'Email appears to have a typo in domain (@gmai.com). Did you mean @gmail.com?';
+      }
     }
 
     // 3. Check password confirmation
@@ -129,7 +139,9 @@ const register = async (req, res) => {
         status: newAccount.status,
         createdAt: newAccount.created_at,
       },
-      emailSent: emailResult ? true : false,
+      emailSent: emailResult ? (emailResult.deliveryStatus === 'SMTP_ACCEPTED' || (!process.env.SMTP_USER && emailResult.status === 'SENT')) : false,
+      emailDeliveryStatus: emailResult?.deliveryStatus || (process.env.SMTP_USER ? 'SMTP_FAILED' : 'LOCAL_PREVIEW'),
+      emailError: emailResult?.error || null,
       emailPreview: emailResult,
     });
   } catch (error) {

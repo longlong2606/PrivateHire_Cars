@@ -3,27 +3,47 @@ const nodemailer = require('nodemailer');
 // In-memory store for sent emails for testing and demo inspection
 const emailLog = [];
 
-function createSmtpTransporter() {
-  const user = process.env.SMTP_USER;
+function getCleanCredentials() {
+  let user = process.env.SMTP_USER;
   let pass = process.env.SMTP_PASS;
   if (!user || !pass) return null;
 
-  let host = process.env.SMTP_HOST || 'smtp.gmail.com';
+  user = user.trim().replace(/^["']|["']$/g, '').trim();
+  pass = pass.replace(/[\s"']/g, '');
+  return { user, pass };
+}
+
+function createSmtpTransporter() {
+  const creds = getCleanCredentials();
+  if (!creds) return null;
+
+  let host = (process.env.SMTP_HOST || 'smtp.gmail.com').trim().replace(/^["']|["']$/g, '');
   let port = Number(process.env.SMTP_PORT || 465);
   if (/^\d+$/.test(host)) {
     port = Number(host) === 456 ? 465 : Number(host);
     host = 'smtp.gmail.com';
   }
-  pass = pass.replace(/\s/g, '');
+
+  // If host is Gmail or user is Gmail, use nodemailer's built-in 'service: gmail' profile
+  // which handles ports, TLS handshake and cipher negotiation reliably on all cloud platforms
+  if (host === 'smtp.gmail.com' || creds.user.toLowerCase().endsWith('@gmail.com')) {
+    return nodemailer.createTransport({
+      service: 'gmail',
+      auth: { user: creds.user, pass: creds.pass },
+      connectionTimeout: 15000,
+      greetingTimeout: 15000,
+      socketTimeout: 20000,
+    });
+  }
 
   return nodemailer.createTransport({
     host,
     port,
     secure: port === 465,
-    auth: { user, pass },
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 15000,
+    auth: { user: creds.user, pass: creds.pass },
+    connectionTimeout: 15000,
+    greetingTimeout: 15000,
+    socketTimeout: 20000,
   });
 }
 
@@ -81,16 +101,41 @@ const sendConfirmationEmail = async ({ toEmail, name, accountCode, mockCardRef }
   };
 
   try {
+    const creds = getCleanCredentials();
     const transporter = createSmtpTransporter();
-    if (transporter) {
+    if (transporter && creds) {
       const senderName = process.env.EMAIL_FROM_NAME || 'PrivateHIre Cars';
-      const info = await transporter.sendMail({
-        from: `"${senderName}" <${process.env.SMTP_USER}>`,
-        to: toEmail,
-        subject,
-        text: textContent,
-        html: htmlContent,
-      });
+      let info;
+      try {
+        info = await transporter.sendMail({
+          from: `"${senderName}" <${creds.user}>`,
+          to: toEmail,
+          subject,
+          text: textContent,
+          html: htmlContent,
+        });
+      } catch (firstAttemptErr) {
+        console.warn(`⚠️ [AC5 Email Info] Lần 1 gửi qua Gmail Service chưa thành công (${firstAttemptErr.message}). Đang tự động chuyển sang Port 587 STARTTLS...`);
+        // Fallback to Port 587 STARTTLS
+        const fallbackTransporter = nodemailer.createTransport({
+          host: 'smtp.gmail.com',
+          port: 587,
+          secure: false,
+          requireTLS: true,
+          auth: { user: creds.user, pass: creds.pass },
+          connectionTimeout: 15000,
+          greetingTimeout: 15000,
+          socketTimeout: 20000,
+        });
+        info = await fallbackTransporter.sendMail({
+          from: `"${senderName}" <${creds.user}>`,
+          to: toEmail,
+          subject,
+          text: textContent,
+          html: htmlContent,
+        });
+      }
+
       emailRecord.deliveryStatus = 'SMTP_ACCEPTED';
       emailRecord.messageId = info.messageId;
       console.log('======================================================');
