@@ -105,7 +105,28 @@ const sendConfirmationEmail = async ({ toEmail, name, accountCode, mockCardRef }
     const senderName = process.env.EMAIL_FROM_NAME || 'PrivateHIre Cars';
 
     // --- Ưu tiên 1: Gửi qua HTTPS API (Bypass 100% việc Render chặn cổng SMTP 25/465/587) ---
-    if (process.env.BREVO_API_KEY) {
+    if (process.env.EMAIL_WEBHOOK_URL) {
+      // 1. Google Apps Script Webhook (Miễn phí 100%, gửi từ chính Gmail của bạn tới BẤT KỲ ai, không cần mua domain)
+      const webhookUrl = process.env.EMAIL_WEBHOOK_URL.trim();
+      const response = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: toEmail,
+          name,
+          subject,
+          text: textContent,
+          html: htmlContent,
+        }),
+      });
+      const data = await response.json();
+      emailRecord.deliveryStatus = 'SMTP_ACCEPTED';
+      emailRecord.messageId = data.messageId || 'WEBHOOK_HTTPS_OK';
+      console.log('======================================================');
+      console.log(`✅ [AC5 Real Email] Đã gửi email thật thành công tới: ${toEmail} qua Google Apps Script Webhook!`);
+      console.log('======================================================');
+    } else if (process.env.BREVO_API_KEY) {
+      // 2. Brevo API (Gửi được tới BẤT KỲ email nào, miễn phí 300 email/ngày, không cần custom domain)
       const apiKey = process.env.BREVO_API_KEY.trim();
       const senderEmail = (creds?.user || process.env.EMAIL_FROM || 'rotds123456@gmail.com').trim();
       const response = await fetch('https://api.brevo.com/v3/smtp/email', {
@@ -134,6 +155,7 @@ const sendConfirmationEmail = async ({ toEmail, name, accountCode, mockCardRef }
       console.log(`   MessageId: ${emailRecord.messageId}`);
       console.log('======================================================');
     } else if (process.env.RESEND_API_KEY) {
+      // 3. Resend API
       const apiKey = process.env.RESEND_API_KEY.trim();
       const response = await fetch('https://api.resend.com/emails', {
         method: 'POST',
@@ -151,6 +173,9 @@ const sendConfirmationEmail = async ({ toEmail, name, accountCode, mockCardRef }
       });
       const data = await response.json();
       if (!response.ok) {
+        if (response.status === 403 && data.message && data.message.includes('only send testing emails')) {
+          throw new Error('Resend miễn phí chỉ cho gửi về chính email tạo tài khoản Resend. Để gửi cho mọi người: hãy dùng Google Apps Script Webhook hoặc Brevo API không cần mua domain.');
+        }
         throw new Error(`Resend API Error (${response.status}): ${JSON.stringify(data)}`);
       }
       emailRecord.deliveryStatus = 'SMTP_ACCEPTED';
@@ -158,25 +183,6 @@ const sendConfirmationEmail = async ({ toEmail, name, accountCode, mockCardRef }
       console.log('======================================================');
       console.log(`✅ [AC5 Real Email] Đã gửi email thật thành công tới: ${toEmail} qua Resend HTTPS API!`);
       console.log(`   MessageId: ${emailRecord.messageId}`);
-      console.log('======================================================');
-    } else if (process.env.EMAIL_WEBHOOK_URL) {
-      const webhookUrl = process.env.EMAIL_WEBHOOK_URL.trim();
-      const response = await fetch(webhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          to: toEmail,
-          name,
-          subject,
-          text: textContent,
-          html: htmlContent,
-        }),
-      });
-      const data = await response.json();
-      emailRecord.deliveryStatus = 'SMTP_ACCEPTED';
-      emailRecord.messageId = data.messageId || 'WEBHOOK_HTTPS_OK';
-      console.log('======================================================');
-      console.log(`✅ [AC5 Real Email] Đã gửi email thật thành công tới: ${toEmail} qua HTTPS Webhook!`);
       console.log('======================================================');
     } else {
       // --- Phương thức 2: Gửi qua Gmail SMTP (Hoạt động tốt khi chạy trên máy tính hoặc host không chặn SMTP) ---
