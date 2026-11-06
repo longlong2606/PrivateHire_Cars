@@ -635,8 +635,15 @@
       const pwVal = document.getElementById('f-login-password').value.trim();
       let hasError = false;
 
+      // Email Format Check (RFC compliant)
+      const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
       if (!idVal) {
         flagFieldError('login-identifier', 'Email is required');
+        hasError = true;
+      } else if (!EMAIL_REGEX.test(idVal)) {
+        flagFieldError('login-identifier', 'Invalid email format (e.g. user@example.com)');
+        showLoginAlert('Invalid email format. Please enter an email address like <strong>user@example.com</strong>.');
         hasError = true;
       } else {
         clearFieldError('login-identifier');
@@ -650,7 +657,11 @@
       }
 
       if (hasError) {
-        showToast("Please enter your email and password", "error");
+        if (!idVal || !pwVal) {
+          showToast("Please enter your email and password", "error");
+        } else {
+          showToast("Invalid email format (e.g. user@example.com)", "error");
+        }
         return;
       }
 
@@ -679,7 +690,13 @@
 
           const msg = data.message || "Invalid email or password";
 
-          if (data.code === 'ACCOUNT_NOT_FOUND' || msg.toLowerCase().includes('not exist')) {
+          if (data.code === 'INVALID_EMAIL_FORMAT' || msg.toLowerCase().includes('format')) {
+            flagFieldError('login-identifier', 'Invalid email format (e.g. user@example.com)');
+            const pwGroup = document.getElementById('grp-login-password');
+            if (pwGroup) pwGroup.classList.remove('has-error');
+            showLoginAlert('Invalid email format. Please enter an email address like <strong>user@example.com</strong>.');
+            showToast("Invalid email format (e.g. user@example.com)", "error");
+          } else if (data.code === 'ACCOUNT_NOT_FOUND' || msg.toLowerCase().includes('not exist')) {
             flagFieldError('login-identifier', 'Account does not exist. Please check your email or create an account.');
             const pwGroup = document.getElementById('grp-login-password');
             if (pwGroup) pwGroup.classList.remove('has-error');

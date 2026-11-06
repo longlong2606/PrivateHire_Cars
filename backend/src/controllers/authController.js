@@ -21,6 +21,17 @@ const login = async (req, res) => {
 
     const trimmedIdentifier = email.trim();
 
+    // Kiểm tra định dạng email hợp lệ (RFC regex) hoặc số điện thoại
+    const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    const isPhone = /^[0-9+() -]{8,20}$/.test(trimmedIdentifier);
+    if (!EMAIL_REGEX.test(trimmedIdentifier) && !isPhone) {
+      return res.status(400).json({
+        success: false,
+        code: 'INVALID_EMAIL_FORMAT',
+        message: 'Invalid email format (e.g. user@example.com)',
+      });
+    }
+
     // 2. Tìm tài khoản theo Email hoặc Số điện thoại
     let account = await AccountModel.findByEmail(trimmedIdentifier);
     if (!account) {

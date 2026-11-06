@@ -117,6 +117,28 @@ test('Sprint Feature: Email/Password Sign-In, Sign-Out, Session & Endpoint Prote
     assert.equal(responseData.success, false);
   });
 
+  await t.test('3b. Sign-in with invalid email format is rejected (400 Invalid format)', async () => {
+    let statusCode = 200;
+    let responseData = null;
+
+    const req = {
+      body: { email: 'longlong', password },
+      ip: '127.0.0.1',
+      headers: {},
+    };
+    const res = {
+      status(code) { statusCode = code; return this; },
+      json(data) { responseData = data; return this; },
+    };
+
+    await authController.login(req, res);
+
+    assert.equal(statusCode, 400);
+    assert.equal(responseData.success, false);
+    assert.equal(responseData.code, 'INVALID_EMAIL_FORMAT');
+    assert.match(responseData.message, /invalid email format/i);
+  });
+
   await t.test('4. Session verification (GET /session) succeeds with valid token', async () => {
     let statusCode = 200;
     let responseData = null;
