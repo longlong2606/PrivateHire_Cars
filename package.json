@@ -10,6 +10,7 @@
     "dev:backend": "cd backend && npm run dev",
     "dev:frontend": "cd frontend && npm run dev",
     "db:check": "cd backend && npm run db:check",
+    "db:clean": "cd backend && npm run db:clean",
     "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install"
   },
   "devDependencies": {
