@@ -16,6 +16,16 @@ let dbStatus = {
 
 // Cấu hình pool kết nối PostgreSQL thực tế (Hỗ trợ DATABASE_URL trên Render/Railway/Supabase/Neon)
 const connectionString = process.env.DATABASE_URL;
+if (connectionString) {
+  try {
+    const parsed = new URL(connectionString);
+    dbStatus.host = parsed.hostname;
+    dbStatus.port = parseInt(parsed.port, 10) || 5432;
+    dbStatus.user = parsed.username;
+    dbStatus.database = parsed.pathname.replace(/^\//, '') || dbStatus.database;
+  } catch (_) {}
+}
+
 const realPool = connectionString
   ? new Pool({
       connectionString,
