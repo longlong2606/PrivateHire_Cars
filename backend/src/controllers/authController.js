@@ -37,7 +37,8 @@ const login = async (req, res) => {
     if (!account) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid email or password',
+        code: 'ACCOUNT_NOT_FOUND',
+        message: 'Account does not exist. Please check your email or register.',
       });
     }
 
@@ -46,7 +47,8 @@ const login = async (req, res) => {
     if (!isMatch) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid email or password',
+        code: 'INVALID_PASSWORD',
+        message: 'Incorrect password. Invalid email or password.',
       });
     }
 
@@ -191,3 +193,4 @@ module.exports = {
   getSession,
   getCustomerProfile,
 };
+

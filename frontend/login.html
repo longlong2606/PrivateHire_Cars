@@ -426,6 +426,14 @@
         </p>
       </div>
 
+      <!-- Prominent Error Alert Banner -->
+      <div id="login-alert-banner" style="display:none; background:rgba(185,74,72,0.08); border:1px solid rgba(185,74,72,0.25); border-radius:8px; padding:12px 14px; margin-bottom:18px; color:#B94A48; font-size:13px; display:none; align-items:flex-start; gap:10px; line-height:1.5;">
+        <i data-lucide="alert-octagon" style="width:16px; height:16px; flex-shrink:0; margin-top:2px; color:#B94A48;"></i>
+        <div id="login-alert-content">
+          <span id="login-alert-text">Account does not exist. Please check your email or register.</span>
+        </div>
+      </div>
+
       <form id="login-form" novalidate onsubmit="handleLoginSubmit(event)">
 
         <!-- Email or Mobile Number * -->
@@ -563,11 +571,29 @@
     function clearFieldError(fieldKey) {
       const group = document.getElementById(`grp-${fieldKey}`);
       if (group) group.classList.remove('has-error');
+      const alertBanner = document.getElementById('login-alert-banner');
+      if (alertBanner) alertBanner.style.display = 'none';
     }
 
-    function flagFieldError(fieldKey) {
+    function flagFieldError(fieldKey, customMessage) {
       const group = document.getElementById(`grp-${fieldKey}`);
-      if (group) group.classList.add('has-error');
+      if (group) {
+        group.classList.add('has-error');
+        if (customMessage) {
+          const span = document.querySelector(`#err-${fieldKey} span`);
+          if (span) span.textContent = `(!) ${customMessage}`;
+        }
+      }
+    }
+
+    function showLoginAlert(htmlMessage) {
+      const banner = document.getElementById('login-alert-banner');
+      const textSpan = document.getElementById('login-alert-text');
+      if (banner && textSpan) {
+        textSpan.innerHTML = htmlMessage;
+        banner.style.display = 'flex';
+        lucide.createIcons();
+      }
     }
 
     function handleForgotPassword() {
@@ -595,14 +621,14 @@
       let hasError = false;
 
       if (!idVal) {
-        flagFieldError('login-identifier');
+        flagFieldError('login-identifier', 'Email or mobile number is required');
         hasError = true;
       } else {
         clearFieldError('login-identifier');
       }
 
       if (!pwVal) {
-        flagFieldError('login-password');
+        flagFieldError('login-password', 'Password is required');
         hasError = true;
       } else {
         clearFieldError('login-password');
@@ -635,9 +661,27 @@
         if (!response.ok || !data.success) {
           submitBtn.innerHTML = origText;
           submitBtn.disabled = false;
-          flagFieldError('login-identifier');
-          flagFieldError('login-password');
-          showToast(data.message || "Invalid email or password", "error");
+
+          const msg = data.message || "Invalid email or password";
+
+          if (data.code === 'ACCOUNT_NOT_FOUND' || msg.toLowerCase().includes('not exist')) {
+            flagFieldError('login-identifier', 'Account does not exist. Please check your email or create an account.');
+            const pwGroup = document.getElementById('grp-login-password');
+            if (pwGroup) pwGroup.classList.remove('has-error');
+            showLoginAlert(`Account does not exist in database. <a href="register.html" style="color:#164B3B; font-weight:700; text-decoration:underline;">Click here to Create an Account</a>.`);
+            showToast("Account does not exist. Please register first.", "error");
+          } else if (data.code === 'INVALID_PASSWORD' || msg.toLowerCase().includes('incorrect password')) {
+            const idGroup = document.getElementById('grp-login-identifier');
+            if (idGroup) idGroup.classList.remove('has-error');
+            flagFieldError('login-password', 'Incorrect password. Please try again.');
+            showLoginAlert(`Incorrect password for this account. Please verify and try again.`);
+            showToast("Incorrect password", "error");
+          } else {
+            flagFieldError('login-identifier', 'Account does not exist or invalid credentials.');
+            flagFieldError('login-password', 'Please verify your password.');
+            showLoginAlert(msg);
+            showToast(msg, "error");
+          }
           return;
         }
 
