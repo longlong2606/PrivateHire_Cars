@@ -71,3 +71,4 @@ class SessionModel {
 }
 
 module.exports = SessionModel;
+

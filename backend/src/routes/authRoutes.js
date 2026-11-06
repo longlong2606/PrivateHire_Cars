@@ -14,3 +14,4 @@ router.get('/session', requireAuth, getSession);
 router.get('/me', requireAuth, getSession);
 
 module.exports = router;
+

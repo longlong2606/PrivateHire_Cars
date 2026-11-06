@@ -158,3 +158,4 @@ module.exports = {
   getMyBookings,
   getBookingById,
 };
+

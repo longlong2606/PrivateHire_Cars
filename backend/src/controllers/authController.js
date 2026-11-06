@@ -15,7 +15,7 @@ const login = async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide both email/mobile and password',
+        message: 'Please provide both email and password',
       });
     }
 

@@ -96,3 +96,4 @@ class BookingModel {
 }
 
 module.exports = BookingModel;
+

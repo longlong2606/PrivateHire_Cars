@@ -7,3 +7,4 @@ const { requireAuth, authorizeCustomerAccess } = require('../middleware/authMidd
 router.get('/:id', requireAuth, authorizeCustomerAccess('id'), getCustomerProfile);
 
 module.exports = router;
+

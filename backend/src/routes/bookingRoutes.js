@@ -15,3 +15,4 @@ router.get('/my-bookings', requireAuth, getMyBookings);
 router.get('/:id', requireAuth, getBookingById);
 
 module.exports = router;
+
