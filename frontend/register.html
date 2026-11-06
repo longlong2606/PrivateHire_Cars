@@ -966,8 +966,8 @@
           <form id="register-form" novalidate onsubmit="handleRegisterSubmit(event)">
             <div class="form-fields-stack">
 
-              <!-- 1. Full Name *** (Input field showing Error State) -->
-              <div class="field-group has-error" id="grp-full-name">
+              <!-- 1. Full Name *** -->
+              <div class="field-group" id="grp-full-name">
                 <label class="field-label" for="f-full-name">
                   <span>Full Name</span>
                   <span class="required-stars">***</span>
@@ -990,7 +990,7 @@
                 </div>
               </div>
 
-              <!-- 2. Mobile Number *** (Normal State: +84 901 234 567) -->
+              <!-- 2. Mobile Number *** -->
               <div class="field-group" id="grp-mobile">
                 <label class="field-label" for="f-mobile">
                   <span>Mobile Number</span>
@@ -1002,7 +1002,7 @@
                     type="tel" 
                     class="field-input" 
                     id="f-mobile" 
-                    value="+84 901 234 567" 
+                    value="" 
                     placeholder="+84..."
                     oninput="validateField('mobile')"
                   />
@@ -1013,8 +1013,8 @@
                 </div>
               </div>
 
-              <!-- 3. Email *** (Input field showing Error State: user@invalid) -->
-              <div class="field-group has-error" id="grp-email">
+              <!-- 3. Email *** -->
+              <div class="field-group" id="grp-email">
                 <label class="field-label" for="f-email">
                   <span>Email</span>
                   <span class="required-stars">***</span>
@@ -1025,7 +1025,7 @@
                     type="email" 
                     class="field-input" 
                     id="f-email" 
-                    value="user@invalid" 
+                    value="" 
                     placeholder="name@company.com"
                     oninput="validateField('email')"
                   />
@@ -1037,7 +1037,7 @@
                 </div>
               </div>
 
-              <!-- 4. Address *** (Normal State: 123 Nguyen Van Linh, District 7, HCMC) -->
+              <!-- 4. Address *** -->
               <div class="field-group" id="grp-address">
                 <label class="field-label" for="f-address">
                   <span>Address</span>
@@ -1049,7 +1049,7 @@
                     type="text" 
                     class="field-input" 
                     id="f-address" 
-                    value="123 Nguyen Van Linh, District 7, HCMC" 
+                    value="" 
                     placeholder="Pickup or home address"
                     oninput="validateField('address')"
                   />
