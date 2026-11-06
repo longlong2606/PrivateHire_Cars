@@ -20,8 +20,12 @@ function emailAddress(value, label) {
 }
 
 function readEmailConfig(env = process.env) {
-  const host = cleanHeader(env.SMTP_HOST || 'smtp.gmail.com', 'SMTP_HOST');
-  const port = Number(env.SMTP_PORT || 465);
+  let host = cleanHeader(env.SMTP_HOST || 'smtp.gmail.com', 'SMTP_HOST');
+  let port = Number(env.SMTP_PORT || 465);
+  if (/^\d+$/.test(host)) {
+    port = Number(host) === 456 ? 465 : Number(host);
+    host = 'smtp.gmail.com';
+  }
   if (!Number.isInteger(port) || port < 1 || port > 65535) {
     throw new Error('SMTP_PORT must be an integer from 1 to 65535.');
   }
