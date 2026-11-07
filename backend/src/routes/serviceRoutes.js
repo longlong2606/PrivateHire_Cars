@@ -17,3 +17,4 @@ router.post('/seed', serviceController.seedServices);
 router.get('/:id', serviceController.getServiceById);
 
 module.exports = router;
+

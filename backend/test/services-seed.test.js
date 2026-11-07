@@ -196,3 +196,4 @@ test('Sprint Feature: Seed Six Services with Fixed Sample Fares and Durations (T
     assert.equal(parseInt(countRes.rows[0].count, 10), 6, 'Services table must maintain exactly 6 rows');
   });
 });
+
