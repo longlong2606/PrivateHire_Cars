@@ -127,7 +127,7 @@ const seedServices = async (req, res) => {
     const services = await ServiceModel.seedServices();
     res.status(200).json({
       success: true,
-      message: 'The six services have been seeded with fixed sample fares and durations (Table 8).',
+      message: 'The six services have been seeded with fixed sample fares and durations.',
       count: services.length,
       services,
     });

@@ -65,7 +65,7 @@ app.get('/api', (req, res) => {
         myBookings: 'GET /api/bookings/my-bookings (Protected: own bookings only)',
       },
       services: {
-        list: 'GET /api/services (Table 8: 6 Seeded Services with Fixed Sample Fares and Durations)',
+        list: 'GET /api/services (6 Seeded Services with Fixed Sample Fares and Durations)',
         details: 'GET /api/services/:id',
         quote: 'POST /api/services/quote (Calculates fixed fare by service & vehicle capacity: 4 or 7 passengers)',
       },

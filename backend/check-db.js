@@ -97,9 +97,9 @@ async function checkDatabase() {
       console.table(accRes.rows);
     }
 
-    // 4. Kiểm tra bảng dịch vụ (services - Table 8 Demonstration Fares and Journey Durations)
+    // 4. Kiểm tra bảng dịch vụ (services - Demonstration Fares and Journey Durations)
     console.log('\n---------------------------------------------------------------');
-    console.log('🚖 3. KIỂM TRA 6 DỊCH VỤ CỐ ĐỊNH (services - Table 8 Fares & Durations):');
+    console.log('🚖 3. KIỂM TRA 6 DỊCH VỤ CỐ ĐỊNH (services - Fixed Fares & Durations):');
     const servRes = await client.query(`
       SELECT 
         id,

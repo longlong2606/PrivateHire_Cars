@@ -1964,14 +1964,14 @@
               <input type="text" id="bk-dropoff-input" class="field-input" placeholder="Enter dropoff destination (e.g. Landmark 81, District 1, Hotel...)" style="height: 42px; font-size: 13px;" />
             </div>
 
-            <!-- Service Selection from Table 8 Demonstration Fares -->
+            <!-- Service Selection with Fixed Demonstration Fares -->
             <div>
               <label style="font-size: 12px; font-weight: 600; color: var(--text-main); display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
                 <span style="display: flex; align-items: center; gap: 6px;">
                   <i data-lucide="layers" style="width: 14px; height: 14px; color: var(--primary-light);"></i>
-                  <span>Service Type (Table 8 Demonstration Fares)</span>
+                  <span>Service Type (Fixed Fares)</span>
                 </span>
-                <span style="font-family: var(--font-mono); font-size: 10.5px; color: var(--accent-emerald); font-weight: 700; background: rgba(58,139,104,0.1); padding: 2px 7px; border-radius: 4px;">6 SEEDED SERVICES</span>
+                <span style="font-family: var(--font-mono); font-size: 10.5px; color: var(--accent-emerald); font-weight: 700; background: rgba(58,139,104,0.1); padding: 2px 7px; border-radius: 4px;">6 PRESET SERVICES</span>
               </label>
               <select id="bk-service-select" class="field-input" onchange="updateCalculatedFareAndDuration()" style="height: 42px; font-size: 13px; background: #fff; font-weight: 500;">
                 <option value="Airport transfer" data-four="45.00" data-seven="65.00" data-dur="90" selected>Airport transfer (90 mins • £45 / £65 GBP)</option>
@@ -2004,10 +2004,10 @@
               <option value="Seven-Passenger Executive MPV">Seven-Passenger Executive MPV</option>
             </select>
 
-            <!-- Real-time Fixed Quote Banner (Table 8) -->
+            <!-- Real-time Fixed Quote Banner -->
             <div id="booking-quote-banner" style="background: rgba(22, 75, 59, 0.05); border: 1.5px solid rgba(22, 75, 59, 0.15); border-radius: 10px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;">
               <div>
-                <div style="font-size: 10.5px; text-transform: uppercase; font-family: var(--font-mono); color: var(--text-dim); font-weight: 700;">Fixed Sample Fare (Table 8)</div>
+                <div style="font-size: 10.5px; text-transform: uppercase; font-family: var(--font-mono); color: var(--text-dim); font-weight: 700;">Guaranteed Fixed Fare</div>
                 <div style="font-size: 20px; font-weight: 800; color: var(--accent-emerald); font-family: var(--font-heading);" id="bk-fare-quote-display">£45.00 GBP</div>
               </div>
               <div style="text-align: right;">
@@ -2188,12 +2188,12 @@
       </section>
 
       <!-- ---------------------------------------------------------------
-           3. TABLE 8 DEMONSTRATION FARES AND JOURNEY DURATIONS (6 SEEDED SERVICES)
+           3. DEMONSTRATION FARES AND JOURNEY DURATIONS (6 PRESET SERVICES)
            --------------------------------------------------------------- -->
       <section>
         <div class="section-header-row">
           <div>
-            <span class="section-eyebrow">TABLE 8 SEEDED SERVICES</span>
+            <span class="section-eyebrow">EXECUTIVE CHAUFFEUR SERVICES</span>
             <h2 class="section-headline">Fixed Demonstration Fares &amp; Durations</h2>
           </div>
           <span class="section-tag-mono">GBP CURRENCY &bull; VEHICLE CAPACITY PRICING</span>
@@ -3268,7 +3268,7 @@
       triggerToast('Signed out successfully. Session invalidated.', 'info');
     }
 
-    // Update Real-Time Fixed Fare & Duration based on Table 8
+    // Update Real-Time Fixed Fare & Duration based on selected service and capacity
     function updateCalculatedFareAndDuration() {
       const serviceSelect = document.getElementById('bk-service-select');
       const capacitySelect = document.getElementById('bk-capacity-select');
