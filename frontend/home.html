@@ -233,6 +233,267 @@
     }
 
     /* =========================================================================
+       CLEAN EXECUTIVE HOMEPAGE LAYOUT (HERO & BOOKING, MAP, SERVICES & FLEET)
+       ========================================================================= */
+    .hero-booking-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.95fr;
+      gap: 36px;
+      align-items: center;
+      margin-bottom: 32px;
+    }
+    @media (max-width: 960px) {
+      .hero-booking-grid {
+        grid-template-columns: 1fr;
+        gap: 24px;
+      }
+    }
+    .hero-features-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .hero-feat-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+    .hero-val-badges-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 24px;
+    }
+    @media (max-width: 600px) {
+      .hero-val-badges-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .val-badge-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      background: #FFFFFF;
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-soft);
+    }
+    .val-badge-item strong {
+      display: block;
+      font-size: 13px;
+      color: var(--text-main);
+    }
+    .val-badge-item span {
+      display: block;
+      font-size: 11.5px;
+      color: var(--text-muted);
+    }
+    .val-badge-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: rgba(22, 75, 59, 0.08);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* Booking Luxury Card */
+    .booking-luxury-card {
+      background: #FFFFFF;
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-lg);
+      padding: 26px 26px;
+      box-shadow: var(--shadow-elevated);
+    }
+    .bk-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    /* Section Headers */
+    .section-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-subtle);
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .section-eyebrow {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 1px;
+      font-weight: 700;
+      color: var(--accent-emerald);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .section-headline {
+      font-family: var(--font-heading);
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--primary);
+      margin: 0;
+    }
+    .section-tag-mono {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    /* Services Grid */
+    .services-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+    }
+    .service-card-item {
+      background: #FFFFFF;
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-md);
+      padding: 22px;
+      box-shadow: var(--shadow-soft);
+      transition: var(--transition-smooth);
+    }
+    .service-card-item:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-elevated);
+      border-color: var(--primary-light);
+    }
+    .service-icon-box-lg {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: rgba(22, 75, 59, 0.08);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 14px;
+    }
+    .service-card-title {
+      font-family: var(--font-heading);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 6px;
+    }
+    .service-card-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    /* Fleet Grid */
+    .fleet-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 22px;
+    }
+    .fleet-card-item {
+      background: #FFFFFF;
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-soft);
+      transition: var(--transition-smooth);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .fleet-card-item:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-elevated);
+      border-color: var(--primary-light);
+    }
+    .fleet-card-item.featured {
+      border: 1.5px solid var(--accent-gold);
+      box-shadow: 0 10px 30px rgba(198, 156, 84, 0.15);
+    }
+    .fleet-badge {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      font-weight: 700;
+      color: var(--primary);
+      background: rgba(22, 75, 59, 0.08);
+      padding: 3px 8px;
+      border-radius: 4px;
+      margin-bottom: 12px;
+      width: fit-content;
+    }
+    .fleet-badge.vip {
+      background: rgba(198, 156, 84, 0.15);
+      color: #926a27;
+    }
+    .fleet-car-name {
+      font-family: var(--font-heading);
+      font-size: 19px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 8px;
+    }
+    .fleet-car-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+    .fleet-rate-box {
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 14px;
+      margin-top: auto;
+    }
+    .fleet-rate-num {
+      display: block;
+      font-family: var(--font-heading);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent-emerald);
+    }
+    .fleet-rate-sub {
+      display: block;
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    /* CTA Banner */
+    .home-cta-banner {
+      background: linear-gradient(135deg, #164B3B 0%, #0d2e24 100%);
+      border-radius: var(--radius-lg);
+      padding: 32px 36px;
+      color: #FFFFFF;
+      box-shadow: 0 16px 45px rgba(22, 75, 59, 0.2);
+    }
+    .cta-inner-box {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    .cta-actions-col {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    /* =========================================================================
        MAIN 2-COLUMN SPLIT LAYOUT (BRANDING & VISIBLE MAP vs REGISTRATION FORM)
        ========================================================================= */
     .main-split-layout {
@@ -1340,93 +1601,156 @@
     </header>
 
     <!-- ===================================================================
-         MAIN SPLIT LAYOUT:
-         Left: Branding, Services & Prominent Visible Map
-         Right: Full Registration Form (Exact Requirements)
+         EXECUTIVE HOMEPAGE LAYOUT:
+         1. Hero & Online Chauffeur Booking Grid (Auth & Visitor Protected)
+         2. Full-Width Real-Time Fleet GPS Telemetry & Interactive Map
+         3. Premium Chauffeur Services Grid
+         4. Luxury Vehicle Fleet Showcase
+         5. Call to Action Banner
          =================================================================== -->
-    <main class="main-split-layout">
-      
+    <main class="main-executive-flow" style="display: flex; flex-direction: column; gap: 40px; margin-top: 28px; margin-bottom: 50px;">
+
       <!-- ---------------------------------------------------------------
-           1. LEFT COLUMN: BRANDING, OUR SERVICES & LIVE EMBEDDED MAP
+           1. HERO & ONLINE CHAUFFEUR BOOKING GRID
            --------------------------------------------------------------- -->
-      <section class="left-column-wrapper">
-        
+      <section class="hero-booking-grid">
+        <!-- Hero Column -->
         <div>
-          <h1 class="hero-title" style="margin-top: 0;">
+          <span class="section-eyebrow">PRESTIGE VIP CHAUFFEUR DISPATCH</span>
+          <h1 class="hero-title" style="margin-top: 4px; font-size: 34px; line-height: 1.25;">
             Prestige transport for <br>
             <span class="highlight-gradient">executives &amp; VIP clients.</span>
           </h1>
 
-          <p class="hero-desc">
+          <p class="hero-desc" style="font-size: 15px; margin-top: 14px; margin-bottom: 20px; line-height: 1.6;">
             Experience reliable pre-booked airport transfers, point-to-point business travel, and luxury city transport with Vietnam's most dependable private hire fleet.
           </p>
+
+          <div class="hero-features-list">
+            <div class="hero-feat-item">
+              <i data-lucide="check-circle-2" style="width: 17px; height: 17px; color: var(--accent-emerald);"></i>
+              <span>Guaranteed best fixed rates — zero surge pricing, tolls &amp; parking included</span>
+            </div>
+            <div class="hero-feat-item">
+              <i data-lucide="check-circle-2" style="width: 17px; height: 17px; color: var(--accent-emerald);"></i>
+              <span>Flight delay monitoring &amp; personalized terminal greeting service</span>
+            </div>
+            <div class="hero-feat-item">
+              <i data-lucide="check-circle-2" style="width: 17px; height: 17px; color: var(--accent-emerald);"></i>
+              <span>Professional bilingual chauffeurs in formal corporate attire</span>
+            </div>
+            <div class="hero-feat-item">
+              <i data-lucide="check-circle-2" style="width: 17px; height: 17px; color: var(--accent-emerald);"></i>
+              <span>Punctual executive dispatch across District 1, District 7, Thu Thiem &amp; SGN</span>
+            </div>
+          </div>
+
+          <div class="hero-val-badges-grid">
+            <div class="val-badge-item">
+              <div class="val-badge-icon">
+                <i data-lucide="clock" style="width: 18px; height: 18px;"></i>
+              </div>
+              <div>
+                <strong>99.8% On-Time Arrival</strong>
+                <span>Real-time GPS tracking &amp; traffic radar</span>
+              </div>
+            </div>
+            <div class="val-badge-item">
+              <div class="val-badge-icon">
+                <i data-lucide="shield-check" style="width: 18px; height: 18px;"></i>
+              </div>
+              <div>
+                <strong>100% Fixed Rates</strong>
+                <span>Guaranteed quotes with instant receipt</span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <!-- Our Services List (Exact Prompt Requirements) -->
-        <div class="services-box">
-          <div class="services-box-header">
-            <h2 class="services-box-title">
-              <i data-lucide="layers" style="width: 17px; height: 17px; color: var(--primary-light);"></i>
-              Our Services
-            </h2>
-            <span style="font-size: 11px; font-family: var(--font-mono); color: var(--accent-emerald); font-weight: 700;">
-              GUARANTEED FIXED RATES
+        <!-- Chauffeur Booking Card -->
+        <div class="booking-luxury-card" id="booking-card-anchor">
+          <div class="bk-card-header">
+            <div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="car-taxi-front" style="width: 20px; height: 20px; color: var(--primary);"></i>
+                <h3 style="font-family: var(--font-heading); font-size: 19px; font-weight: 700; color: var(--primary); margin: 0;">
+                  Online Chauffeur Booking
+                </h3>
+              </div>
+              <p style="font-size: 12.5px; color: var(--text-muted); margin: 4px 0 0 0;">
+                Book an executive ride. Visitors must sign in to confirm dispatch.
+              </p>
+            </div>
+            <span id="booking-auth-badge" style="font-size: 10.5px; font-weight: 700; padding: 4px 10px; border-radius: 12px; background: rgba(185, 74, 72, 0.1); color: #B94A48; font-family: var(--font-mono); border: 1px solid rgba(185, 74, 72, 0.25); white-space: nowrap;">
+              VISITOR (AUTH REQUIRED)
             </span>
           </div>
 
-          <ul class="services-list-items">
-            <!-- [icon] Private hire cars at your service -->
-            <li class="service-row-item">
-              <div class="service-icon-square">
-                <i data-lucide="car-taxi-front" style="width: 16px; height: 16px;"></i>
-              </div>
-              <div class="service-info-text">Private hire cars at your service</div>
-            </li>
+          <div style="margin-top: 18px; display: flex; flex-direction: column; gap: 14px;">
+            <div>
+              <label style="font-size: 12px; font-weight: 600; color: var(--text-main); display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+                <i data-lucide="map-pin" style="width: 14px; height: 14px; color: var(--accent-emerald);"></i>
+                <span>Pickup Location</span>
+              </label>
+              <input type="text" id="bk-pickup-input" class="field-input" value="123 Nguyen Van Linh, District 7" placeholder="e.g. Airport, Hotel or Office address" style="height: 42px; font-size: 13px;" />
+            </div>
 
-            <!-- [icon] Pre-booked & reliable transport -->
-            <li class="service-row-item">
-              <div class="service-icon-square">
-                <i data-lucide="calendar-check" style="width: 16px; height: 16px;"></i>
-              </div>
-              <div class="service-info-text">Pre-booked &amp; reliable transport</div>
-            </li>
+            <div>
+              <label style="font-size: 12px; font-weight: 600; color: var(--text-main); display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+                <i data-lucide="navigation" style="width: 14px; height: 14px; color: var(--primary);"></i>
+                <span>Dropoff Destination</span>
+              </label>
+              <input type="text" id="bk-dropoff-input" class="field-input" value="Tan Son Nhat Airport (SGN)" placeholder="e.g. Destination address" style="height: 42px; font-size: 13px;" />
+            </div>
 
-            <!-- [icon] 24/7 client coordination & safety -->
-            <li class="service-row-item">
-              <div class="service-icon-square">
-                <i data-lucide="shield-check" style="width: 16px; height: 16px;"></i>
+            <div style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 12px;">
+              <div>
+                <label style="font-size: 12px; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 6px;">Vehicle Class</label>
+                <select id="bk-car-type" class="field-input" style="height: 42px; font-size: 13px; background: #fff;">
+                  <option value="Executive Mercedes S-Class">Mercedes S-Class (450,000 VND)</option>
+                  <option value="Maybach S680 Chauffeur">Mercedes-Maybach S680 (850,000 VND)</option>
+                  <option value="Luxury Chauffeur Van">Mercedes V-Class VIP (650,000 VND)</option>
+                </select>
               </div>
-              <div class="service-info-text">24/7 client coordination &amp; safety</div>
-            </li>
 
-            <!-- [icon] Guaranteed best rates -->
-            <li class="service-row-item">
-              <div class="service-icon-square">
-                <i data-lucide="badge-check" style="width: 16px; height: 16px;"></i>
+              <div>
+                <label style="font-size: 12px; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 6px;">Payment Method</label>
+                <input type="text" id="bk-payment-card" class="field-input" value="Primary Test Card" readonly style="height: 42px; font-size: 12px; background: #FAF7F2; color: var(--text-muted);" />
               </div>
-              <div class="service-info-text">Guaranteed best rates</div>
-            </li>
+            </div>
 
-            <!-- [icon] Extensive fleet & professional drivers -->
-            <li class="service-row-item">
-              <div class="service-icon-square">
-                <i data-lucide="award" style="width: 16px; height: 16px;"></i>
-              </div>
-              <div class="service-info-text">Extensive fleet &amp; professional drivers</div>
-            </li>
-          </ul>
+            <button type="button" class="btn-register-solid" id="btn-submit-booking-action" onclick="handleOnlineBookingSubmit()" style="width: 100%; height: 48px; justify-content: center; margin-top: 6px; font-size: 14px;">
+              <i data-lucide="calendar-check" style="width: 17px; height: 17px;"></i>
+              <span id="btn-booking-label">SUBMIT ONLINE BOOKING (AC)</span>
+            </button>
+
+            <div style="display: flex; align-items: center; gap: 8px; justify-content: center; font-size: 11.5px; color: var(--text-dim); margin-top: 4px;">
+              <i data-lucide="shield-check" style="width: 14px; height: 14px; color: var(--primary-light);"></i>
+              <span>Customer Protected Endpoint: Visitors are prompted to sign in before booking.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------------------------------------------------------------
+           2. FULL-WIDTH LIVE CHAUFFEUR GPS TELEMETRY & INTERACTIVE MAP
+           --------------------------------------------------------------- -->
+      <section>
+        <div class="section-header-row">
+          <div>
+            <span class="section-eyebrow">REAL-TIME GPS TELEMETRY</span>
+            <h2 class="section-headline">Live Chauffeur Radar &amp; Route Telemetry</h2>
+          </div>
+          <span class="section-tag-mono">LEAFLET REAL-TIME RADAR ENGINE</span>
         </div>
 
-        <!-- -------------------------------------------------------------
-             PROMINENT LIVE INTERACTIVE MAP WIDGET WITH REAL-TIME GPS & ETA
-             ------------------------------------------------------------- -->
         <div class="live-map-card-container">
           
           <!-- Top Control Header: Map View & Info -->
           <div class="live-map-header">
             <div class="live-map-header-title">
               <span class="live-radar-pulse"></span>
-              <span>Live Chauffeur GPS Telemetry</span>
+              <span>Live Chauffeur GPS Telemetry (Ho Chi Minh City Dispatch)</span>
             </div>
 
             <!-- Map View Layer Switcher -->
@@ -1559,310 +1883,163 @@
 
           </div>
 
-          <!-- =========================================================
-               ONLINE CHAUFFEUR BOOKING (PROTECTED ENDPOINT DEMONSTRATION)
-               Requirement: "visitors cannot submit online bookings"
-               ========================================================= -->
-          <div style="margin-top: 20px; background: #FFFFFF; border: 1.5px solid var(--border-medium); border-radius: var(--radius-md); padding: 20px 22px; box-shadow: var(--shadow-soft);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <i data-lucide="car" style="width: 20px; height: 20px; color: #164B3B;"></i>
-                <h3 style="font-family: var(--font-heading); font-size: 17px; font-weight: 700; color: #164B3B; margin: 0;">
-                  Online Chauffeur Booking
-                </h3>
-              </div>
-              <span id="booking-auth-badge" style="font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 12px; background: rgba(185, 74, 72, 0.1); color: #B94A48; font-family: var(--font-mono); border: 1px solid rgba(185, 74, 72, 0.25);">
-                VISITOR (AUTH REQUIRED)
-              </span>
-            </div>
-
-            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px; line-height: 1.5;">
-              Pre-book an executive chauffeur. <em>Notice: Visitors cannot submit online bookings until signed in.</em>
-            </p>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
-              <div>
-                <label style="font-size: 12px; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 5px;">Pickup Address</label>
-                <input type="text" id="bk-pickup-input" class="field-input" value="Tan Son Nhat International Airport (SGN)" style="height: 40px; font-size: 13px;" />
-              </div>
-              <div>
-                <label style="font-size: 12px; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 5px;">Dropoff Address</label>
-                <input type="text" id="bk-dropoff-input" class="field-input" value="Park Hyatt Saigon, 2 Lam Son Square, District 1" style="height: 40px; font-size: 13px;" />
-              </div>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 12px; margin-bottom: 16px;">
-              <div>
-                <label style="font-size: 12px; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 5px;">Vehicle Class</label>
-                <select id="bk-car-type" class="field-input" style="height: 40px; font-size: 13px; background: #fff;">
-                  <option value="Executive Mercedes S-Class">Mercedes-Benz S-Class (450,000 VND)</option>
-                  <option value="Maybach S680 Chauffeur">Mercedes-Maybach S680 (850,000 VND)</option>
-                  <option value="Luxury Chauffeur Van">Mercedes V-Class VIP (650,000 VND)</option>
-                </select>
-              </div>
-              <div>
-                <label style="font-size: 12px; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 5px;">Payment</label>
-                <input type="text" id="bk-payment-card" class="field-input" value="Primary Test Card" readonly style="height: 40px; font-size: 12px; background: #FAF7F2; color: var(--text-muted);" />
-              </div>
-            </div>
-
-            <button type="button" class="btn-register-solid" id="btn-submit-booking-action" onclick="handleOnlineBookingSubmit()" style="width: 100%; height: 46px; justify-content: center;">
-              <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
-              <span id="btn-booking-label">SUBMIT ONLINE BOOKING (AC)</span>
-            </button>
-          </div>
-
         </div>
-
       </section>
 
       <!-- ---------------------------------------------------------------
-           2. RIGHT COLUMN: MAIN FORM (EXACT SPECIFICATIONS)
+           3. OUR PREMIUM SERVICES GRID
            --------------------------------------------------------------- -->
-      <section class="registration-col-wrapper">
-        <div class="auth-glass-card">
-          
-          <div class="auth-card-header">
-            <h2 class="auth-title-large" id="form-auth-heading">Create an account</h2>
-            <p class="auth-subtitle-text">
-              Already have an account? <a href="login.html" class="auth-switch-link">Log in</a>
+      <section>
+        <div class="section-header-row">
+          <div>
+            <span class="section-eyebrow">SERVICES AT YOUR CONVENIENCE</span>
+            <h2 class="section-headline">Tailored Executive Chauffeur Services</h2>
+          </div>
+          <span class="section-tag-mono">FIXED RATES &bull; 24/7 SUPPORT</span>
+        </div>
+
+        <div class="services-cards-grid">
+          <div class="service-card-item">
+            <div class="service-icon-box-lg">
+              <i data-lucide="plane" style="width: 22px; height: 22px;"></i>
+            </div>
+            <h3 class="service-card-title">Airport VIP Transfers</h3>
+            <p class="service-card-desc">
+              Punctual door-to-door airport pickup at Tan Son Nhat (SGN) with terminal greeting, flight tracking, and complimentary wait time.
             </p>
           </div>
 
-          <form id="auth-main-form" novalidate onsubmit="handleRegistrationSubmit(event)">
+          <div class="service-card-item">
+            <div class="service-icon-box-lg">
+              <i data-lucide="briefcase" style="width: 22px; height: 22px;"></i>
+            </div>
+            <h3 class="service-card-title">Corporate Executive Travel</h3>
+            <p class="service-card-desc">
+              Dedicated chauffeured travel between District 1, District 7, and Thu Thiem for executives, partners, and high-profile delegations.
+            </p>
+          </div>
 
-            <!-- 1. Full Name *** (Shows Error State) -->
-            <div class="field-group has-error" id="grp-fullname">
-              <label class="field-label">
-                <span>Full Name</span>
-                <span class="required-stars">***</span>
-              </label>
-              <div class="field-input-wrapper">
-                <span class="input-icon-left-slot"><i data-lucide="user" style="width: 16px; height: 16px;"></i></span>
-                <input 
-                  type="text" 
-                  class="field-input" 
-                  id="f-fullname" 
-                  value="" 
-                  placeholder="Enter your full name" 
-                  oninput="clearFieldError('fullname')" 
-                />
-              </div>
-              <div class="validation-error-text" id="err-fullname">
-                <i data-lucide="alert-circle" style="width: 14px; height: 14px;"></i>
-                <span>(!) Full Name is required</span>
+          <div class="service-card-item">
+            <div class="service-icon-box-lg">
+              <i data-lucide="clock" style="width: 22px; height: 22px;"></i>
+            </div>
+            <h3 class="service-card-title">Hourly &amp; As-Directed Hire</h3>
+            <p class="service-card-desc">
+              Flexible full-day or half-day chauffeur service at your complete disposal for multi-stop meetings, roadshows, and city events.
+            </p>
+          </div>
+
+          <div class="service-card-item">
+            <div class="service-icon-box-lg">
+              <i data-lucide="shield-check" style="width: 22px; height: 22px;"></i>
+            </div>
+            <h3 class="service-card-title">24/7 Dispatch &amp; Safety</h3>
+            <p class="service-card-desc">
+              Continuous live GPS route telemetry, 24/7 executive customer support, and seamless mock card payment automation.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------------------------------------------------------------
+           4. LUXURY FLEET SHOWCASE
+           --------------------------------------------------------------- -->
+      <section>
+        <div class="section-header-row">
+          <div>
+            <span class="section-eyebrow">OUR FLEET</span>
+            <h2 class="section-headline">Luxury Private Hire Vehicles</h2>
+          </div>
+          <span class="section-tag-mono">ALL VEHICLES FULLY VETTED &amp; INSURED</span>
+        </div>
+
+        <div class="fleet-cards-grid">
+          <!-- Card 1 -->
+          <div class="fleet-card-item featured">
+            <div>
+              <span class="fleet-badge vip">EXECUTIVE CLASS &bull; MOST POPULAR</span>
+              <h3 class="fleet-car-name">Mercedes-Benz S-Class</h3>
+              <p class="fleet-car-desc">
+                The benchmark of luxury travel with ergonomic executive leather seating, ambient lighting, high-speed Wi-Fi, and whisper-quiet suspension.
+              </p>
+              <div style="display:flex; gap:16px; font-size:12px; color:var(--text-muted); margin-bottom:16px;">
+                <span><i data-lucide="users" style="width:13px; height:13px; vertical-align:middle;"></i> Up to 3 VIPs</span>
+                <span><i data-lucide="luggage" style="width:13px; height:13px; vertical-align:middle;"></i> 2 Large Bags</span>
               </div>
             </div>
+            <div class="fleet-rate-box">
+              <span class="fleet-rate-num">450,000 VND</span>
+              <span class="fleet-rate-sub">Fixed Rate &bull; All Highway Tolls Included</span>
+            </div>
+          </div>
 
-            <!-- 2. Mobile Number *** (Normal State: "+84 901 234 567") -->
-            <div class="field-group" id="grp-mobile">
-              <label class="field-label">
-                <span>Mobile Number</span>
-                <span class="required-stars">***</span>
-              </label>
-              <div class="field-input-wrapper">
-                <span class="input-icon-left-slot"><i data-lucide="phone" style="width: 16px; height: 16px;"></i></span>
-                <input 
-                  type="text" 
-                  class="field-input" 
-                  id="f-mobile" 
-                  value="+84 901 234 567" 
-                  placeholder="+84 ..." 
-                  oninput="clearFieldError('mobile')" 
-                />
-              </div>
-              <div class="validation-error-text" id="err-mobile">
-                <i data-lucide="alert-circle" style="width: 14px; height: 14px;"></i>
-                <span>(!) Valid mobile number is required</span>
+          <!-- Card 2 -->
+          <div class="fleet-card-item">
+            <div>
+              <span class="fleet-badge">ULTRA LUXURY &bull; FIRST CLASS</span>
+              <h3 class="fleet-car-name">Mercedes-Maybach S680</h3>
+              <p class="fleet-car-desc">
+                Supreme prestige for VVIPs and state delegations. Reclining rear lounge seats with massage functions, privacy curtains, and chilled refreshments.
+              </p>
+              <div style="display:flex; gap:16px; font-size:12px; color:var(--text-muted); margin-bottom:16px;">
+                <span><i data-lucide="users" style="width:13px; height:13px; vertical-align:middle;"></i> Up to 3 VIPs</span>
+                <span><i data-lucide="luggage" style="width:13px; height:13px; vertical-align:middle;"></i> 3 Large Bags</span>
               </div>
             </div>
+            <div class="fleet-rate-box">
+              <span class="fleet-rate-num">850,000 VND</span>
+              <span class="fleet-rate-sub">Fixed Rate &bull; Presidential Chauffeur Service</span>
+            </div>
+          </div>
 
-            <!-- 3. Email *** (Shows Error State: "user@invalid") -->
-            <div class="field-group has-error" id="grp-email">
-              <label class="field-label">
-                <span>Email</span>
-                <span class="required-stars">***</span>
-              </label>
-              <div class="field-input-wrapper">
-                <span class="input-icon-left-slot"><i data-lucide="mail" style="width: 16px; height: 16px;"></i></span>
-                <input 
-                  type="email" 
-                  class="field-input" 
-                  id="f-email" 
-                  value="user@invalid" 
-                  placeholder="name@company.com" 
-                  oninput="clearFieldError('email')" 
-                />
-              </div>
-              <div class="validation-error-text" id="err-email">
-                <i data-lucide="alert-circle" style="width: 14px; height: 14px;"></i>
-                <span>(!) Invalid email format</span>
+          <!-- Card 3 -->
+          <div class="fleet-card-item">
+            <div>
+              <span class="fleet-badge">EXECUTIVE VAN &bull; GROUP TRAVEL</span>
+              <h3 class="fleet-car-name">Mercedes-Benz V-Class VIP</h3>
+              <p class="fleet-car-desc">
+                Ideal for family offices, executive teams, and airport delegations. Features face-to-face conference seating and generous luggage capacity.
+              </p>
+              <div style="display:flex; gap:16px; font-size:12px; color:var(--text-muted); margin-bottom:16px;">
+                <span><i data-lucide="users" style="width:13px; height:13px; vertical-align:middle;"></i> Up to 6 VIPs</span>
+                <span><i data-lucide="luggage" style="width:13px; height:13px; vertical-align:middle;"></i> 6 Large Bags</span>
               </div>
             </div>
-
-            <!-- 4. Address *** (Normal State: "123 Nguyen Van Linh, District 7, HCMC") -->
-            <div class="field-group" id="grp-address">
-              <label class="field-label">
-                <span>Address</span>
-                <span class="required-stars">***</span>
-              </label>
-              <div class="field-input-wrapper">
-                <span class="input-icon-left-slot"><i data-lucide="map-pin" style="width: 16px; height: 16px;"></i></span>
-                <input 
-                  type="text" 
-                  class="field-input" 
-                  id="f-address" 
-                  value="123 Nguyen Van Linh, District 7, HCMC" 
-                  placeholder="Enter pickup address" 
-                  oninput="clearFieldError('address')" 
-                />
-              </div>
-              <div class="validation-error-text" id="err-address">
-                <i data-lucide="alert-circle" style="width: 14px; height: 14px;"></i>
-                <span>(!) Address is required</span>
-              </div>
+            <div class="fleet-rate-box">
+              <span class="fleet-rate-num">650,000 VND</span>
+              <span class="fleet-rate-sub">Fixed Rate &bull; Group &amp; Luggage Specialist</span>
             </div>
+          </div>
+        </div>
+      </section>
 
-            <!-- 5. Password *** (Normal State: "••••••••" with hidden eye icon) -->
-            <div class="field-group" id="grp-password">
-              <label class="field-label">
-                <span>Password</span>
-                <span class="required-stars">***</span>
-              </label>
-              <div class="field-input-wrapper">
-                <span class="input-icon-left-slot"><i data-lucide="lock" style="width: 16px; height: 16px;"></i></span>
-                <input 
-                  type="password" 
-                  class="field-input" 
-                  id="f-password" 
-                  value="12345678" 
-                  placeholder="••••••••" 
-                  oninput="evalPasswordStrength()" 
-                />
-                <span class="input-icon-right-slot" onclick="togglePasswordVisibility('f-password')">
-                  <i data-lucide="eye" style="width: 16px; height: 16px;"></i>
-                </span>
-              </div>
-              <div class="password-strength-track">
-                <div class="strength-segment active-med" id="st-seg-1"></div>
-                <div class="strength-segment active-med" id="st-seg-2"></div>
-                <div class="strength-segment" id="st-seg-3"></div>
-              </div>
-            </div>
+      <!-- ---------------------------------------------------------------
+           5. CALL TO ACTION BANNER
+           --------------------------------------------------------------- -->
+      <section class="home-cta-banner">
+        <div class="cta-inner-box">
+          <div>
+            <span style="font-family: var(--font-mono); font-size: 11px; letter-spacing: 1px; color: var(--accent-gold); font-weight: 700; text-transform: uppercase;">
+              VIP CHAUFFEUR EXPERIENCE
+            </span>
+            <h2 style="font-family: var(--font-heading); font-size: 24px; font-weight: 700; margin: 4px 0 8px 0;">
+              Ready for your next executive journey?
+            </h2>
+            <p style="font-size: 13.5px; opacity: 0.9; margin: 0; max-width: 540px;">
+              Create your account to unlock instant online bookings, live chauffeur dispatch, and secure session management.
+            </p>
+          </div>
 
-            <!-- 6. Confirm Password *** (Shows Error State: "•••••••") -->
-            <div class="field-group has-error" id="grp-confirmpassword">
-              <label class="field-label">
-                <span>Confirm Password</span>
-                <span class="required-stars">***</span>
-              </label>
-              <div class="field-input-wrapper">
-                <span class="input-icon-left-slot"><i data-lucide="check-check" style="width: 16px; height: 16px;"></i></span>
-                <input 
-                  type="password" 
-                  class="field-input" 
-                  id="f-confirmpassword" 
-                  value="1234567" 
-                  placeholder="•••••••" 
-                  oninput="clearFieldError('confirmpassword')" 
-                />
-                <span class="input-icon-right-slot" onclick="togglePasswordVisibility('f-confirmpassword')">
-                  <i data-lucide="eye" style="width: 16px; height: 16px;"></i>
-                </span>
-              </div>
-              <div class="validation-error-text" id="err-confirmpassword">
-                <i data-lucide="alert-circle" style="width: 14px; height: 14px;"></i>
-                <span>(!) Passwords do not match</span>
-              </div>
-            </div>
-
-            <!-- 7. Payment Method Dropdown: Default Payment Method (Mock Cards) *** -->
-            <div class="payment-section-box">
-              <label class="field-label">
-                <span>Default Payment Method (Mock Cards)</span>
-                <span class="required-stars">***</span>
-              </label>
-
-              <!-- Interactive Selected Card Badge Preview -->
-              <div class="interactive-card-badge">
-                <div class="card-badge-left">
-                  <div class="card-gold-chip"></div>
-                  <div>
-                    <div class="card-number-label" id="badge-card-number">Visa (Mock Card) **** 4242</div>
-                    <div style="font-size: 11px; color: var(--text-dim);">Primary Corporate Billing Card</div>
-                  </div>
-                </div>
-                <div class="card-brand-tag" id="badge-card-type">VISA</div>
-              </div>
-
-              <!-- Dropdown Trigger -->
-              <div class="dropdown-container-relative">
-                <div class="select-card-trigger" onclick="toggleCardDropdownMenu()">
-                  <div style="display: flex; align-items: center; gap: 10px;">
-                    <i data-lucide="credit-card" style="width: 16px; height: 16px; color: var(--primary-light);"></i>
-                    <span id="trigger-card-title">Visa (Mock Card) **** 4242</span>
-                  </div>
-                  <i data-lucide="chevron-down" id="card-dropdown-arrow" style="width: 16px; height: 16px; transition: transform 0.2s;"></i>
-                </div>
-
-                <!-- Dropdown Menu showing exact 3 mock cards -->
-                <div class="select-card-menu open" id="dropdown-card-options">
-                  <div class="select-card-option selected" onclick="pickCardOption('Visa (Mock Card) **** 4242', 'VISA')">
-                    <div style="display:flex; align-items:center; gap:10px;">
-                      <i data-lucide="check" style="width:14px; height:14px; color:var(--primary-light);"></i>
-                      <span>Visa (Mock Card) **** 4242</span>
-                    </div>
-                    <span style="font-family:var(--font-mono); font-size:11px; color:var(--text-dim);">Selected</span>
-                  </div>
-
-                  <div class="select-card-option" onclick="pickCardOption('Mastercard (Mock Card) **** 5555', 'MASTERCARD')">
-                    <div style="display:flex; align-items:center; gap:10px;">
-                      <i data-lucide="credit-card" style="width:14px; height:14px; color:var(--text-dim);"></i>
-                      <span>Mastercard (Mock Card) **** 5555</span>
-                    </div>
-                    <span style="font-family:var(--font-mono); font-size:11px; color:var(--text-dim);">Option</span>
-                  </div>
-
-                  <div class="select-card-option" onclick="pickCardOption('American Express (Mock Card) **** 1007', 'AMEX')">
-                    <div style="display:flex; align-items:center; gap:10px;">
-                      <i data-lucide="credit-card" style="width:14px; height:14px; color:var(--text-dim);"></i>
-                      <span>American Express (Mock Card) **** 1007</span>
-                    </div>
-                    <span style="font-family:var(--font-mono); font-size:11px; color:var(--text-dim);">Corporate</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- 8. Footer: Terms Checkbox & Solid Register Button -->
-            <div class="terms-row" onclick="toggleAgreement()">
-              <div class="custom-checkbox-sq checked" id="sq-terms-box">
-                <i data-lucide="check" style="width: 14px; height: 14px;"></i>
-              </div>
-              <div class="terms-text-label">
-                [x] I agree to the <a href="javascript:void(0)" class="auth-switch-link">Terms &amp; Privacy Policy</a> and VIP chauffeur service agreement.
-              </div>
-            </div>
-
-            <button type="submit" class="btn-register-solid" id="btn-submit-registration">
-              <span>REGISTER</span>
-              <i data-lucide="arrow-right" style="width: 16px; height: 16px;"></i>
-            </button>
-
-            <!-- Quick Testing Helpers Toolbar -->
-            <div class="demo-testing-bar">
-              <button type="button" class="demo-test-btn" onclick="applyStrictPromptErrors()">
-                <i data-lucide="alert-triangle" style="width: 13px; height: 13px; color: #ef4444;"></i>
-                <span>Simulate Error States</span>
-              </button>
-              <button type="button" class="demo-test-btn" onclick="applyValidDemoProfile()">
-                <i data-lucide="check-circle-2" style="width: 13px; height: 13px; color: #10b981;"></i>
-                <span>Pre-fill Valid VIP Data</span>
-              </button>
-            </div>
-
-          </form>
-
+          <div class="cta-actions-col">
+            <a href="register.html" class="btn-register-solid" style="background: var(--accent-gold); color: #164B3B; text-decoration: none; padding: 12px 20px; font-weight: 700; border-radius: 8px;">
+              <i data-lucide="user-plus" style="width: 16px; height: 16px;"></i>
+              <span>Create Account</span>
+            </a>
+            <a href="login.html" class="btn-wireframe-link" style="background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.3); color: #fff; text-decoration: none; padding: 12px 20px; font-weight: 600; border-radius: 8px;">
+              <i data-lucide="log-in" style="width: 16px; height: 16px;"></i>
+              <span>Sign In</span>
+            </a>
+          </div>
         </div>
       </section>
 
@@ -2244,6 +2421,20 @@
         }, 1200);
       }
 
+      // Synchronize Online Chauffeur Booking Inputs & add visual feedback
+      const bkPickup = document.getElementById('bk-pickup-input');
+      const bkDropoff = document.getElementById('bk-dropoff-input');
+      if (bkPickup) bkPickup.value = pLabel.replace("Pickup: ", "");
+      if (bkDropoff) bkDropoff.value = dLabel.replace("Dropoff: ", "");
+      if (bkPickup && bkDropoff) {
+        bkPickup.style.borderColor = "#164B3B";
+        bkDropoff.style.borderColor = "#164B3B";
+        setTimeout(() => {
+          bkPickup.style.borderColor = "";
+          bkDropoff.style.borderColor = "";
+        }, 1000);
+      }
+
       livePassengerPosition = pCoord;
       currentDestinationPosition = dCoord;
 
@@ -2472,12 +2663,18 @@
 
     // Simulate Prompt-exact validation errors
     function applyStrictPromptErrors() {
-      document.getElementById('f-fullname').value = "";
-      document.getElementById('f-mobile').value = "+84 901 234 567";
-      document.getElementById('f-email').value = "user@invalid";
-      document.getElementById('f-address').value = "123 Nguyen Van Linh, District 7, HCMC";
-      document.getElementById('f-password').value = "12345678";
-      document.getElementById('f-confirmpassword').value = "1234567";
+      const fn = document.getElementById('f-fullname');
+      if (fn) fn.value = "";
+      const mb = document.getElementById('f-mobile');
+      if (mb) mb.value = "+84 901 234 567";
+      const em = document.getElementById('f-email');
+      if (em) em.value = "user@invalid";
+      const ad = document.getElementById('f-address');
+      if (ad) ad.value = "123 Nguyen Van Linh, District 7, HCMC";
+      const pw = document.getElementById('f-password');
+      if (pw) pw.value = "12345678";
+      const cpw = document.getElementById('f-confirmpassword');
+      if (cpw) cpw.value = "1234567";
 
       flagFieldError('fullname');
       flagFieldError('email');
@@ -2488,12 +2685,18 @@
 
     // Pre-fill valid VIP profile
     function applyValidDemoProfile() {
-      document.getElementById('f-fullname').value = "Nguyen Van An";
-      document.getElementById('f-mobile').value = "+84 901 234 567";
-      document.getElementById('f-email').value = "an.nguyen@enterprise.vn";
-      document.getElementById('f-address').value = "123 Nguyen Van Linh, District 7, HCMC";
-      document.getElementById('f-password').value = "ChauffeurVIP2026!";
-      document.getElementById('f-confirmpassword').value = "ChauffeurVIP2026!";
+      const fn = document.getElementById('f-fullname');
+      if (fn) fn.value = "Nguyen Van An";
+      const mb = document.getElementById('f-mobile');
+      if (mb) mb.value = "+84 901 234 567";
+      const em = document.getElementById('f-email');
+      if (em) em.value = "an.nguyen@enterprise.vn";
+      const ad = document.getElementById('f-address');
+      if (ad) ad.value = "123 Nguyen Van Linh, District 7, HCMC";
+      const pw = document.getElementById('f-password');
+      if (pw) pw.value = "ChauffeurVIP2026!";
+      const cpw = document.getElementById('f-confirmpassword');
+      if (cpw) cpw.value = "ChauffeurVIP2026!";
 
       clearFieldError('fullname');
       clearFieldError('mobile');
@@ -2509,10 +2712,13 @@
     // Password strength check
     function evalPasswordStrength() {
       clearFieldError('password');
-      const val = document.getElementById('f-password').value;
+      const pwInput = document.getElementById('f-password');
+      if (!pwInput) return;
+      const val = pwInput.value;
       const s1 = document.getElementById('st-seg-1');
       const s2 = document.getElementById('st-seg-2');
       const s3 = document.getElementById('st-seg-3');
+      if (!s1 || !s2 || !s3) return;
 
       s1.className = 'strength-segment';
       s2.className = 'strength-segment';
@@ -2825,10 +3031,16 @@
 
     // Handle Registration Submit with Backend API (AC1 - AC5)
     async function handleRegistrationSubmit(e) {
-      e.preventDefault();
+      if (e && e.preventDefault) e.preventDefault();
+
+      const nameEl = document.getElementById('f-fullname');
+      if (!nameEl) {
+        window.location.href = 'register.html';
+        return;
+      }
 
       let hasInvalidField = false;
-      const name = document.getElementById('f-fullname').value.trim();
+      const name = nameEl.value.trim();
       const mobile = document.getElementById('f-mobile') ? document.getElementById('f-mobile').value.trim() : '+84 901 234 567';
       const email = document.getElementById('f-email').value.trim();
       const address = document.getElementById('f-address') ? document.getElementById('f-address').value.trim() : '123 Nguyen Van Linh, District 7, HCMC';
