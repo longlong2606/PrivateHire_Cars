@@ -8,6 +8,7 @@ const accountRoutes = require('./routes/accountRoutes');
 const authRoutes = require('./routes/authRoutes');
 const customerRoutes = require('./routes/customerRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
+const serviceRoutes = require('./routes/serviceRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -32,6 +33,7 @@ app.use('/api/accounts', accountRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/bookings', bookingRoutes);
+app.use('/api/services', serviceRoutes);
 
 const path = require('path');
 const fs = require('fs');
@@ -61,6 +63,11 @@ app.get('/api', (req, res) => {
       bookings: {
         create: 'POST /api/bookings (Protected: visitors blocked)',
         myBookings: 'GET /api/bookings/my-bookings (Protected: own bookings only)',
+      },
+      services: {
+        list: 'GET /api/services (Table 8: 6 Seeded Services with Fixed Sample Fares and Durations)',
+        details: 'GET /api/services/:id',
+        quote: 'POST /api/services/quote (Calculates fixed fare by service & vehicle capacity: 4 or 7 passengers)',
       },
     },
   });

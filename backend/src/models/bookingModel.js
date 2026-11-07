@@ -17,6 +17,11 @@ class BookingModel {
     paymentMethod = 'MOCK_CARD',
     cardRefUsed = null,
     notes = null,
+    serviceId = null,
+    serviceName = null,
+    vehicleCapacity = 4,
+    fareCurrency = 'GBP',
+    occupiedDurationMinutes = 60,
   }) {
     const sql = `
       INSERT INTO bookings (
@@ -32,8 +37,13 @@ class BookingModel {
         payment_method,
         card_ref_used,
         status,
-        notes
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'CONFIRMED', $12)
+        notes,
+        service_id,
+        service_name,
+        vehicle_capacity,
+        fare_currency,
+        occupied_duration_minutes
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'CONFIRMED', $12, $13, $14, $15, $16, $17)
       RETURNING *
     `;
     const values = [
@@ -49,6 +59,11 @@ class BookingModel {
       paymentMethod,
       cardRefUsed,
       notes,
+      serviceId,
+      serviceName,
+      vehicleCapacity,
+      fareCurrency,
+      occupiedDurationMinutes,
     ];
     const result = await db.query(sql, values);
     return result.rows[0];
@@ -96,4 +111,3 @@ class BookingModel {
 }
 
 module.exports = BookingModel;
-

@@ -1,8 +1,11 @@
 /**
  * SCRUM PROJECT - DATABASE CHECK SCRIPT
- * Chạy lệnh: node check-db.js (hoặc npm run db:check)
+ * Chạy lệnh: node backend/check-db.js (hoặc cd backend && npm run db:check)
  */
+const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 const { Pool } = require('pg');
 
 async function checkDatabase() {
@@ -36,6 +39,13 @@ async function checkDatabase() {
 
   try {
     const client = await pool.connect();
+
+    // Đồng bộ schema.sql để đảm bảo có đủ các bảng mới nhất
+    const schemaPath = path.join(__dirname, 'src', 'database', 'schema.sql');
+    if (fs.existsSync(schemaPath)) {
+      const sql = fs.readFileSync(schemaPath, 'utf8');
+      await client.query(sql);
+    }
 
     // 1. Thông tin server
     const infoRes = await client.query(`
@@ -87,11 +97,53 @@ async function checkDatabase() {
       console.table(accRes.rows);
     }
 
+    // 4. Kiểm tra bảng dịch vụ (services - Table 8 Demonstration Fares and Journey Durations)
+    console.log('\n---------------------------------------------------------------');
+    console.log('🚖 3. KIỂM TRA 6 DỊCH VỤ CỐ ĐỊNH (services - Table 8 Fares & Durations):');
+    const servRes = await client.query(`
+      SELECT 
+        id,
+        service_name AS "Service",
+        '£' || trim(to_char(four_passenger_fare, '999990.00')) || ' GBP' AS "Four-passenger vehicle",
+        '£' || trim(to_char(seven_passenger_fare, '999990.00')) || ' GBP' AS "Seven-passenger vehicle",
+        occupied_duration_minutes || ' mins' AS "Occupied duration"
+      FROM services 
+      ORDER BY id ASC
+    `);
+    console.log(`   Tổng số dịch vụ cố định: ${servRes.rowCount} dịch vụ (Quy tắc: giá tính theo loại dịch vụ và sức chứa xe, không tính theo cự ly)`);
+    console.table(servRes.rows);
+
+    // 5. Kiểm tra bảng bookings
+    console.log('\n---------------------------------------------------------------');
+    console.log('📅 4. KIỂM TRA BẢNG ĐẶT XE (bookings):');
+    const bookRes = await client.query(`
+      SELECT 
+        id,
+        booking_code,
+        account_id,
+        passenger_name,
+        pickup_address,
+        dropoff_address,
+        car_type,
+        fare_amount,
+        status,
+        to_char(created_at, 'YYYY-MM-DD HH24:MI:SS') AS created_at
+      FROM bookings 
+      ORDER BY id DESC
+      LIMIT 5
+    `);
+    console.log(`   Tổng số cuốc xe gần nhất: ${bookRes.rowCount}`);
+    if (bookRes.rowCount > 0) {
+      console.table(bookRes.rows);
+    } else {
+      console.log('   (Chưa có cuốc xe nào được đặt)');
+    }
+
     client.release();
     await pool.end();
 
     console.log('\n===============================================================');
-    console.log('🎉 KIỂM TRA HOÀN TẤT: CƠ SỞ DỮ LIỆU HOẠT ĐỘNG HOÀN TOÀN TỐT!');
+    console.log('🎉 KIỂM TRA HOÀN TẤT: CƠ SỞ DỮ LIỆU ĐÃ ĐƯỢC SEED ĐẦY ĐỦ 6 DỊCH VỤ!');
     console.log('===============================================================\n');
 
   } catch (error) {

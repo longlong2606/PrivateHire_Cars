@@ -83,3 +83,52 @@ CREATE TABLE IF NOT EXISTS bookings (
 CREATE INDEX IF NOT EXISTS idx_bookings_account_id ON bookings(account_id);
 CREATE INDEX IF NOT EXISTS idx_bookings_code ON bookings(booking_code);
 
+-- ===================================================================
+-- 5. SERVICES TABLE (Demonstration Fares and Journey Durations)
+-- Requirement: Table 8 - 6 Services with Fixed Sample Fares and Durations
+-- Note: Fare is based on service and vehicle capacity, not travel distance.
+-- ===================================================================
+CREATE TABLE IF NOT EXISTS services (
+    id SERIAL PRIMARY KEY,
+    service_code VARCHAR(50) UNIQUE NOT NULL,
+    service_name VARCHAR(100) UNIQUE NOT NULL,
+    description TEXT,
+    four_passenger_fare NUMERIC(10, 2) NOT NULL,
+    seven_passenger_fare NUMERIC(10, 2) NOT NULL,
+    occupied_duration_minutes INTEGER NOT NULL,
+    currency VARCHAR(10) DEFAULT 'GBP',
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_services_code ON services(service_code);
+CREATE INDEX IF NOT EXISTS idx_services_name ON services(service_name);
+
+-- Seed the six services with Table 8 demonstration fares and journey durations
+INSERT INTO services (service_code, service_name, description, four_passenger_fare, seven_passenger_fare, occupied_duration_minutes, currency, is_active)
+VALUES 
+    ('LOCAL_JOURNEY', 'Local journey', 'Standard urban travel within local city boundaries.', 20.00, 30.00, 60, 'GBP', TRUE),
+    ('LONG_DISTANCE_JOURNEY', 'Long-distance journey', 'Intercity transit and long-range chauffeured travel.', 80.00, 120.00, 180, 'GBP', TRUE),
+    ('AIRPORT_TRANSFER', 'Airport transfer', 'Punctual point-to-point airport dropoff or pickup.', 45.00, 65.00, 90, 'GBP', TRUE),
+    ('HOTEL_TRANSFER', 'Hotel transfer', 'Hotel pickup, luggage assistance, and hospitality transfer.', 30.00, 45.00, 60, 'GBP', TRUE),
+    ('AIRPORT_MEET_AND_GREET', 'Airport meet-and-greet', 'Terminal personalized arrival greeting, flight delay monitoring, and luggage handling.', 55.00, 80.00, 120, 'GBP', TRUE),
+    ('DRIVER_CAR_DAILY_HIRE', 'Driver and car daily hire', 'Full-day dedicated chauffeur and vehicle hire at client disposal.', 200.00, 280.00, 480, 'GBP', TRUE)
+ON CONFLICT (service_code) DO UPDATE SET
+    service_name = EXCLUDED.service_name,
+    description = EXCLUDED.description,
+    four_passenger_fare = EXCLUDED.four_passenger_fare,
+    seven_passenger_fare = EXCLUDED.seven_passenger_fare,
+    occupied_duration_minutes = EXCLUDED.occupied_duration_minutes,
+    currency = EXCLUDED.currency,
+    is_active = EXCLUDED.is_active,
+    updated_at = CURRENT_TIMESTAMP;
+
+-- Optional service linkage on bookings
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS service_id INTEGER REFERENCES services(id);
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS service_name VARCHAR(100);
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS vehicle_capacity INTEGER DEFAULT 4;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS fare_currency VARCHAR(10) DEFAULT 'GBP';
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS occupied_duration_minutes INTEGER DEFAULT 60;
+
+

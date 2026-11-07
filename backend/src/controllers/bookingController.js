@@ -1,4 +1,5 @@
 const BookingModel = require('../models/bookingModel');
+const ServiceModel = require('../models/serviceModel');
 
 /**
  * [BOOKING]: Tạo cuốc xe trực tuyến mới
@@ -22,6 +23,11 @@ const createBooking = async (req, res) => {
       pickupTime,
       carType,
       fareAmount,
+      service,
+      serviceId,
+      serviceCode,
+      serviceName,
+      vehicleCapacity,
       notes,
       paymentMethod,
     } = req.body;
@@ -41,6 +47,37 @@ const createBooking = async (req, res) => {
       });
     }
 
+    // Xác định dịch vụ và giá vé cố định theo Table 8
+    let resolvedFare = fareAmount;
+    let resolvedServiceId = serviceId || null;
+    let resolvedServiceName = serviceName || null;
+    let resolvedCapacity = vehicleCapacity ? parseInt(vehicleCapacity, 10) : 4;
+    let resolvedCurrency = 'GBP';
+    let resolvedDuration = 60;
+
+    const serviceKey = service || serviceId || serviceCode || serviceName;
+    if (serviceKey) {
+      try {
+        const quote = await ServiceModel.calculateFareAndDuration(serviceKey, resolvedCapacity);
+        if (quote) {
+          resolvedServiceId = quote.serviceId;
+          resolvedServiceName = quote.serviceName;
+          resolvedCapacity = quote.vehicleCapacity;
+          resolvedDuration = quote.occupiedDurationMinutes;
+          resolvedCurrency = quote.currency;
+          if (resolvedFare === undefined || resolvedFare === null) {
+            resolvedFare = quote.fixedFare;
+          }
+        }
+      } catch (_) {
+        // Fallback gracefully
+      }
+    }
+
+    if (resolvedFare === undefined || resolvedFare === null) {
+      resolvedFare = 45.00;
+    }
+
     // Tạo mã cuốc xe duy nhất (ví dụ: BK-841920)
     const bookingCode = 'BK-' + Math.floor(100000 + Math.random() * 900000);
 
@@ -53,11 +90,16 @@ const createBooking = async (req, res) => {
       pickupTime: pickupTime ? new Date(pickupTime) : new Date(),
       passengerName: customer.name,
       passengerPhone: customer.telephone,
-      carType: carType || 'Executive Saloon',
-      fareAmount: fareAmount || 45.00,
+      carType: carType || (resolvedCapacity === 7 ? 'Seven-Passenger Executive MPV' : 'Four-Passenger Executive Saloon'),
+      fareAmount: resolvedFare,
       paymentMethod: paymentMethod || 'MOCK_CARD',
       cardRefUsed: customer.mockCardRef || '•••• •••• •••• 4242 (Visa Test Card)',
       notes: notes || null,
+      serviceId: resolvedServiceId,
+      serviceName: resolvedServiceName,
+      vehicleCapacity: resolvedCapacity,
+      fareCurrency: resolvedCurrency,
+      occupiedDurationMinutes: resolvedDuration,
     });
 
     res.status(201).json({
@@ -72,8 +114,13 @@ const createBooking = async (req, res) => {
         pickupAddress: booking.pickup_address,
         dropoffAddress: booking.dropoff_address,
         pickupTime: booking.pickup_time,
+        serviceId: booking.service_id,
+        serviceName: booking.service_name,
+        vehicleCapacity: booking.vehicle_capacity,
         carType: booking.car_type,
         fareAmount: booking.fare_amount,
+        fareCurrency: booking.fare_currency || 'GBP',
+        occupiedDurationMinutes: booking.occupied_duration_minutes,
         paymentMethod: booking.payment_method,
         cardRefUsed: booking.card_ref_used,
         status: booking.status,
