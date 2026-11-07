@@ -1953,7 +1953,7 @@
                 <i data-lucide="map-pin" style="width: 14px; height: 14px; color: var(--accent-emerald);"></i>
                 <span>Pickup Location</span>
               </label>
-              <input type="text" id="bk-pickup-input" class="field-input" value="123 Nguyen Van Linh, District 7" placeholder="e.g. Airport, Hotel or Office address" style="height: 42px; font-size: 13px;" />
+              <input type="text" id="bk-pickup-input" class="field-input" placeholder="Enter pickup location (e.g. Airport, Hotel, Address...)" style="height: 42px; font-size: 13px;" />
             </div>
 
             <div>
@@ -1961,7 +1961,7 @@
                 <i data-lucide="navigation" style="width: 14px; height: 14px; color: var(--primary);"></i>
                 <span>Dropoff Destination</span>
               </label>
-              <input type="text" id="bk-dropoff-input" class="field-input" value="Tan Son Nhat Airport (SGN)" placeholder="e.g. Destination address" style="height: 42px; font-size: 13px;" />
+              <input type="text" id="bk-dropoff-input" class="field-input" placeholder="Enter dropoff destination (e.g. Landmark 81, District 1, Hotel...)" style="height: 42px; font-size: 13px;" />
             </div>
 
             <!-- Service Selection from Table 8 Demonstration Fares -->
@@ -2725,8 +2725,8 @@
         setNewPassengerPickupLocation(e.latlng.lat, e.latlng.lng, "Selected Pickup Spot");
       });
 
-      // Render initial route: D7 -> SGN
-      switchRoutePreset('d7-sgn');
+      // Render initial route on map: D7 -> SGN (without filling blank input fields)
+      switchRoutePreset('d7-sgn', true);
     }
 
     function changeMapTileStyle(styleKey) {
@@ -2784,7 +2784,7 @@
       setupRouteAndDriverTrajectory(livePassengerPosition, currentDestinationPosition, label);
     }
 
-    function switchRoutePreset(presetKey) {
+    function switchRoutePreset(presetKey, isInitialLoad = false) {
       document.querySelectorAll('#btn-r-d7, #btn-r-d1, #btn-r-l81').forEach(btn => {
         btn.classList.remove('active');
         const check = btn.querySelector('.preset-active-check');
@@ -2856,25 +2856,29 @@
         }, 1200);
       }
 
-      // Synchronize Online Chauffeur Booking Inputs & add visual feedback
-      const bkPickup = document.getElementById('bk-pickup-input');
-      const bkDropoff = document.getElementById('bk-dropoff-input');
-      if (bkPickup) bkPickup.value = pLabel.replace("Pickup: ", "");
-      if (bkDropoff) bkDropoff.value = dLabel.replace("Dropoff: ", "");
-      if (bkPickup && bkDropoff) {
-        bkPickup.style.borderColor = "#164B3B";
-        bkDropoff.style.borderColor = "#164B3B";
-        setTimeout(() => {
-          bkPickup.style.borderColor = "";
-          bkDropoff.style.borderColor = "";
-        }, 1000);
+      // Synchronize Online Chauffeur Booking Inputs only when explicitly selected by user (not initial load)
+      if (!isInitialLoad) {
+        const bkPickup = document.getElementById('bk-pickup-input');
+        const bkDropoff = document.getElementById('bk-dropoff-input');
+        if (bkPickup) bkPickup.value = pLabel.replace("Pickup: ", "");
+        if (bkDropoff) bkDropoff.value = dLabel.replace("Dropoff: ", "");
+        if (bkPickup && bkDropoff) {
+          bkPickup.style.borderColor = "#164B3B";
+          bkDropoff.style.borderColor = "#164B3B";
+          setTimeout(() => {
+            bkPickup.style.borderColor = "";
+            bkDropoff.style.borderColor = "";
+          }, 1000);
+        }
       }
 
       livePassengerPosition = pCoord;
       currentDestinationPosition = dCoord;
 
       setupRouteAndDriverTrajectory(pCoord, dCoord, pLabel, dLabel);
-      triggerToast(`Selected: ${pLabel} ➔ ${dLabel}. Form address updated!`);
+      if (!isInitialLoad) {
+        triggerToast(`Selected: ${pLabel} ➔ ${dLabel}. Route updated!`);
+      }
       lucide.createIcons();
     }
 
