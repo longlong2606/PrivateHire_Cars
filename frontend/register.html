@@ -1602,7 +1602,7 @@
         } else if (data.emailDeliveryStatus === 'SMTP_FAILED') {
           showToast(`⚠️ Account created (${data.account.accountCode}), but email error: ${data.emailError || 'Check SMTP credentials'}`, "error");
         } else {
-          showToast(`🎉 Registration Successful! Code: ${data.account.accountCode}. Confirmation email logged (AC5)`, "success");
+          showToast(`🎉 Registration Successful! Code: ${data.account.accountCode}. Confirmation email dispatched.`, "success");
         }
 
         submitBtn.innerHTML = `<span>ACCOUNT CREATED (${data.account.accountCode}) ✓</span>`;

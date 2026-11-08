@@ -452,12 +452,12 @@
       <div class="card-panel">
         <h2 class="panel-title">
           <i data-lucide="map-pin" style="width: 20px; height: 20px; color: var(--accent-emerald);"></i>
-          Journey Details (SCRUM-10, 11)
+          Journey Details
         </h2>
 
         <form id="booking-form" onsubmit="event.preventDefault(); startBookingConfirmation();">
           
-          <!-- Service Selection (SCRUM-10) -->
+          <!-- Service Selection -->
           <div class="field-group">
             <label class="field-label" for="bk-service">
               Service Type (Standard Demonstration Fares) *
@@ -488,7 +488,7 @@
             <input type="text" id="bk-dropoff" class="field-input" placeholder="Enter destination address, airport or venue..." required oninput="debounceAutoSave()" />
           </div>
 
-          <!-- Date/Time and Passenger Count (SCRUM-11) -->
+          <!-- Date/Time and Passenger Count -->
           <div style="display: grid; grid-template-columns: 1.3fr 1fr; gap: 14px;">
             <div class="field-group">
               <label class="field-label" for="bk-pickup-time">
@@ -515,13 +515,13 @@
             </select>
           </div>
 
-          <!-- Live Fleet Availability Indicator (SCRUM-12) -->
+          <!-- Live Fleet Availability Indicator -->
           <div id="availability-box" class="availability-indicator available">
             <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
             <span id="availability-text">Checking live fleet availability...</span>
           </div>
 
-          <!-- Special Offer Code Input (SCRUM-29) -->
+          <!-- Special Offer Code Input -->
           <div class="field-group" style="margin-top: 18px;">
             <label class="field-label" for="bk-offer-code">
               Special Offer Voucher Code (Optional)
@@ -542,7 +542,7 @@
       <div class="card-panel">
         <h2 class="panel-title">
           <i data-lucide="receipt" style="width: 20px; height: 20px; color: var(--primary);"></i>
-          Price Breakdown (SCRUM-13)
+          Price Breakdown
         </h2>
 
         <div style="background: #FAF7F2; border-radius: var(--radius-md); padding: 16px; margin-bottom: 20px;">
@@ -578,13 +578,13 @@
     </div>
   </main>
 
-  <!-- Payment Modal (SCRUM-16, SCRUM-36) -->
+  <!-- Payment Modal -->
   <div id="payment-modal" class="modal-backdrop">
     <div class="modal-box">
       <div class="modal-header">
         <div>
           <h3 style="font-family: var(--font-heading); font-size: 17px; font-weight: 700;">Complete Booking Confirmation</h3>
-          <span style="font-size: 12px; color: var(--text-muted);">Simulated Payment Gateway (SCRUM-16, 36)</span>
+          <span style="font-size: 12px; color: var(--text-muted);">Simulated Payment Gateway</span>
         </div>
         <button onclick="closePaymentModal()" style="border: none; background: none; cursor: pointer; color: var(--text-muted);">
           <i data-lucide="x" style="width: 18px; height: 18px;"></i>
@@ -620,16 +620,16 @@
             <label style="border: 1px solid var(--border-medium); border-radius: var(--radius-sm); padding: 10px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
               <input type="radio" name="pay-method" value="CASH" onchange="togglePaymentInputs()" />
               <div>
-                <span style="font-size: 13px; font-weight: 600;">Cash to Chauffeur (SCRUM-36)</span>
+                <span style="font-size: 13px; font-weight: 600;">Cash to Chauffeur</span>
                 <span style="display: block; font-size: 11px; color: var(--text-muted);">Pay full amount at the end of your journey</span>
               </div>
             </label>
           </div>
         </div>
 
-        <!-- Card Simulation Screening (SCRUM-16 AC3) -->
+        <!-- Card Simulation Screening -->
         <div id="card-screening-section" style="background: rgba(22, 75, 59, 0.05); padding: 14px; border-radius: var(--radius-md); margin-top: 14px;">
-          <label class="field-label" style="margin-bottom: 4px;">VISA Check Security Screening (SCRUM-16 AC3)</label>
+          <label class="field-label" style="margin-bottom: 4px;">VISA Check Security Screening</label>
           <p style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 8px;">Simulate bank 3D-Secure check outcome:</p>
           <select id="pay-visa-screening" class="field-select" style="height: 38px;">
             <option value="PASS" selected>PASS (Approved by Bank Security Check)</option>
@@ -721,7 +721,7 @@
       onBookingInputsChanged();
     }
 
-    // Recalculate price and live vehicle availability (SCRUM-12, SCRUM-13)
+    // Recalculate price and live vehicle availability
     async function onBookingInputsChanged() {
       const serviceEl = document.getElementById('bk-service');
       const selectedOption = serviceEl.options[serviceEl.selectedIndex];
@@ -753,7 +753,7 @@
 
       document.getElementById('price-final-total').textContent = `£${finalTotal.toFixed(2)} GBP`;
 
-      // Live vehicle availability check (SCRUM-12)
+      // Live vehicle availability check
       checkVehicleAvailability(capacity, duration);
       debounceAutoSave();
     }
@@ -787,7 +787,7 @@
       lucide.createIcons();
     }
 
-    // Apply special loyalty offer code (SCRUM-29)
+    // Apply special loyalty offer code
     async function applyOfferCode() {
       const code = document.getElementById('bk-offer-code').value.trim().toUpperCase();
       const feedback = document.getElementById('offer-feedback');
@@ -841,14 +841,14 @@
     // Start Booking confirmation modal flow
     function startBookingConfirmation() {
       if (!currentUser) {
-        triggerToast("Please sign in to complete your booking (SCRUM-7, 11).", "error");
+        triggerToast("Please sign in to complete your booking.", "error");
         setTimeout(() => { window.location.href = "login.html"; }, 800);
         return;
       }
 
       const pickupTime = new Date(document.getElementById('bk-pickup-time').value);
       if (pickupTime.getTime() <= Date.now()) {
-        triggerToast("Pickup date and time must be set in the future (SCRUM-11 AC2).", "error");
+        triggerToast("Pickup date and time must be set in the future.", "error");
         return;
       }
 
@@ -877,12 +877,12 @@
       }
     }
 
-    // Execute booking confirmation (SCRUM-16 / SCRUM-36)
+    // Execute booking confirmation
     async function executeBookingConfirmation() {
       const method = document.querySelector('input[name="pay-method"]:checked').value;
       const visaScreening = document.getElementById('pay-visa-screening').value;
 
-      // Card screening check (SCRUM-16 AC3)
+      // Card screening check
       if (method === 'MOCK_CARD' && visaScreening === 'FAIL') {
         triggerToast("❌ VISA Check Declined: Card security screening failed. Simulated payment blocked.", "error");
         return;

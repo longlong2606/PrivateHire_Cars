@@ -266,7 +266,7 @@
   <!-- Main Content Layout -->
   <main class="main-layout">
     <div class="card-panel">
-      <h1 class="page-title">Customer Enquiries &amp; Support (SCRUM-9)</h1>
+      <h1 class="page-title">Customer Enquiries &amp; Support</h1>
       <p class="page-subtitle">Submit a general question or inquire about an existing chauffeured journey. Our Call Centre staff will respond directly to your contact email.</p>
 
       <form id="enquiry-form" onsubmit="event.preventDefault(); submitEnquiry();">
@@ -371,7 +371,7 @@
       const group = document.getElementById('booking-selector-group');
       if (type === 'TRIP_SPECIFIC') {
         if (!currentUser) {
-          triggerToast("Trip-specific enquiries require signing in to access your bookings (SCRUM-9 AC3).", "error");
+          triggerToast("Trip-specific enquiries require signing in to access your bookings.", "error");
           document.querySelector('input[name="enq-type"][value="GENERAL"]').checked = true;
           return;
         }

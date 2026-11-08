@@ -334,7 +334,7 @@
       padding: 0 12px; font-size: 13.5px; font-family: inherit; color: var(--text-main);
     }
 
-    /* Print Stylesheet for Official Paid Receipt (SCRUM-17) */
+    /* Print Stylesheet for Official Paid Receipt */
     @media print {
       body * { visibility: hidden; }
       #printable-receipt-modal, #printable-receipt-modal * { visibility: visible; }
@@ -416,7 +416,7 @@
     </div>
   </main>
 
-  <!-- Receipt Modal (SCRUM-17, SCRUM-37) -->
+  <!-- Receipt Modal -->
   <div id="printable-receipt-modal" class="modal-backdrop">
     <div class="modal-box" style="max-width: 600px;">
       <div class="modal-header">
@@ -440,13 +440,13 @@
     </div>
   </div>
 
-  <!-- Review Modal (SCRUM-20) -->
+  <!-- Review Modal -->
   <div id="review-modal" class="modal-backdrop">
     <div class="modal-box">
       <div class="modal-header">
         <div>
           <h3 style="font-family: var(--font-heading); font-size: 17px; font-weight: 700;">Rate &amp; Review Completed Journey</h3>
-          <span style="font-size: 12px; color: var(--text-muted);">Customer Feedback (SCRUM-20)</span>
+          <span style="font-size: 12px; color: var(--text-muted);">Customer Feedback</span>
         </div>
         <button onclick="closeReviewModal()" style="border: none; background: none; cursor: pointer; color: var(--text-muted);">
           <i data-lucide="x" style="width: 18px; height: 18px;"></i>
@@ -627,13 +627,13 @@
             <div class="booking-actions-row">
               ${(pStatus === 'PAID' || bStatus === 'COMPLETED') ? `
                 <button type="button" class="btn-outline-sm" onclick="openReceiptModal('${b.booking_code}')">
-                  <i data-lucide="receipt" style="width: 14px; height: 14px;"></i> View Receipt (SCRUM-17)
+                  <i data-lucide="receipt" style="width: 14px; height: 14px;"></i> View Receipt
                 </button>
               ` : ''}
 
               ${bStatus === 'COMPLETED' ? `
                 <button type="button" class="btn-outline-sm" style="background: rgba(22, 75, 59, 0.08); color: var(--primary);" onclick="openReviewModal('${b.booking_code}')">
-                  <i data-lucide="star" style="width: 14px; height: 14px;"></i> Rate Journey (SCRUM-20)
+                  <i data-lucide="star" style="width: 14px; height: 14px;"></i> Rate Journey
                 </button>
               ` : ''}
 
@@ -650,7 +650,7 @@
       lucide.createIcons();
     }
 
-    // View official printable receipt (SCRUM-17)
+    // View official printable receipt
     function openReceiptModal(bookingCode) {
       const b = customerBookings.find(x => x.booking_code === bookingCode);
       if (!b) return;
@@ -715,7 +715,7 @@
       document.getElementById('printable-receipt-modal').classList.remove('open');
     }
 
-    // Cancel booking (SCRUM-19)
+    // Cancel booking
     async function cancelBooking(bookingCode) {
       if (!confirm(`Are you sure you want to cancel booking ${bookingCode}? Minimum 24h advance notice policy applies.`)) {
         return;
@@ -741,7 +741,7 @@
       }
     }
 
-    // Review modal (SCRUM-20)
+    // Review modal
     function openReviewModal(bookingCode) {
       document.getElementById('rev-booking-id').value = bookingCode;
       document.getElementById('review-modal').classList.add('open');

@@ -283,13 +283,13 @@
     
     <!-- Tab Controls -->
     <div class="tabs-bar">
-      <button class="tab-btn active" onclick="switchTab('dispatch')"><i data-lucide="radio" style="width: 15px; height: 15px;"></i> Active Dispatch &amp; Journeys (SCRUM-26)</button>
-      <button class="tab-btn" onclick="switchTab('assisted')"><i data-lucide="phone-call" style="width: 15px; height: 15px;"></i> Phone Booking Desk (SCRUM-21, 23)</button>
-      <button class="tab-btn" onclick="switchTab('availability')"><i data-lucide="search" style="width: 15px; height: 15px;"></i> Availability Tool (SCRUM-22)</button>
-      <button class="tab-btn" onclick="switchTab('fleet')"><i data-lucide="car" style="width: 15px; height: 15px;"></i> Fleet &amp; Chauffeurs (SCRUM-25, 26)</button>
-      <button class="tab-btn" onclick="switchTab('refunds')"><i data-lucide="rotate-ccw" style="width: 15px; height: 15px;"></i> Refund Queue (SCRUM-19)</button>
-      <button class="tab-btn" onclick="switchTab('enquiries')"><i data-lucide="mail" style="width: 15px; height: 15px;"></i> Customer Enquiries (SCRUM-24)</button>
-      <button class="tab-btn" onclick="switchTab('insights')"><i data-lucide="bar-chart-2" style="width: 15px; height: 15px;"></i> Popularity &amp; Loyalty (SCRUM-27)</button>
+      <button class="tab-btn active" onclick="switchTab('dispatch')"><i data-lucide="radio" style="width: 15px; height: 15px;"></i> Active Dispatch &amp; Journeys</button>
+      <button class="tab-btn" onclick="switchTab('assisted')"><i data-lucide="phone-call" style="width: 15px; height: 15px;"></i> Phone Booking Desk</button>
+      <button class="tab-btn" onclick="switchTab('availability')"><i data-lucide="search" style="width: 15px; height: 15px;"></i> Availability Tool</button>
+      <button class="tab-btn" onclick="switchTab('fleet')"><i data-lucide="car" style="width: 15px; height: 15px;"></i> Fleet &amp; Chauffeurs</button>
+      <button class="tab-btn" onclick="switchTab('refunds')"><i data-lucide="rotate-ccw" style="width: 15px; height: 15px;"></i> Refund Queue</button>
+      <button class="tab-btn" onclick="switchTab('enquiries')"><i data-lucide="mail" style="width: 15px; height: 15px;"></i> Customer Enquiries</button>
+      <button class="tab-btn" onclick="switchTab('insights')"><i data-lucide="bar-chart-2" style="width: 15px; height: 15px;"></i> Popularity &amp; Loyalty</button>
     </div>
 
     <!-- 1. Dispatch & Journey Operations Tab -->
@@ -297,7 +297,7 @@
       <div class="card-panel">
         <h2 class="panel-title">
           <i data-lucide="compass" style="width: 20px; height: 20px; color: var(--primary);"></i>
-          Live Bookings Queue &amp; Journey Simulation Controls (SCRUM-26)
+          Live Bookings Queue &amp; Journey Simulation Controls
         </h2>
         <div class="table-container">
           <table>
@@ -320,16 +320,16 @@
       </div>
     </section>
 
-    <!-- 2. Phone Assisted Booking Tab (SCRUM-21, 23) -->
+    <!-- 2. Phone Assisted Booking Tab -->
     <section id="tab-assisted" class="tab-content" style="display: none;">
       <div class="card-panel">
         <h2 class="panel-title">
           <i data-lucide="user-check" style="width: 20px; height: 20px; color: var(--accent-emerald);"></i>
-          Caller Verification &amp; Assisted Booking (SCRUM-21, 23)
+          Caller Verification &amp; Assisted Booking
         </h2>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
           <div>
-            <h3 style="font-size: 14px; font-weight: 700; margin-bottom: 12px;">Step 1: Lookup &amp; Verify Existing Caller (SCRUM-21)</h3>
+            <h3 style="font-size: 14px; font-weight: 700; margin-bottom: 12px;">Step 1: Lookup &amp; Verify Existing Caller</h3>
             <div class="field-group">
               <label class="field-label">Search by Email or Telephone *</label>
               <div style="display: flex; gap: 8px;">
@@ -376,7 +376,7 @@
                 <input type="text" id="asst-dropoff" class="field-input" placeholder="Dropoff Destination" required />
               </div>
               <button type="submit" class="btn-action btn-primary" style="width: 100%; height: 42px; justify-content: center;">
-                Create Assisted Booking (SCRUM-23)
+                Create Assisted Booking
               </button>
             </form>
           </div>
@@ -384,12 +384,12 @@
       </div>
     </section>
 
-    <!-- 3. Availability Tool Tab (SCRUM-22) -->
+    <!-- 3. Availability Tool Tab -->
     <section id="tab-availability" class="tab-content" style="display: none;">
       <div class="card-panel">
         <h2 class="panel-title">
           <i data-lucide="calendar" style="width: 20px; height: 20px; color: var(--primary);"></i>
-          Live Vehicle &amp; Driver Availability Search (SCRUM-22)
+          Live Vehicle &amp; Driver Availability Search
         </h2>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 20px;">
           <div>
@@ -423,12 +423,12 @@
       </div>
     </section>
 
-    <!-- 4. Fleet & Chauffeurs Tab (SCRUM-25, 26) -->
+    <!-- 4. Fleet & Chauffeurs Tab -->
     <section id="tab-fleet" class="tab-content" style="display: none;">
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
         <div class="card-panel">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-            <h2 class="panel-title" style="margin-bottom: 0;">Executive Fleet (SCRUM-25)</h2>
+            <h2 class="panel-title" style="margin-bottom: 0;">Executive Fleet</h2>
             <button class="btn-action btn-primary" onclick="openAddVehicleModal()">+ Add Vehicle</button>
           </div>
           <div class="table-container">
@@ -451,7 +451,7 @@
 
         <div class="card-panel">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-            <h2 class="panel-title" style="margin-bottom: 0;">Licensed Chauffeurs (SCRUM-26)</h2>
+            <h2 class="panel-title" style="margin-bottom: 0;">Licensed Chauffeurs</h2>
             <button class="btn-action btn-primary" onclick="openAddDriverModal()">+ Add Chauffeur</button>
           </div>
           <div class="table-container">
@@ -473,12 +473,12 @@
       </div>
     </section>
 
-    <!-- 5. Refund Queue Tab (SCRUM-19) -->
+    <!-- 5. Refund Queue Tab -->
     <section id="tab-refunds" class="tab-content" style="display: none;">
       <div class="card-panel">
         <h2 class="panel-title">
           <i data-lucide="rotate-ccw" style="width: 20px; height: 20px; color: var(--accent-emerald);"></i>
-          Customer Refund Queue (SCRUM-19)
+          Customer Refund Queue
         </h2>
         <div class="table-container">
           <table>
@@ -499,12 +499,12 @@
       </div>
     </section>
 
-    <!-- 6. Enquiries Tab (SCRUM-24) -->
+    <!-- 6. Enquiries Tab -->
     <section id="tab-enquiries" class="tab-content" style="display: none;">
       <div class="card-panel">
         <h2 class="panel-title">
           <i data-lucide="mail" style="width: 20px; height: 20px; color: var(--primary);"></i>
-          Customer Enquiries &amp; Email Replies (SCRUM-24)
+          Customer Enquiries &amp; Email Replies
         </h2>
         <div class="table-container">
           <table>
@@ -526,7 +526,7 @@
       </div>
     </section>
 
-    <!-- 7. Insights Tab (SCRUM-27) -->
+    <!-- 7. Insights Tab -->
     <section id="tab-insights" class="tab-content" style="display: none;">
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
         <div class="card-panel">
@@ -569,11 +569,11 @@
 
   </main>
 
-  <!-- Driver Assignment Modal (SCRUM-26) -->
+  <!-- Driver Assignment Modal -->
   <div id="assign-driver-modal" class="modal-backdrop">
     <div class="modal-box">
       <div class="modal-header">
-        <h3 style="font-family: var(--font-heading); font-size: 16px; font-weight: 700;">Assign Chauffeur (SCRUM-26)</h3>
+        <h3 style="font-family: var(--font-heading); font-size: 16px; font-weight: 700;">Assign Chauffeur</h3>
         <button onclick="closeAssignDriverModal()" style="border: none; background: none; cursor: pointer;">✕</button>
       </div>
       <div class="modal-body">
@@ -634,7 +634,7 @@
               actionBtns = `<button class="btn-action" onclick="progressJourney(${b.id}, 'ENROUTE')">Set EnRoute</button>`;
             } else if (bStatus === 'ENROUTE') {
               actionBtns = `
-                <button class="btn-action" style="color: var(--accent-emerald);" onclick="sendApproachingAlert(${b.id})">Notify Customer (SCRUM-15)</button>
+                <button class="btn-action" style="color: var(--accent-emerald);" onclick="sendApproachingAlert(${b.id})">Notify Customer</button>
                 <button class="btn-action btn-primary" onclick="progressJourney(${b.id}, 'COMPLETED')">Complete Journey</button>
               `;
             } else if (bStatus === 'COMPLETED' && pStatus === 'UNPAID') {
@@ -683,7 +683,7 @@
         });
         const data = await res.json();
         if (res.ok && data.success) {
-          triggerToast("Approaching alert sent to customer account (SCRUM-15)!");
+          triggerToast("Approaching alert sent to customer account!");
         } else {
           triggerToast(data.message || "Failed to send alert.", "error");
         }
@@ -765,7 +765,7 @@
       } catch (_) {}
     }
 
-    // Caller Lookup (SCRUM-21)
+    // Caller Lookup
     let verifiedCustomer = null;
     async function lookupCaller() {
       const q = document.getElementById('caller-search-query').value.trim();
@@ -791,7 +791,7 @@
     async function submitAssistedBooking() {
       const cId = document.getElementById('asst-customer-id').value;
       if (!cId) {
-        triggerToast("Please verify caller first (SCRUM-21).", "error");
+        triggerToast("Please verify caller first.", "error");
         return;
       }
       const payload = {
@@ -816,7 +816,7 @@
       } catch (_) {}
     }
 
-    // Availability Search (SCRUM-22)
+    // Availability Search
     async function runStaffAvailabilitySearch() {
       const pTime = document.getElementById('srch-pickup-time').value;
       const service = document.getElementById('srch-service').value;
@@ -836,14 +836,14 @@
               <strong style="color: var(--primary);">Standard Quote:</strong> £${parseFloat(data.baseFare).toFixed(2)} GBP (No Online Discount for Phone)<br>
               <strong>Available Suitable Vehicles:</strong> ${data.availableVehicles.length} vehicles available<br>
               <strong>Available Chauffeurs:</strong> ${data.availableDrivers.length} chauffeurs free during this window<br>
-              <span style="font-size: 12px; color: var(--text-dim);">(Note: Resources are not reserved at search stage - SCRUM-22 AC5)</span>
+              <span style="font-size: 12px; color: var(--text-dim);">(Note: Resources are not reserved at search stage)</span>
             </div>
           `;
         }
       } catch (_) {}
     }
 
-    // Refunds Queue (SCRUM-19)
+    // Refunds Queue
     async function loadRefundQueue() {
       const tbody = document.getElementById('refunds-table-body');
       try {
@@ -876,13 +876,13 @@
         });
         const data = await res.json();
         if (res.ok && data.success) {
-          triggerToast("Refund processed successfully (SCRUM-19)!");
+          triggerToast("Refund processed successfully!");
           loadRefundQueue();
         }
       } catch (_) {}
     }
 
-    // Enquiries Queue (SCRUM-24)
+    // Enquiries Queue
     async function loadEnquiriesQueue() {
       const tbody = document.getElementById('enquiries-table-body');
       try {
@@ -897,7 +897,7 @@
               <td>${e.message}</td>
               <td>${e.status || 'NEW'}</td>
               <td>
-                <button class="btn-action" onclick="replyEnquiry(${e.id}, '${e.reply_email}')">Email Reply (SCRUM-24)</button>
+                <button class="btn-action" onclick="replyEnquiry(${e.id}, '${e.reply_email}')">Email Reply</button>
               </td>
             </tr>
           `).join('');
@@ -921,7 +921,7 @@
       } catch (_) {}
     }
 
-    // Insights Metrics (SCRUM-27)
+    // Insights Metrics
     async function loadInsightsMetrics() {
       try {
         const res = await fetch(`${API_BASE}/api/staff/reports/popularity-loyalty`);
@@ -946,7 +946,7 @@
       } catch (_) {}
     }
 
-    // Modal Add Vehicle (SCRUM-25)
+    // Modal Add Vehicle
     function openAddVehicleModal() {
       document.getElementById('modal-add-vehicle').style.display = 'flex';
     }
@@ -981,7 +981,7 @@
       }
     }
 
-    // Modal Add Chauffeur (SCRUM-26)
+    // Modal Add Chauffeur
     function openAddDriverModal() {
       document.getElementById('modal-add-driver').style.display = 'flex';
     }
@@ -1027,7 +1027,7 @@
       setTimeout(() => { toast.remove(); }, 3500);
     }
   </script>
-  <!-- Modal Add Vehicle (SCRUM-25) -->
+  <!-- Modal Add Vehicle -->
   <div id="modal-add-vehicle" style="display: none; position: fixed; inset: 0; background: rgba(37,53,46,0.6); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center; padding: 20px;">
     <div style="background: #fff; border-radius: 14px; max-width: 480px; width: 100%; padding: 24px; box-shadow: var(--shadow-elevated);">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
@@ -1071,7 +1071,7 @@
     </div>
   </div>
 
-  <!-- Modal Add Driver (SCRUM-26) -->
+  <!-- Modal Add Driver -->
   <div id="modal-add-driver" style="display: none; position: fixed; inset: 0; background: rgba(37,53,46,0.6); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center; padding: 20px;">
     <div style="background: #fff; border-radius: 14px; max-width: 480px; width: 100%; padding: 24px; box-shadow: var(--shadow-elevated);">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
