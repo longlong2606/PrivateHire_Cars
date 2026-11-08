@@ -513,6 +513,9 @@
           <span class="brand-badge">Call Centre Staff</span>
         </div>
       </div>
+      <button type="button" class="mobile-sidebar-close-btn" onclick="closeStaffSidebar()" aria-label="Close sidebar">
+        <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+      </button>
     </div>
 
     <div class="sidebar-user-card">
@@ -587,9 +590,15 @@
     </div>
   </aside>
 
+  <!-- Mobile Sidebar Backdrop -->
+  <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="closeStaffSidebar()"></div>
+
   <!-- Main Content Container -->
   <div class="app-main">
     <header class="main-topbar">
+      <button type="button" class="mobile-sidebar-toggle-btn" onclick="toggleStaffSidebar()" aria-label="Open staff operations menu" title="Menu">
+        <i data-lucide="menu" style="width: 20px; height: 20px;"></i>
+      </button>
       <div class="topbar-left">
         <span class="topbar-breadcrumb" id="page-breadcrumb">Operations / Active Dispatch</span>
         <h1 class="topbar-title" id="page-current-title">Active Dispatch &amp; Journey Simulation</h1>
@@ -611,6 +620,31 @@
         <a href="booking.html" class="btn-action" style="font-size: 12px;">Customer Web</a>
       </div>
     </header>
+
+    <!-- Mobile Horizontal Quick Tab Strip (Visible on small screens) -->
+    <div class="mobile-quick-nav-strip">
+      <button type="button" class="mobile-quick-tab active" onclick="switchTab('dispatch'); closeStaffSidebar();" data-tab="dispatch">
+        <i data-lucide="compass" style="width: 13px; height: 13px;"></i> Dispatch
+      </button>
+      <button type="button" class="mobile-quick-tab" onclick="switchTab('assisted'); closeStaffSidebar();" data-tab="assisted">
+        <i data-lucide="user-check" style="width: 13px; height: 13px;"></i> Phone Booking
+      </button>
+      <button type="button" class="mobile-quick-tab" onclick="switchTab('availability'); closeStaffSidebar();" data-tab="availability">
+        <i data-lucide="search" style="width: 13px; height: 13px;"></i> Availability
+      </button>
+      <button type="button" class="mobile-quick-tab" onclick="switchTab('fleet'); closeStaffSidebar();" data-tab="fleet">
+        <i data-lucide="car" style="width: 13px; height: 13px;"></i> Fleet (150)
+      </button>
+      <button type="button" class="mobile-quick-tab" onclick="switchTab('insights'); closeStaffSidebar();" data-tab="insights">
+        <i data-lucide="trending-up" style="width: 13px; height: 13px;"></i> Insights
+      </button>
+      <button type="button" class="mobile-quick-tab" onclick="switchTab('pricing'); closeStaffSidebar();" data-tab="pricing">
+        <i data-lucide="tag" style="width: 13px; height: 13px;"></i> Pricing
+      </button>
+      <button type="button" class="mobile-quick-tab" onclick="switchTab('db'); closeStaffSidebar();" data-tab="db">
+        <i data-lucide="database" style="width: 13px; height: 13px;"></i> Database
+      </button>
+    </div>
 
     <main class="main-body-container">
       
@@ -660,7 +694,7 @@
           <i data-lucide="user-check" style="width: 20px; height: 20px; color: var(--accent-emerald);"></i>
           Caller Verification &amp; Assisted Booking
         </h2>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+        <div class="responsive-grid-2col">
           <div>
             <h3 style="font-size: 14px; font-weight: 700; margin-bottom: 12px;">Step 1: Lookup &amp; Verify Existing Caller</h3>
             <div class="field-group">
@@ -770,7 +804,7 @@
         <div id="srch-results-box" style="display: none; margin-bottom: 24px;"></div>
 
         <!-- 2 Side-by-side Tables: Available Vehicles & Available Chauffeurs -->
-        <div id="srch-tables-container" style="display: none; grid-template-columns: 1fr 1fr; gap: 24px;">
+        <div id="srch-tables-container" class="responsive-grid-2col" style="display: none;">
           <!-- Available Vehicles Box -->
           <div style="background: #FFFFFF; border: 1px solid var(--border-medium); border-radius: var(--radius-md); padding: 18px; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
@@ -837,7 +871,7 @@
 
     <!-- 4. Fleet & Chauffeurs Tab -->
     <section id="tab-fleet" class="tab-content" style="display: none;">
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+      <div class="responsive-grid-2col">
         <div class="card-panel">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
             <h2 class="panel-title" style="margin-bottom: 0;">
@@ -951,7 +985,7 @@
     <!-- 7. Insights Tab -->
     <!-- 7. Demand & Loyalty Insights Tab -->
     <section id="tab-insights" class="tab-content" style="display: none;">
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+      <div class="responsive-grid-2col">
         <div class="card-panel">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
             <h2 class="panel-title" style="margin-bottom: 0;">
@@ -1225,6 +1259,17 @@
       if (btn) btn.classList.add('active');
       const target = document.getElementById(`tab-${tabId}`);
       if (target) target.style.display = 'block';
+
+      // Synchronize mobile quick navigation tab strip
+      document.querySelectorAll('.mobile-quick-tab').forEach(b => {
+        if (b.getAttribute('data-tab') === tabId) b.classList.add('active');
+        else b.classList.remove('active');
+      });
+
+      // Auto-close mobile drawer after tab selection
+      if (typeof window.closeStaffSidebar === 'function' && window.innerWidth <= 992) {
+        window.closeStaffSidebar();
+      }
 
       if (tabMeta[tabId]) {
         const bc = document.getElementById('page-breadcrumb');

@@ -267,6 +267,9 @@
         <button id="btn-auth-action" onclick="handleAuthAction()" class="btn-outline-sm">
           <i data-lucide="log-in" style="width: 14px; height: 14px;"></i> <span>Log In</span>
         </button>
+        <button class="mobile-nav-toggle" onclick="toggleMobileNav()" aria-label="Toggle navigation menu" type="button">
+          <i data-lucide="menu" id="mobile-menu-icon" style="width: 18px; height: 18px;"></i>
+        </button>
       </div>
     </div>
   </header>
@@ -281,7 +284,7 @@
         
         <div class="field-group">
           <label class="field-label">Enquiry Category *</label>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="responsive-grid-2col">
             <label style="border: 1px solid var(--border-medium); border-radius: var(--radius-sm); padding: 12px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
               <input type="radio" name="enq-type" value="GENERAL" checked onchange="toggleEnquiryType()" />
               <div>

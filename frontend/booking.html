@@ -206,6 +206,10 @@
     @media (max-width: 900px) {
       .booking-grid {
         grid-template-columns: 1fr;
+        gap: 16px;
+      }
+      .card-panel {
+        padding: 16px;
       }
     }
 
@@ -443,6 +447,9 @@
         <button id="btn-auth-action" onclick="handleAuthAction()" class="btn-outline-sm">
           <i data-lucide="log-in" style="width: 14px; height: 14px;"></i> <span>Log In</span>
         </button>
+        <button class="mobile-nav-toggle" onclick="toggleMobileNav()" aria-label="Toggle navigation menu" type="button">
+          <i data-lucide="menu" id="mobile-menu-icon" style="width: 18px; height: 18px;"></i>
+        </button>
       </div>
     </div>
   </header>
@@ -497,7 +504,7 @@
           </div>
 
           <!-- Date/Time and Passenger Count -->
-          <div style="display: grid; grid-template-columns: 1.3fr 1fr; gap: 14px;">
+          <div class="responsive-grid-2col">
             <div class="field-group">
               <label class="field-label" for="bk-pickup-time">
                 Pickup Date &amp; Time *

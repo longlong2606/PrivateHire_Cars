@@ -290,3 +290,312 @@
   background: #213C30 !important;
   border-color: #D4AF37 !important;
 }
+
+/* ==========================================================================
+   Comprehensive Mobile & Tablet Responsiveness System
+   (Optimised for screen sizes 360px - 992px)
+   ========================================================================== */
+
+/* 1. iOS Auto-zoom prevention & Touch Ergonomics */
+@media (max-width: 768px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="datetime-local"],
+  input[type="number"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* 2. Customer Navigation Header Mobile Styles */
+.mobile-nav-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-sm, 6px);
+  background: transparent;
+  border: 1px solid var(--border-medium, #D8D0C0);
+  color: var(--text-main, #25352E);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  flex-shrink: 0;
+}
+
+.mobile-nav-toggle:hover {
+  background: var(--bg-card-hover, #FAF7F2);
+  border-color: var(--primary, #164B3B);
+}
+
+[data-theme="dark"] .mobile-nav-toggle {
+  border-color: var(--border-medium) !important;
+  color: var(--text-main) !important;
+}
+
+@media (max-width: 900px) {
+  .mobile-nav-toggle {
+    display: inline-flex;
+  }
+
+  .top-header .nav-container {
+    padding: 10px 16px;
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+
+  .top-header nav {
+    order: 10;
+    width: 100%;
+  }
+
+  .top-header .nav-menu {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    gap: 6px;
+    padding-top: 10px;
+    margin-top: 6px;
+    border-top: 1px solid var(--border-subtle, #E4DED1);
+  }
+
+  .top-header .nav-menu.mobile-open {
+    display: flex;
+    animation: mobileSlideDown 0.2s ease-out;
+  }
+
+  @keyframes mobileSlideDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .top-header .nav-menu a {
+    padding: 10px 14px;
+    font-size: 14px;
+    width: 100%;
+    border-radius: 8px;
+  }
+
+  .top-header .nav-user-actions {
+    gap: 6px;
+  }
+
+  .top-header .nav-user-actions .btn-outline-sm {
+    padding: 6px 9px;
+    font-size: 11.5px;
+  }
+
+  .top-header .brand-left {
+    gap: 8px;
+  }
+
+  .top-header .brand-logo-emblem {
+    width: 32px;
+    height: 32px;
+    font-size: 15px;
+  }
+
+  .main-layout {
+    padding: 0 16px !important;
+    margin: 16px auto !important;
+  }
+
+  .page-title {
+    font-size: 22px !important;
+  }
+
+  .page-subtitle {
+    font-size: 13px !important;
+  }
+
+  .page-header {
+    margin-bottom: 18px !important;
+  }
+}
+
+/* 3. Responsive 2-column Grids (Stacks vertically on small screens) */
+.responsive-grid-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+@media (max-width: 860px) {
+  .responsive-grid-2col {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+}
+
+/* 4. Responsive Modal Dialogs for All Devices */
+@media (max-width: 600px) {
+  .modal-backdrop {
+    padding: 10px !important;
+  }
+
+  .modal-box {
+    max-width: 100% !important;
+    width: 100% !important;
+    max-height: 92vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    border-radius: var(--radius-md, 10px) !important;
+  }
+
+  .modal-header {
+    padding: 14px 16px !important;
+  }
+
+  .modal-body {
+    padding: 16px !important;
+    overflow-y: auto !important;
+    flex: 1 !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .modal-footer {
+    padding: 12px 16px !important;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .modal-footer button {
+    flex: 1;
+    min-width: 120px;
+  }
+}
+
+/* 5. Responsive Tables (Smooth horizontal swipe) */
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 6. Staff Portal Mobile Drawer and Topbar Navigation */
+.mobile-sidebar-toggle-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm, 6px);
+  background: transparent;
+  border: 1px solid var(--border-medium, #D8D0C0);
+  color: var(--text-main, #25352E);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.mobile-sidebar-close-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm, 6px);
+  background: rgba(255, 255, 255, 0.12);
+  border: none;
+  color: #FFFFFF;
+  cursor: pointer;
+}
+
+.sidebar-backdrop {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(10, 20, 16, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 998;
+}
+
+.sidebar-backdrop.active {
+  display: block;
+}
+
+@media (max-width: 992px) {
+  body {
+    flex-direction: column !important;
+  }
+
+  .mobile-sidebar-toggle-btn {
+    display: inline-flex !important;
+  }
+
+  .mobile-sidebar-close-btn {
+    display: inline-flex !important;
+  }
+
+  /* Slide-out Off-Canvas Executive Sidebar */
+  .app-sidebar {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    width: 280px !important;
+    min-width: 280px !important;
+    height: 100vh !important;
+    z-index: 1000 !important;
+    transform: translateX(-100%) !important;
+    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.5) !important;
+  }
+
+  .app-sidebar.sidebar-open {
+    transform: translateX(0) !important;
+  }
+
+  .main-topbar {
+    padding: 12px 16px !important;
+    gap: 10px !important;
+    flex-wrap: wrap !important;
+  }
+
+  .topbar-left {
+    flex: 1;
+    min-width: 140px;
+  }
+
+  .topbar-title {
+    font-size: 16px !important;
+  }
+
+  .topbar-breadcrumb {
+    font-size: 10.5px !important;
+  }
+
+  .topbar-right {
+    gap: 6px !important;
+    flex-wrap: wrap !important;
+    justify-content: flex-end;
+  }
+
+  .topbar-right .btn-action {
+    padding: 5px 8px !important;
+    font-size: 11.5px !important;
+  }
+
+  .status-pill {
+    padding: 3px 8px !important;
+    font-size: 11px !important;
+  }
+
+  .main-body-container {
+    padding: 14px 14px 40px 14px !important;
+  }
+
+  .card-panel {
+    padding: 16px !important;
+    border-radius: var(--radius-md, 10px) !important;
+  }
+
+  .panel-title {
+    font-size: 16px !important;
+  }
+}
+

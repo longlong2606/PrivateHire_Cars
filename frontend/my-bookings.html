@@ -263,7 +263,12 @@
       margin-bottom: 18px;
     }
     @media (max-width: 800px) {
-      .booking-details-grid { grid-template-columns: 1fr; }
+      .booking-details-grid { grid-template-columns: 1fr; gap: 12px; }
+      .page-header { flex-direction: column; align-items: stretch; gap: 14px; }
+      .booking-card { padding: 16px; }
+      .booking-card-top { flex-wrap: wrap; gap: 8px; }
+      .booking-actions-row { width: 100%; justify-content: stretch; }
+      .booking-actions-row button, .booking-actions-row a { flex: 1; min-width: 120px; justify-content: center; }
     }
 
     .detail-item-title {
@@ -398,6 +403,9 @@
         </a>
         <button id="btn-auth-action" onclick="handleAuthAction()" class="btn-outline-sm">
           <i data-lucide="log-out" style="width: 14px; height: 14px;"></i> <span>Log Out</span>
+        </button>
+        <button class="mobile-nav-toggle" onclick="toggleMobileNav()" aria-label="Toggle navigation menu" type="button">
+          <i data-lucide="menu" id="mobile-menu-icon" style="width: 18px; height: 18px;"></i>
         </button>
       </div>
     </div>
