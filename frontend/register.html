@@ -173,7 +173,7 @@
       gap: 7px;
       padding: 8px 16px;
       border-radius: var(--radius-sm);
-      background: #FFFFFF;
+      background: var(--bg-card);
       border: 1px solid var(--border-subtle);
       color: var(--text-main);
       font-size: 13px;
@@ -255,7 +255,7 @@
 
     /* Our Services Box */
     .services-box {
-      background: #FFFFFF;
+      background: var(--bg-card);
       border: 1px solid var(--border-medium);
       border-radius: var(--radius-lg);
       padding: 24px 26px;
@@ -305,7 +305,7 @@
       gap: 14px;
       padding: 10px 14px;
       border-radius: var(--radius-sm);
-      background: #FAF7F2;
+      background: var(--bg-card-hover);
       border: 1px solid var(--border-subtle);
       transition: var(--transition-smooth);
     }
@@ -320,7 +320,7 @@
       width: 32px;
       height: 32px;
       border-radius: 8px;
-      background: #FFFFFF;
+      background: var(--bg-card);
       border: 1px solid var(--border-medium);
       display: flex;
       align-items: center;
@@ -400,7 +400,7 @@
        2. RIGHT COLUMN: MAIN REGISTRATION FORM
        =================================================================== */
     .auth-glass-card {
-      background: #FFFFFF;
+      background: var(--bg-card);
       border: 1px solid var(--border-medium);
       border-radius: var(--radius-xl);
       padding: 34px 36px;
@@ -506,7 +506,7 @@
 
     .field-input:focus {
       border-color: var(--border-focus);
-      background: #FFFFFF;
+      background: var(--bg-surface);
       box-shadow: 0 0 0 3px rgba(58, 139, 104, 0.18);
     }
 
@@ -585,7 +585,7 @@
 
     .dropdown-trigger-btn:hover {
       border-color: var(--primary-light);
-      background: #FAF7F2;
+      background: var(--bg-card-hover);
     }
 
     .dropdown-chevron-icon {
@@ -600,7 +600,7 @@
     .dropdown-options-menu {
       position: static;
       margin-top: 8px;
-      background: #FFFFFF;
+      background: var(--bg-card);
       border: 1px solid var(--border-medium);
       border-radius: var(--radius-md);
       box-shadow: 0 15px 35px rgba(37, 53, 46, 0.12);
@@ -649,7 +649,7 @@
       font-weight: 700;
       padding: 2px 7px;
       border-radius: 4px;
-      background: #FAF7F2;
+      background: var(--bg-card-hover);
       border: 1px solid var(--border-subtle);
       color: var(--text-main);
     }
@@ -761,7 +761,7 @@
     /* Interactive Simulation & Test Control Bar */
     .sim-test-bar {
       margin-top: 40px;
-      background: #FAF7F2;
+      background: var(--bg-card-hover);
       border: 1px solid var(--border-medium);
       border-radius: var(--radius-lg);
       padding: 16px 20px;
@@ -788,7 +788,7 @@
     }
 
     .sim-btn-pill {
-      background: #FFFFFF;
+      background: var(--bg-card);
       border: 1px solid var(--border-subtle);
       color: var(--text-main);
       padding: 6px 14px;
@@ -804,7 +804,7 @@
     }
 
     .sim-btn-pill:hover {
-      background: #FAF7F2;
+      background: var(--bg-card-hover);
       border-color: var(--primary-light);
       color: var(--primary);
     }
@@ -831,7 +831,7 @@
     }
 
     .toast-pill-item {
-      background: #FFFFFF;
+      background: var(--bg-card);
       border: 1px solid var(--border-medium);
       border-radius: var(--radius-md);
       padding: 12px 18px;
@@ -899,6 +899,258 @@
       .hero-title {
         font-size: 26px;
       }
+    }
+
+    /* ===================================================================
+       LUXURY DARK THEME STYLING FOR REGISTER
+       =================================================================== */
+    [data-theme="dark"] .brand-title {
+      color: #F2F7F4 !important;
+    }
+    [data-theme="dark"] .brand-title span {
+      background: linear-gradient(90deg, #52B788 40%, #E0B354 100%) !important;
+      -webkit-background-clip: text !important;
+      -webkit-text-fill-color: transparent !important;
+    }
+
+    [data-theme="dark"] .top-navbar {
+      background: transparent !important;
+      border-bottom-color: #1F362C !important;
+    }
+
+    [data-theme="dark"] .nav-btn {
+      background: #12211A !important;
+      border-color: #1F362C !important;
+      color: #F2F7F4 !important;
+    }
+    [data-theme="dark"] .nav-btn:hover {
+      background: #182E24 !important;
+      border-color: #52B788 !important;
+      color: #52B788 !important;
+    }
+    [data-theme="dark"] .nav-btn.primary {
+      background: #1B4332 !important;
+      border-color: #52B788 !important;
+      color: #FFFFFF !important;
+    }
+    [data-theme="dark"] .nav-btn.primary:hover {
+      background: #2D6A4F !important;
+    }
+
+    [data-theme="dark"] .staff-portal-btn {
+      border-color: #52B788 !important;
+      color: #52B788 !important;
+    }
+    [data-theme="dark"] .staff-portal-btn:hover {
+      background: rgba(82, 183, 136, 0.15) !important;
+      color: #4ADE80 !important;
+    }
+
+    [data-theme="dark"] .hero-title {
+      color: #F2F7F4 !important;
+    }
+    [data-theme="dark"] .hero-title span.highlight-gradient {
+      background: linear-gradient(90deg, #52B788 0%, #E0B354 100%) !important;
+      -webkit-background-clip: text !important;
+      -webkit-text-fill-color: transparent !important;
+    }
+    [data-theme="dark"] .hero-badge-tag {
+      background: rgba(82, 183, 136, 0.12) !important;
+      border-color: rgba(82, 183, 136, 0.3) !important;
+      color: #52B788 !important;
+    }
+
+    [data-theme="dark"] .services-box {
+      background-color: #12211A !important;
+      border-color: #1F362C !important;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
+    }
+    [data-theme="dark"] .services-box-header {
+      border-bottom-color: #1F362C !important;
+    }
+    [data-theme="dark"] .services-box-title {
+      color: #F2F7F4 !important;
+    }
+    [data-theme="dark"] .services-badge-guarantee {
+      background: rgba(212, 175, 55, 0.15) !important;
+      border-color: rgba(212, 175, 55, 0.35) !important;
+      color: #E0B354 !important;
+    }
+    [data-theme="dark"] .service-row-item {
+      background-color: #162920 !important;
+      border-color: #1F362C !important;
+    }
+    [data-theme="dark"] .service-row-item:hover {
+      background-color: #1E372B !important;
+      border-color: #52B788 !important;
+    }
+    [data-theme="dark"] .service-icon-square {
+      background-color: #12211A !important;
+      border-color: #1F362C !important;
+      color: #52B788 !important;
+    }
+    [data-theme="dark"] .service-info-text {
+      color: #F2F7F4 !important;
+    }
+
+    [data-theme="dark"] .fleet-hero-visual {
+      background: #12211A !important;
+      border-color: #1F362C !important;
+    }
+
+    [data-theme="dark"] .auth-glass-card {
+      background-color: #12211A !important;
+      border-color: #1F362C !important;
+      box-shadow: 0 16px 45px rgba(0, 0, 0, 0.5) !important;
+    }
+    [data-theme="dark"] .auth-title-large {
+      color: #F2F7F4 !important;
+    }
+    [data-theme="dark"] .auth-subtitle-text {
+      color: #A3BCB0 !important;
+    }
+    [data-theme="dark"] .auth-switch-link {
+      color: #52B788 !important;
+    }
+    [data-theme="dark"] .auth-switch-link:hover {
+      color: #E0B354 !important;
+    }
+
+    [data-theme="dark"] .field-label {
+      color: #F2F7F4 !important;
+    }
+    [data-theme="dark"] .field-input {
+      background-color: #0E1A14 !important;
+      border-color: #2B483B !important;
+      color: #F2F7F4 !important;
+    }
+    [data-theme="dark"] .field-input:focus {
+      background-color: #14241C !important;
+      border-color: #52B788 !important;
+      box-shadow: 0 0 0 3px rgba(82, 183, 136, 0.22) !important;
+      color: #F2F7F4 !important;
+    }
+    [data-theme="dark"] .field-input::placeholder {
+      color: #5E7168 !important;
+    }
+    [data-theme="dark"] .input-icon-left-slot,
+    [data-theme="dark"] .input-icon-right-slot {
+      color: #718D80 !important;
+    }
+    [data-theme="dark"] .input-icon-right-slot:hover {
+      color: #52B788 !important;
+    }
+
+    [data-theme="dark"] .dropdown-trigger-btn {
+      background-color: #0E1A14 !important;
+      border-color: #2B483B !important;
+      color: #F2F7F4 !important;
+    }
+    [data-theme="dark"] .dropdown-trigger-btn:hover {
+      background-color: #14241C !important;
+      border-color: #52B788 !important;
+    }
+    [data-theme="dark"] .dropdown-options-menu {
+      background-color: #12211A !important;
+      border-color: #1F362C !important;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6) !important;
+    }
+    [data-theme="dark"] .dropdown-item {
+      border-bottom-color: #1F362C !important;
+    }
+    [data-theme="dark"] .dropdown-item:hover {
+      background-color: #162920 !important;
+    }
+    [data-theme="dark"] .dropdown-item.active {
+      background-color: rgba(82, 183, 136, 0.15) !important;
+      border-left-color: #52B788 !important;
+    }
+    [data-theme="dark"] .card-name-title {
+      color: #F2F7F4 !important;
+    }
+    [data-theme="dark"] .card-selected-check {
+      color: #52B788 !important;
+    }
+    [data-theme="dark"] .card-badge-pill {
+      background-color: #162920 !important;
+      border-color: #1F362C !important;
+      color: #F2F7F4 !important;
+    }
+    [data-theme="dark"] .card-badge-pill.visa {
+      color: #52B788 !important;
+      background: rgba(82, 183, 136, 0.15) !important;
+      border-color: rgba(82, 183, 136, 0.35) !important;
+    }
+    [data-theme="dark"] .card-badge-pill.mc {
+      color: #E0B354 !important;
+      background: rgba(224, 179, 84, 0.15) !important;
+      border-color: rgba(224, 179, 84, 0.35) !important;
+    }
+    [data-theme="dark"] .card-badge-pill.amex {
+      color: #4ADE80 !important;
+      background: rgba(74, 222, 128, 0.15) !important;
+      border-color: rgba(74, 222, 128, 0.35) !important;
+    }
+
+    [data-theme="dark"] .custom-checkbox-sq {
+      background-color: #0E1A14 !important;
+      border-color: #2B483B !important;
+    }
+    [data-theme="dark"] .custom-checkbox-sq.checked {
+      background-color: #2D6A4F !important;
+      border-color: #52B788 !important;
+      color: #FFFFFF !important;
+    }
+    [data-theme="dark"] .terms-text-label {
+      color: #A3BCB0 !important;
+    }
+    [data-theme="dark"] .terms-text-label a {
+      color: #52B788 !important;
+    }
+
+    [data-theme="dark"] .btn-register-solid {
+      background: linear-gradient(135deg, #1B4332 0%, #2D6A4F 100%) !important;
+      border: 1px solid rgba(82, 183, 136, 0.3) !important;
+      color: #FFFFFF !important;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4) !important;
+    }
+    [data-theme="dark"] .btn-register-solid:hover {
+      background: linear-gradient(135deg, #2D6A4F 0%, #3A8B68 100%) !important;
+      border-color: #52B788 !important;
+      box-shadow: 0 6px 24px rgba(82, 183, 136, 0.25) !important;
+    }
+
+    [data-theme="dark"] .sim-test-bar {
+      background-color: #12211A !important;
+      border-color: #1F362C !important;
+    }
+    [data-theme="dark"] .sim-bar-label {
+      color: #A3BCB0 !important;
+    }
+    [data-theme="dark"] .sim-btn-pill {
+      background-color: #162920 !important;
+      border-color: #1F362C !important;
+      color: #F2F7F4 !important;
+    }
+    [data-theme="dark"] .sim-btn-pill:hover {
+      background-color: #1E372B !important;
+      border-color: #52B788 !important;
+      color: #52B788 !important;
+    }
+    [data-theme="dark"] .sim-btn-pill.danger:hover {
+      border-color: #E57373 !important;
+      color: #FF8A80 !important;
+    }
+    [data-theme="dark"] .sim-btn-pill.success:hover {
+      border-color: #52B788 !important;
+      color: #4ADE80 !important;
+    }
+
+    [data-theme="dark"] .toast-pill-item {
+      background-color: #12211A !important;
+      border-color: #1F362C !important;
+      color: #F2F7F4 !important;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6) !important;
     }
   </style>
 
