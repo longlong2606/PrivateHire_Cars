@@ -83,11 +83,11 @@
   // 4. Mobile Navigation Toggles (Universal for Customer & Staff Portals)
   window.toggleMobileNav = function () {
     var menu = document.querySelector('.nav-menu');
-    var btn = document.querySelector('.mobile-nav-toggle');
+    var btn = document.querySelector('.mobile-nav-toggle') || document.querySelector('.mobile-hamburger-btn');
     if (!menu) return;
     var isOpen = menu.classList.toggle('mobile-open');
     if (btn) {
-      var icon = btn.querySelector('i');
+      var icon = btn.querySelector('i') || btn.querySelector('svg');
       if (icon) {
         icon.setAttribute('data-lucide', isOpen ? 'x' : 'menu');
         if (window.lucide && typeof window.lucide.createIcons === 'function') {
@@ -96,6 +96,33 @@
       }
     }
   };
+
+  // Auto-close mobile menu when clicking outside or clicking any nav link
+  document.addEventListener('click', function (e) {
+    var menu = document.querySelector('.nav-menu');
+    var btn = document.querySelector('.mobile-nav-toggle') || document.querySelector('.mobile-hamburger-btn');
+    if (!menu || !menu.classList.contains('mobile-open')) return;
+
+    if (e.target.closest('.nav-menu a')) {
+      menu.classList.remove('mobile-open');
+      if (btn) {
+        var icon = btn.querySelector('i') || btn.querySelector('svg');
+        if (icon) icon.setAttribute('data-lucide', 'menu');
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+          window.lucide.createIcons();
+        }
+      }
+    } else if (!menu.contains(e.target) && btn && !btn.contains(e.target)) {
+      menu.classList.remove('mobile-open');
+      if (btn) {
+        var icon = btn.querySelector('i') || btn.querySelector('svg');
+        if (icon) icon.setAttribute('data-lucide', 'menu');
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+          window.lucide.createIcons();
+        }
+      }
+    }
+  });
 
   window.toggleStaffSidebar = function () {
     var sidebar = document.querySelector('.app-sidebar');

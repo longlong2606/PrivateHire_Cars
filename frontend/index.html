@@ -206,11 +206,16 @@
       top: 0;
       left: 0;
       width: 100%;
-      background: rgba(255, 255, 255, 0.94);
+      background: var(--bg-card, #FFFFFF);
       backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--border-subtle);
-      z-index: 100;
+      z-index: 1000;
       transition: var(--transition-smooth);
+    }
+
+    [data-theme="dark"] .app-header {
+      background: #12211A !important;
+      border-bottom-color: #1F362C !important;
     }
 
     .header-inner {
@@ -972,6 +977,58 @@
       }
     }
 
+    @media (max-width: 1180px) {
+      .mobile-hamburger-btn {
+        display: inline-flex !important;
+        align-items: center;
+        justify-content: center;
+      }
+      .nav-menu {
+        position: fixed;
+        top: 72px;
+        left: 0;
+        right: 0;
+        width: 100%;
+        background: var(--bg-card, #FFFFFF);
+        flex-direction: column;
+        padding: 24px;
+        gap: 14px;
+        border-bottom: 1px solid var(--border-subtle);
+        box-shadow: 0 16px 35px rgba(0, 0, 0, 0.15);
+        display: none;
+        z-index: 999;
+        max-height: calc(100vh - 80px);
+        overflow-y: auto;
+      }
+      .nav-menu.mobile-open {
+        display: flex !important;
+        animation: mobileNavFade 0.2s ease-out;
+      }
+      .nav-menu .nav-link {
+        font-size: 15px;
+        padding: 10px 14px;
+        display: block;
+        width: 100%;
+        border-radius: var(--radius-sm);
+      }
+      .nav-menu .nav-link:hover {
+        background: rgba(22, 75, 59, 0.08);
+      }
+      [data-theme="dark"] .nav-menu {
+        background: #12211A !important;
+        border-bottom-color: #1F362C !important;
+        box-shadow: 0 16px 35px rgba(0, 0, 0, 0.5) !important;
+      }
+      [data-theme="dark"] .nav-menu .nav-link:hover {
+        background: rgba(82, 183, 136, 0.15) !important;
+      }
+    }
+
+    @keyframes mobileNavFade {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
     @media (max-width: 768px) {
       .hero-grid {
         grid-template-columns: 1fr;
@@ -986,26 +1043,6 @@
       .services-grid, .fleet-grid, .advantages-grid, .reviews-grid, .process-steps-grid, .footer-grid {
         grid-template-columns: 1fr;
       }
-
-      .mobile-hamburger-btn {
-        display: block;
-      }
-      .nav-menu {
-        position: fixed;
-        top: 72px;
-        left: 0;
-        width: 100%;
-        background: var(--bg-surface);
-        flex-direction: column;
-        padding: 24px;
-        gap: 16px;
-        border-bottom: 1px solid var(--border-subtle);
-        box-shadow: var(--shadow-elevated);
-        display: none;
-      }
-      .nav-menu.mobile-open {
-        display: flex;
-      }
     }
   </style>
 
@@ -1018,7 +1055,7 @@
   <!-- ===================================================================
        1. NAVIGATION BAR (Thanh điều hướng)
        =================================================================== -->
-  <header class="app-header">
+  <header class="app-header top-header">
     <div class="container header-inner">
       <a href="home.html" class="brand-logo" title="PrivateHire Cars Homepage">
         <div class="brand-shield">
@@ -1073,7 +1110,7 @@
         </button>
 
         <!-- Mobile Menu Hamburger -->
-        <button class="mobile-hamburger-btn" onclick="toggleMobileNav()" aria-label="Toggle navigation menu" type="button">
+        <button class="mobile-hamburger-btn mobile-nav-toggle" onclick="toggleMobileNav()" aria-label="Toggle navigation menu" type="button">
           <i data-lucide="menu" style="width: 22px; height: 22px;"></i>
         </button>
       </div>
@@ -1181,16 +1218,16 @@
 
           <div class="preview-stats-grid">
             <div class="preview-stat-box">
-              <div class="preview-stat-val">150</div>
+              <div class="preview-stat-val" id="stat-fleet-count">150</div>
               <div class="preview-stat-lbl">Executive Vehicles</div>
             </div>
             <div class="preview-stat-box">
-              <div class="preview-stat-val">150</div>
+              <div class="preview-stat-val" id="stat-drivers-count">150</div>
               <div class="preview-stat-lbl">Licensed Chauffeurs</div>
             </div>
             <div class="preview-stat-box">
-              <div class="preview-stat-val">4.9 ★</div>
-              <div class="preview-stat-lbl">12,500+ Journeys</div>
+              <div class="preview-stat-val" id="stat-rating-val">5.0 ★</div>
+              <div class="preview-stat-lbl" id="stat-journeys-val">2 Completed Journeys</div>
             </div>
             <div class="preview-stat-box">
               <div class="preview-stat-val">24/7</div>
@@ -1718,12 +1755,12 @@
           <i data-lucide="star" style="width: 13px; height: 13px;"></i> VERIFIED REPUTATION
         </div>
         <h2 class="section-title">Trusted by Discerning Travellers &amp; Partners</h2>
-        <p class="section-subtitle">
-          Real customer reviews submitted directly after completed journeys across our executive private hire fleet. Average rating: <strong>4.9 / 5.0 Stars</strong> across 12,500+ transfers.
+        <p class="section-subtitle" id="reviews-subtitle-text">
+          Real customer reviews submitted directly after completed journeys across our executive private hire fleet. Average rating: <strong><span id="real-avg-rating">5.0</span> / 5.0 Stars</strong> across <strong id="real-journey-count">2</strong> verified completed journeys.
         </p>
       </div>
 
-      <div class="reviews-grid">
+      <div class="reviews-grid" id="home-reviews-grid">
         <!-- Review 1 -->
         <div class="review-card">
           <div class="review-stars-row">★★★★★</div>
@@ -1908,7 +1945,85 @@
       if (window.lucide && typeof window.lucide.createIcons === 'function') {
         lucide.createIcons();
       }
+
+      loadRealHomeStats();
     });
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    async function loadRealHomeStats() {
+      try {
+        const res = await fetch('/api/public/home-stats');
+        const data = await res.json();
+        if (!data || !data.success) return;
+
+        const { stats, reviews } = data;
+
+        // 1. Update Hero Dispatch preview stats
+        const statVehicles = document.getElementById('stat-fleet-count');
+        const statDrivers = document.getElementById('stat-drivers-count');
+        const statRating = document.getElementById('stat-rating-val');
+        const statJourneys = document.getElementById('stat-journeys-val');
+
+        if (statVehicles) statVehicles.textContent = stats.activeFleet || 150;
+        if (statDrivers) statDrivers.textContent = stats.licensedChauffeurs || 150;
+        if (statRating) statRating.textContent = `${stats.averageRating.toFixed(1)} ★`;
+        if (statJourneys) {
+          const journeyCount = stats.completedJourneys || stats.totalBookings || 0;
+          statJourneys.textContent = `${journeyCount} Completed Journeys`;
+        }
+
+        // 2. Update Reviews Section Header ("Trusted by Discerning Travellers & Partners")
+        const reviewSubtitle = document.getElementById('reviews-subtitle-text');
+        if (reviewSubtitle) {
+          const displayJourneys = stats.completedJourneys || stats.totalBookings || 0;
+          const displayReviews = stats.totalReviews || reviews.length || 0;
+          reviewSubtitle.innerHTML = `Real customer reviews submitted directly after completed journeys across our executive private hire fleet. Average rating: <strong><span id="real-avg-rating">${stats.averageRating.toFixed(1)}</span> / 5.0 Stars</strong> across <strong id="real-journey-count">${displayJourneys}</strong> verified completed journeys (${displayReviews} reviews).`;
+        }
+
+        // 3. Update Reviews Grid with Real Reviews
+        const reviewsGrid = document.getElementById('home-reviews-grid');
+        if (reviewsGrid && reviews && reviews.length > 0) {
+          const reviewsHtml = reviews.map(r => {
+            const stars = '★'.repeat(Math.min(5, Math.max(1, Math.round(r.averageRating || r.journeyRating || 5))));
+            const initials = (r.customerName || 'Customer').split(' ').filter(Boolean).map(w => w[0]).slice(0, 2).join('').toUpperCase() || 'CU';
+            const routeText = r.route || r.serviceName || 'London Minicab Transfer';
+            const reviewComment = r.reviewText || 'Excellent service and punctual chauffeur.';
+            return `
+              <div class="review-card">
+                <div class="review-stars-row" style="color: #F59E0B; font-size: 16px; margin-bottom: 12px; letter-spacing: 2px;">${stars}</div>
+                <p class="review-quote" style="font-size: 14px; line-height: 1.6; color: var(--text-main); font-style: italic; margin-bottom: 20px;">
+                  "${escapeHtml(reviewComment)}"
+                </p>
+                <div class="review-author-box" style="display: flex; align-items: center; gap: 12px; border-top: 1px dashed var(--border-medium); padding-top: 14px;">
+                  <div class="author-avatar-initials" style="width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: #FFF; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0;">${escapeHtml(initials)}</div>
+                  <div>
+                    <div class="author-name" style="font-weight: 700; font-size: 14.5px; color: var(--text-main);">${escapeHtml(r.customerName)}</div>
+                    <div class="author-journey" style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Verified Journey • ${escapeHtml(routeText)}</div>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('');
+
+          reviewsGrid.innerHTML = reviewsHtml;
+        }
+
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+          window.lucide.createIcons();
+        }
+      } catch (err) {
+        console.warn('Could not load dynamic home stats:', err);
+      }
+    }
 
     function handleLogout() {
       localStorage.removeItem('currentUser');

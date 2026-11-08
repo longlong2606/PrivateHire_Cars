@@ -6,6 +6,8 @@ const { requireAuth, optionalAuth } = require('../middleware/authMiddleware');
 // [P07]: Reviews
 router.post('/reviews', requireAuth, CustomerFeatureController.submitReview);
 router.get('/reviews/my', requireAuth, CustomerFeatureController.getMyReviews);
+router.get('/public/home-stats', CustomerFeatureController.getPublicHomeStats);
+router.get('/reviews/public', CustomerFeatureController.getPublicHomeStats);
 
 // [Epic 1]: Enquiries (hỗ trợ cả khách vãng lai và đăng nhập)
 router.post('/enquiries', optionalAuth, CustomerFeatureController.submitEnquiry);

@@ -53,14 +53,42 @@ html[data-theme="dark"] body {
 
 /* 3. Navigation Headers, Topbars & Sidebars */
 [data-theme="dark"] .top-header,
+[data-theme="dark"] .app-header,
 [data-theme="dark"] .main-topbar,
 [data-theme="dark"] .top-bar,
 [data-theme="dark"] .top-navbar,
 [data-theme="dark"] header.top-header,
+[data-theme="dark"] header.app-header,
 [data-theme="dark"] header.top-bar,
 [data-theme="dark"] header.top-navbar {
   background-color: #12211A !important;
+  background: #12211A !important;
   border-bottom: 1px solid #1F362C !important;
+  color: #F2F7F4 !important;
+}
+
+[data-theme="dark"] .app-header .brand-text-name,
+[data-theme="dark"] .app-header .brand-logo-text {
+  color: #F2F7F4 !important;
+}
+
+[data-theme="dark"] .app-header .brand-shield {
+  background: #2D6A4F !important;
+  color: #D4AF37 !important;
+  box-shadow: 0 4px 12px rgba(45, 106, 79, 0.4) !important;
+}
+
+[data-theme="dark"] .app-header .nav-link {
+  color: #A3BCB0 !important;
+}
+
+[data-theme="dark"] .app-header .nav-link:hover,
+[data-theme="dark"] .app-header .nav-link.active {
+  color: #D4AF37 !important;
+}
+
+[data-theme="dark"] .mobile-hamburger-btn {
+  color: #F2F7F4 !important;
 }
 
 [data-theme="dark"] .mobile-quick-nav-strip {
@@ -448,9 +476,33 @@ html[data-theme="dark"] body {
   color: var(--text-main) !important;
 }
 
-@media (max-width: 900px) {
-  .mobile-nav-toggle {
-    display: inline-flex;
+/* Desktop Navbar Wrap Prevention */
+.top-header .nav-menu,
+.app-header .nav-menu {
+  flex-wrap: nowrap;
+  gap: 14px;
+}
+
+.top-header .nav-menu a,
+.app-header .nav-menu a,
+.nav-link {
+  white-space: nowrap;
+}
+
+.top-header .nav-user-actions,
+.app-header .nav-right-actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (max-width: 1080px) {
+  .mobile-nav-toggle,
+  .mobile-hamburger-btn {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
   }
 
   .top-header .nav-container {
