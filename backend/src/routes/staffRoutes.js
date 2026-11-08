@@ -24,6 +24,7 @@ router.post('/refunds/:id/process', StaffController.processRefund);
 // Fleet & Drivers
 router.get('/fleet', StaffController.getFleetAndDrivers);
 router.post('/vehicles', StaffController.addVehicle);
+router.patch('/vehicles/:id/driver', StaffController.assignVehicleDriver);
 router.post('/drivers', StaffController.addDriver);
 
 // [SCRUM-22]: Staff Availability & Prices Search

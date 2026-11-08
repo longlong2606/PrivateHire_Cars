@@ -2,17 +2,44 @@ const db = require('../config/db');
 
 class DriverModel {
   static async getAll() {
-    const res = await db.query('SELECT * FROM drivers ORDER BY id ASC');
+    const res = await db.query(`
+      SELECT d.*, 
+             v.id AS vehicle_id, 
+             v.reg_number AS vehicle_reg, 
+             v.make_model AS vehicle_make,
+             v.colour AS vehicle_colour,
+             v.capacity AS vehicle_capacity
+      FROM drivers d
+      LEFT JOIN vehicles v ON d.id = v.driver_id
+      ORDER BY d.id ASC
+    `);
     return res.rows;
   }
 
   static async findById(id) {
-    const res = await db.query('SELECT * FROM drivers WHERE id = $1', [id]);
+    const res = await db.query(`
+      SELECT d.*, 
+             v.id AS vehicle_id, 
+             v.reg_number AS vehicle_reg, 
+             v.make_model AS vehicle_make
+      FROM drivers d
+      LEFT JOIN vehicles v ON d.id = v.driver_id
+      WHERE d.id = $1
+    `, [id]);
     return res.rows[0] || null;
   }
 
   static async getActiveDrivers() {
-    const res = await db.query("SELECT * FROM drivers WHERE status = 'ACTIVE' ORDER BY name ASC");
+    const res = await db.query(`
+      SELECT d.*, 
+             v.id AS vehicle_id, 
+             v.reg_number AS vehicle_reg, 
+             v.make_model AS vehicle_make
+      FROM drivers d
+      LEFT JOIN vehicles v ON d.id = v.driver_id
+      WHERE d.status = 'ACTIVE' 
+      ORDER BY d.name ASC
+    `);
     return res.rows;
   }
 
@@ -39,4 +66,3 @@ class DriverModel {
 }
 
 module.exports = DriverModel;
-

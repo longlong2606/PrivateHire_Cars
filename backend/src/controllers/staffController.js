@@ -449,7 +449,7 @@ class StaffController {
    */
   static async addVehicle(req, res) {
     try {
-      const { regNumber, makeModel, colour, capacity = 4, status = 'ACTIVE' } = req.body;
+      const { regNumber, makeModel, colour, capacity = 4, status = 'ACTIVE', driverId } = req.body;
       if (!regNumber || !makeModel || !colour) {
         return res.status(400).json({ success: false, message: 'Registration number, make/model and colour are required' });
       }
@@ -465,13 +465,32 @@ class StaffController {
         colour,
         capacity: cap,
         status: status || 'ACTIVE',
+        driverId: driverId ? parseInt(driverId, 10) : undefined,
       });
 
-      res.status(201).json({ success: true, message: 'Vehicle added to executive fleet.', vehicle });
+      res.status(201).json({ success: true, message: 'Vehicle added to executive fleet with linked chauffeur.', vehicle });
     } catch (error) {
       if (error.code === '23505') {
         return res.status(400).json({ success: false, message: 'Vehicle registration number already exists.' });
       }
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
+  /**
+   * Phân công tài xế cho xe
+   */
+  static async assignVehicleDriver(req, res) {
+    try {
+      const vehicleId = parseInt(req.params.id, 10);
+      const { driverId } = req.body;
+      if (!driverId) {
+        return res.status(400).json({ success: false, message: 'driverId is required' });
+      }
+
+      const vehicle = await VehicleModel.assignDriver(vehicleId, parseInt(driverId, 10));
+      res.json({ success: true, message: 'Chauffeur successfully assigned to vehicle.', vehicle });
+    } catch (error) {
       res.status(500).json({ success: false, message: error.message });
     }
   }

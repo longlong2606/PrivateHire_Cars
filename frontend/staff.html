@@ -824,11 +824,12 @@
                     <th>Make &amp; Model</th>
                     <th>Colour</th>
                     <th>Capacity</th>
+                    <th>Assigned Chauffeur</th>
                     <th>Status</th>
                   </tr>
                 </thead>
                 <tbody id="avail-vehicles-body">
-                  <tr><td colspan="5" style="text-align: center; padding: 20px;">No vehicles available.</td></tr>
+                  <tr><td colspan="6" style="text-align: center; padding: 20px;">No vehicles available.</td></tr>
                 </tbody>
               </table>
             </div>
@@ -850,12 +851,13 @@
                     <th>Code</th>
                     <th>Name</th>
                     <th>Telephone</th>
+                    <th>Assigned Vehicle</th>
                     <th>TfL License Ref</th>
                     <th>Status</th>
                   </tr>
                 </thead>
                 <tbody id="avail-drivers-body">
-                  <tr><td colspan="5" style="text-align: center; padding: 20px;">No chauffeurs available.</td></tr>
+                  <tr><td colspan="6" style="text-align: center; padding: 20px;">No chauffeurs available.</td></tr>
                 </tbody>
               </table>
             </div>
@@ -892,11 +894,12 @@
                   <th>Make</th>
                   <th>Colour</th>
                   <th>Capacity</th>
+                  <th>Assigned Chauffeur</th>
                   <th>Status</th>
                 </tr>
               </thead>
               <tbody id="fleet-table-body">
-                <tr><td colspan="5">Loading vehicles...</td></tr>
+                <tr><td colspan="6">Loading vehicles...</td></tr>
               </tbody>
             </table>
           </div>
@@ -919,11 +922,12 @@
                   <th>Ref</th>
                   <th>Name</th>
                   <th>Phone</th>
+                  <th>Assigned Vehicle</th>
                   <th>Status</th>
                 </tr>
               </thead>
               <tbody id="driver-table-body">
-                <tr><td colspan="4">Loading chauffeurs...</td></tr>
+                <tr><td colspan="5">Loading chauffeurs...</td></tr>
               </tbody>
             </table>
           </div>
@@ -1399,57 +1403,85 @@
       const tbody = document.getElementById('fleet-table-body');
       if (!tbody) return;
       if (!vehicles || vehicles.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 16px;">No matching vehicles found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 16px;">No matching vehicles found.</td></tr>';
         return;
       }
-      tbody.innerHTML = vehicles.map(v => `
+      tbody.innerHTML = vehicles.map(v => {
+        const reg = v.reg_number || v.registration_number || 'N/A';
+        const mm = v.make_model || (v.make ? (v.make + ' ' + (v.model || '')) : 'Executive Saloon');
+        const driverName = v.driver_name || 'Assigned Chauffeur';
+        const driverCode = v.driver_code || '';
+        const driverPhone = v.driver_phone ? ` • ${v.driver_phone}` : '';
+        const isAvail = v.status === 'AVAILABLE' || v.status === 'ACTIVE';
+
+        return `
         <tr>
-          <td><strong style="color: var(--primary);">${v.registration_number}</strong></td>
-          <td>${v.make} ${v.model || ''}</td>
-          <td>${v.colour}</td>
-          <td><span class="badge badge-assigned">${v.capacity} Pax</span></td>
-          <td><span class="badge ${v.status === 'AVAILABLE' ? 'badge-completed' : 'badge-pending'}">${v.status}</span></td>
-        </tr>
-      `).join('');
+          <td><strong style="color: var(--primary); font-family: var(--font-mono);">${escapeHtml(reg)}</strong></td>
+          <td>${escapeHtml(mm)}</td>
+          <td>${escapeHtml(v.colour || '')}</td>
+          <td><span class="badge badge-assigned">${v.capacity || 4} Pax</span></td>
+          <td>
+            <div style="font-weight: 600; color: var(--primary); font-size: 13px;">${escapeHtml(driverName)}</div>
+            <div style="font-size: 11px; color: var(--text-dim); font-family: var(--font-mono);">${escapeHtml(driverCode)}${escapeHtml(driverPhone)}</div>
+          </td>
+          <td><span class="badge ${isAvail ? 'badge-completed' : 'badge-pending'}">${escapeHtml(v.status || 'ACTIVE')}</span></td>
+        </tr>`;
+      }).join('');
     }
 
     function renderDriverTable(drivers) {
       const tbody = document.getElementById('driver-table-body');
       if (!tbody) return;
       if (!drivers || drivers.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 16px;">No matching chauffeurs found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 16px;">No matching chauffeurs found.</td></tr>';
         return;
       }
-      tbody.innerHTML = drivers.map(d => `
+      tbody.innerHTML = drivers.map(d => {
+        const code = d.driver_code || 'DRV';
+        const phone = d.telephone || d.phone || 'N/A';
+        const vehReg = d.vehicle_reg || 'Standard Fleet';
+        const vehMake = d.vehicle_make ? ` • ${d.vehicle_make}` : '';
+        const isActive = d.status === 'ACTIVE';
+
+        return `
         <tr>
-          <td><strong style="color: var(--primary);">${d.driver_code}</strong></td>
-          <td>${d.name}</td>
-          <td>${d.phone}</td>
-          <td><span class="badge ${d.status === 'ACTIVE' ? 'badge-completed' : 'badge-pending'}">${d.status}</span></td>
-        </tr>
-      `).join('');
+          <td><strong style="color: var(--primary); font-family: var(--font-mono);">${escapeHtml(code)}</strong></td>
+          <td>${escapeHtml(d.name || '')}</td>
+          <td>${escapeHtml(phone)}</td>
+          <td>
+            <div style="font-weight: 600; color: var(--primary); font-size: 13px;">${escapeHtml(vehReg)}</div>
+            <div style="font-size: 11px; color: var(--text-dim);">${escapeHtml(vehMake)}</div>
+          </td>
+          <td><span class="badge ${isActive ? 'badge-completed' : 'badge-pending'}">${escapeHtml(d.status || 'ACTIVE')}</span></td>
+        </tr>`;
+      }).join('');
     }
 
     function filterFleetTable() {
       const q = (document.getElementById('filter-fleet-input')?.value || '').toLowerCase().trim();
-      const filtered = allVehicles.filter(v => 
-        (v.registration_number && v.registration_number.toLowerCase().includes(q)) || 
-        (v.make && v.make.toLowerCase().includes(q)) || 
-        (v.model && v.model.toLowerCase().includes(q)) ||
-        (v.colour && v.colour.toLowerCase().includes(q)) ||
-        (v.status && v.status.toLowerCase().includes(q))
-      );
+      const filtered = allVehicles.filter(v => {
+        const reg = (v.reg_number || v.registration_number || '').toLowerCase();
+        const mm = (v.make_model || (v.make + ' ' + (v.model || ''))).toLowerCase();
+        const colour = (v.colour || '').toLowerCase();
+        const dName = (v.driver_name || '').toLowerCase();
+        const dCode = (v.driver_code || '').toLowerCase();
+        const status = (v.status || '').toLowerCase();
+        return reg.includes(q) || mm.includes(q) || colour.includes(q) || dName.includes(q) || dCode.includes(q) || status.includes(q);
+      });
       renderFleetTable(filtered);
     }
 
     function filterDriverTable() {
       const q = (document.getElementById('filter-driver-input')?.value || '').toLowerCase().trim();
-      const filtered = driversList.filter(d => 
-        (d.driver_code && d.driver_code.toLowerCase().includes(q)) || 
-        (d.name && d.name.toLowerCase().includes(q)) || 
-        (d.phone && d.phone.toLowerCase().includes(q)) ||
-        (d.status && d.status.toLowerCase().includes(q))
-      );
+      const filtered = driversList.filter(d => {
+        const code = (d.driver_code || '').toLowerCase();
+        const name = (d.name || '').toLowerCase();
+        const phone = (d.telephone || d.phone || '').toLowerCase();
+        const vehReg = (d.vehicle_reg || '').toLowerCase();
+        const vehMake = (d.vehicle_make || '').toLowerCase();
+        const status = (d.status || '').toLowerCase();
+        return code.includes(q) || name.includes(q) || phone.includes(q) || vehReg.includes(q) || vehMake.includes(q) || status.includes(q);
+      });
       renderDriverTable(filtered);
     }
 
@@ -1566,36 +1598,57 @@
       const tbody = document.getElementById('avail-vehicles-body');
       if (!tbody) return;
       if (!list || list.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:18px; color:var(--text-muted);">No matching vehicles found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:18px; color:var(--text-muted);">No matching vehicles found.</td></tr>';
         return;
       }
-      tbody.innerHTML = list.map(v => `
+      tbody.innerHTML = list.map(v => {
+        const reg = v.reg_number || v.registration_number || 'N/A';
+        const mm = v.make_model || (v.make ? (v.make + ' ' + (v.model || '')) : 'Executive Saloon');
+        const driverName = v.driver_name || 'Assigned Chauffeur';
+        const driverCode = v.driver_code || '';
+        const driverPhone = v.driver_phone ? ` • ${v.driver_phone}` : '';
+
+        return `
         <tr>
-          <td><strong style="color: var(--primary); font-family: var(--font-mono);">${v.reg_number || v.registration_number}</strong></td>
-          <td>${v.make_model || (v.make + ' ' + (v.model || ''))}</td>
-          <td>${v.colour}</td>
-          <td><span class="badge badge-assigned">${v.capacity} Pax</span></td>
+          <td><strong style="color: var(--primary); font-family: var(--font-mono);">${escapeHtml(reg)}</strong></td>
+          <td>${escapeHtml(mm)}</td>
+          <td>${escapeHtml(v.colour || '')}</td>
+          <td><span class="badge badge-assigned">${v.capacity || 4} Pax</span></td>
+          <td>
+            <div style="font-weight: 600; color: var(--primary); font-size: 13px;">${escapeHtml(driverName)}</div>
+            <div style="font-size: 11px; color: var(--text-dim); font-family: var(--font-mono);">${escapeHtml(driverCode)}${escapeHtml(driverPhone)}</div>
+          </td>
           <td><span class="badge badge-completed">AVAILABLE</span></td>
-        </tr>
-      `).join('');
+        </tr>`;
+      }).join('');
     }
 
     function renderAvailDrivers(list) {
       const tbody = document.getElementById('avail-drivers-body');
       if (!tbody) return;
       if (!list || list.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:18px; color:var(--text-muted);">No matching chauffeurs found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:18px; color:var(--text-muted);">No matching chauffeurs found.</td></tr>';
         return;
       }
-      tbody.innerHTML = list.map(d => `
+      tbody.innerHTML = list.map(d => {
+        const code = d.driver_code || 'DRV';
+        const phone = d.telephone || d.phone || 'N/A';
+        const vehReg = d.vehicle_reg || 'Standard Fleet';
+        const vehMake = d.vehicle_make ? ` • ${d.vehicle_make}` : '';
+
+        return `
         <tr>
-          <td><strong style="color: var(--primary); font-family: var(--font-mono);">${d.driver_code}</strong></td>
-          <td>${d.name}</td>
-          <td>${d.telephone || d.phone}</td>
-          <td><span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-dim);">${d.reference_number || 'TFL-PHD'}</span></td>
+          <td><strong style="color: var(--primary); font-family: var(--font-mono);">${escapeHtml(code)}</strong></td>
+          <td>${escapeHtml(d.name || '')}</td>
+          <td>${escapeHtml(phone)}</td>
+          <td>
+            <div style="font-weight: 600; color: var(--primary); font-size: 13px;">${escapeHtml(vehReg)}</div>
+            <div style="font-size: 11px; color: var(--text-dim);">${escapeHtml(vehMake)}</div>
+          </td>
+          <td><span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-dim);">${escapeHtml(d.reference_number || 'TFL-PHD')}</span></td>
           <td><span class="badge badge-completed">ACTIVE</span></td>
-        </tr>
-      `).join('');
+        </tr>`;
+      }).join('');
     }
 
     function filterAvailVehicles() {
@@ -1604,7 +1657,9 @@
         const reg = (v.reg_number || v.registration_number || '').toLowerCase();
         const mm = (v.make_model || (v.make + ' ' + (v.model || ''))).toLowerCase();
         const col = (v.colour || '').toLowerCase();
-        return reg.includes(q) || mm.includes(q) || col.includes(q);
+        const dName = (v.driver_name || '').toLowerCase();
+        const dCode = (v.driver_code || '').toLowerCase();
+        return reg.includes(q) || mm.includes(q) || col.includes(q) || dName.includes(q) || dCode.includes(q);
       });
       renderAvailVehicles(filtered);
     }
@@ -1616,7 +1671,8 @@
         const name = (d.name || '').toLowerCase();
         const phone = (d.telephone || d.phone || '').toLowerCase();
         const ref = (d.reference_number || '').toLowerCase();
-        return code.includes(q) || name.includes(q) || phone.includes(q) || ref.includes(q);
+        const vehReg = (d.vehicle_reg || '').toLowerCase();
+        return code.includes(q) || name.includes(q) || phone.includes(q) || ref.includes(q) || vehReg.includes(q);
       });
       renderAvailDrivers(filtered);
     }
@@ -1904,6 +1960,11 @@
 
     // Modal Add Vehicle
     function openAddVehicleModal() {
+      const sel = document.getElementById('veh-driver-id');
+      if (sel) {
+        sel.innerHTML = '<option value="">-- Auto-assign or Select Chauffeur --</option>' + 
+          driversList.map(d => `<option value="${d.id}">${escapeHtml(d.name)} (${escapeHtml(d.driver_code)}) - ${escapeHtml(d.reference_number || 'TFL-PHD')}</option>`).join('');
+      }
       document.getElementById('modal-add-vehicle').style.display = 'flex';
     }
     function closeAddVehicleModal() {
@@ -1916,15 +1977,16 @@
       const colour = document.getElementById('veh-colour').value.trim();
       const capacity = parseInt(document.getElementById('veh-capacity').value, 10);
       const status = document.getElementById('veh-status').value;
+      const driverId = document.getElementById('veh-driver-id').value;
 
       try {
         const res = await authenticatedFetch(`${API_BASE}/api/staff/vehicles`, {
           method: 'POST',
-          body: JSON.stringify({ regNumber, makeModel, colour, capacity, status })
+          body: JSON.stringify({ regNumber, makeModel, colour, capacity, status, driverId })
         });
         const data = await res.json();
         if (res.ok && data.success) {
-          triggerToast("Vehicle added to fleet successfully!");
+          triggerToast("Vehicle added to fleet and linked to chauffeur successfully!");
           closeAddVehicleModal();
           e.target.reset();
           loadFleetAndDrivers();
@@ -2009,6 +2071,12 @@
               <option value="7">7 Passengers (MPV)</option>
             </select>
           </div>
+        </div>
+        <div>
+          <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Assigned Chauffeur (Linked Driver)</label>
+          <select id="veh-driver-id" style="width: 100%; height: 38px; border: 1px solid var(--border); border-radius: 6px; padding: 0 10px; font-size: 13px;">
+            <option value="">-- Auto-assign or Select Chauffeur --</option>
+          </select>
         </div>
         <div>
           <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Status</label>

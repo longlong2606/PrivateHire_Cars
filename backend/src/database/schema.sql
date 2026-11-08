@@ -180,25 +180,6 @@ VALUES (
 )
 ON CONFLICT (email) DO UPDATE SET role = 'STAFF';
 
--- Fleet Vehicles Table (P06)
-CREATE TABLE IF NOT EXISTS vehicles (
-    id SERIAL PRIMARY KEY,
-    reg_number VARCHAR(20) UNIQUE NOT NULL,
-    make_model VARCHAR(100) NOT NULL,
-    colour VARCHAR(50) NOT NULL,
-    capacity INTEGER NOT NULL DEFAULT 4,
-    status VARCHAR(20) DEFAULT 'ACTIVE', -- ACTIVE, UNAVAILABLE
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-);
-
-INSERT INTO vehicles (reg_number, make_model, colour, capacity, status)
-VALUES
-    ('LD68 PHC', 'Mercedes-Benz E-Class Saloon', 'Obsidian Black', 4, 'ACTIVE'),
-    ('LN21 XEC', 'BMW 5-Series Executive', 'Imperial Blue', 4, 'ACTIVE'),
-    ('LJ23 MPV', 'Mercedes-Benz V-Class Luxury MPV', 'Metallic Silver', 7, 'ACTIVE'),
-    ('LA20 PHV', 'Volkswagen Caravelle Executive', 'Deep Black', 7, 'ACTIVE')
-ON CONFLICT (reg_number) DO NOTHING;
-
 -- Chauffeur Drivers Table (P06)
 CREATE TABLE IF NOT EXISTS drivers (
     id SERIAL PRIMARY KEY,
@@ -216,6 +197,40 @@ VALUES
     ('DRV-002', 'Marcus Sterling', '+44 7700 900456', 'TFL-PHD-59382', 'ACTIVE'),
     ('DRV-003', 'Elizabeth Clark', '+44 7700 900789', 'TFL-PHD-61029', 'ACTIVE')
 ON CONFLICT (driver_code) DO NOTHING;
+
+-- Fleet Vehicles Table (P06)
+CREATE TABLE IF NOT EXISTS vehicles (
+    id SERIAL PRIMARY KEY,
+    reg_number VARCHAR(20) UNIQUE NOT NULL,
+    make_model VARCHAR(100) NOT NULL,
+    colour VARCHAR(50) NOT NULL,
+    capacity INTEGER NOT NULL DEFAULT 4,
+    status VARCHAR(20) DEFAULT 'ACTIVE', -- ACTIVE, UNAVAILABLE
+    driver_id INTEGER REFERENCES drivers(id) ON DELETE SET NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Many-to-many Chauffeur-Vehicle Assignment Junction (Supports multiple shift drivers per vehicle)
+CREATE TABLE IF NOT EXISTS vehicle_drivers (
+    id SERIAL PRIMARY KEY,
+    vehicle_id INTEGER NOT NULL REFERENCES vehicles(id) ON DELETE CASCADE,
+    driver_id INTEGER NOT NULL REFERENCES drivers(id) ON DELETE CASCADE,
+    is_primary BOOLEAN DEFAULT TRUE,
+    assigned_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_vehicle_driver UNIQUE (vehicle_id, driver_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_vehicles_driver_id ON vehicles(driver_id);
+CREATE INDEX IF NOT EXISTS idx_vehicle_drivers_vehicle ON vehicle_drivers(vehicle_id);
+CREATE INDEX IF NOT EXISTS idx_vehicle_drivers_driver ON vehicle_drivers(driver_id);
+
+INSERT INTO vehicles (reg_number, make_model, colour, capacity, status, driver_id)
+VALUES
+    ('LD68 PHC', 'Mercedes-Benz E-Class Saloon', 'Obsidian Black', 4, 'ACTIVE', 1),
+    ('LN21 XEC', 'BMW 5-Series Executive', 'Imperial Blue', 4, 'ACTIVE', 2),
+    ('LJ23 MPV', 'Mercedes-Benz V-Class Luxury MPV', 'Metallic Silver', 7, 'ACTIVE', 3),
+    ('LA20 PHV', 'Volkswagen Caravelle Executive', 'Deep Black', 7, 'ACTIVE', 1)
+ON CONFLICT (reg_number) DO NOTHING;
 
 -- Extend Bookings Table for Lifecycle, Pricing & Resources (P02, P03)
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS payment_status VARCHAR(50) DEFAULT 'UNPAID';
