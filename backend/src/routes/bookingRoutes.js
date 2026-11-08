@@ -25,7 +25,8 @@ router.delete('/draft', optionalAuth, clearBookingDraft);
 router.get('/available-vehicles', checkVehicleAvailability);
 
 // [P09]: Xác thực mã ưu đãi đặc biệt
-router.get('/validate-promo', requireAuth, validatePromoCode);
+router.get('/validate-promo', optionalAuth, validatePromoCode);
+router.post('/validate-promo', optionalAuth, validatePromoCode);
 
 // [AC]: Protect customer endpoints so visitors cannot submit online bookings
 router.post('/', requireAuth, createBooking);

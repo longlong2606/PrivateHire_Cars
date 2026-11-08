@@ -249,6 +249,8 @@ CREATE TABLE IF NOT EXISTS vehicle_drivers (
     CONSTRAINT uq_vehicle_driver UNIQUE (vehicle_id, driver_id)
 );
 
+ALTER TABLE vehicles ADD COLUMN IF NOT EXISTS driver_id INTEGER REFERENCES drivers(id) ON DELETE SET NULL;
+
 CREATE INDEX IF NOT EXISTS idx_vehicles_driver_id ON vehicles(driver_id);
 CREATE INDEX IF NOT EXISTS idx_vehicle_drivers_vehicle ON vehicle_drivers(vehicle_id);
 CREATE INDEX IF NOT EXISTS idx_vehicle_drivers_driver ON vehicle_drivers(driver_id);

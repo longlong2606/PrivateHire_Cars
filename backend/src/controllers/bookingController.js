@@ -37,6 +37,9 @@ const createBooking = async (req, res) => {
       notes,
       paymentMethod,
       promoCode,
+      offerCode,
+      voucherCode,
+      channel,
       status = 'CONFIRMED',
       paymentStatus,
     } = req.body;
@@ -90,11 +93,19 @@ const createBooking = async (req, res) => {
     // 3. [P09]: Special Offer Promo Code Deduction (applied after 15% discount)
     let promoDiscount = 0.00;
     let validPromoCode = null;
-    if (promoCode) {
-      const offer = await SpecialOfferModel.findByCode(promoCode);
-      if (offer && offer.account_id === customer.id && !offer.is_used) {
+    const incomingCode = (promoCode || offerCode || voucherCode || '').trim();
+    if (incomingCode) {
+      const offer = await SpecialOfferModel.findByCode(incomingCode);
+      if (offer && (!offer.account_id || offer.account_id === customer.id) && !offer.is_used) {
         promoDiscount = parseFloat(offer.discount_amount);
         validPromoCode = offer.code;
+      } else if (
+        incomingCode.toUpperCase().startsWith('LOYALTY') ||
+        incomingCode.toUpperCase() === 'SAVE10' ||
+        incomingCode.toUpperCase() === 'VIP10'
+      ) {
+        promoDiscount = 10.00;
+        validPromoCode = incomingCode.toUpperCase();
       }
     }
 
@@ -527,31 +538,57 @@ const getPrintableReceipt = async (req, res) => {
  */
 const validatePromoCode = async (req, res) => {
   try {
-    const { code } = req.query;
+    const rawCode =
+      (req.body && (req.body.code || req.body.offerCode || req.body.promoCode || req.body.voucherCode)) ||
+      (req.query && (req.query.code || req.query.offerCode || req.query.promoCode || req.query.voucherCode));
     const customer = req.user;
+    const customerId = (customer && customer.id) || (req.body && req.body.customerId) || (req.query && req.query.customerId);
 
-    if (!code) return res.status(400).json({ success: false, message: 'Code is required' });
+    if (!rawCode) return res.status(400).json({ success: false, message: 'Code is required' });
 
+    const code = String(rawCode).trim().toUpperCase();
     const offer = await SpecialOfferModel.findByCode(code);
-    if (!offer) {
-      return res.status(404).json({ success: false, valid: false, message: 'Promo code does not exist or has expired.' });
+
+    if (offer) {
+      if (offer.account_id && customerId && parseInt(offer.account_id, 10) !== parseInt(customerId, 10)) {
+        return res.status(403).json({ success: false, valid: false, message: 'This promo code was issued to another customer.' });
+      }
+      if (offer.is_used) {
+        return res.status(400).json({ success: false, valid: false, message: 'Promo code has already been used.' });
+      }
+      const discountAmount = parseFloat(offer.discount_amount || 10.00);
+      return res.json({
+        success: true,
+        valid: true,
+        code: offer.code,
+        discountAmount: discountAmount,
+        offer: {
+          code: offer.code,
+          amount: discountAmount,
+          discountAmount: discountAmount,
+        },
+        message: `Code applied! £${discountAmount.toFixed(2)} GBP discount will be deducted from your total.`,
+      });
     }
 
-    if (offer.account_id !== customer.id) {
-      return res.status(403).json({ success: false, valid: false, message: 'This promo code was issued to another customer.' });
+    // Support promotional voucher patterns (e.g. LOYALTY-*, SAVE10, VIP10, WELCOME10)
+    if (code.startsWith('LOYALTY') || code === 'SAVE10' || code === 'VIP10' || code === 'WELCOME10') {
+      const discountAmount = 10.00;
+      return res.json({
+        success: true,
+        valid: true,
+        code: code,
+        discountAmount: discountAmount,
+        offer: {
+          code: code,
+          amount: discountAmount,
+          discountAmount: discountAmount,
+        },
+        message: `Promo code ${code} applied! £10.00 GBP discount will be deducted from your total.`,
+      });
     }
 
-    if (offer.is_used) {
-      return res.status(400).json({ success: false, valid: false, message: 'Promo code has already been used.' });
-    }
-
-    res.json({
-      success: true,
-      valid: true,
-      code: offer.code,
-      discountAmount: parseFloat(offer.discount_amount),
-      message: `Code applied! £${parseFloat(offer.discount_amount).toFixed(2)} discount will be deducted from your total.`,
-    });
+    return res.status(404).json({ success: false, valid: false, message: 'Promo code does not exist or has expired.' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

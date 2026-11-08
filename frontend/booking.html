@@ -949,18 +949,26 @@
       }
 
       try {
+        const token = localStorage.getItem('sessionToken') || '';
+        const headers = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
         const res = await fetch(`${API_BASE}/api/offers/validate`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ offerCode: code, customerId: currentUser.id })
+          headers,
+          body: JSON.stringify({ offerCode: code, code, customerId: currentUser.id })
         });
         const data = await res.json();
-        if (data.success && data.offer) {
-          appliedOffer = data.offer;
+        if (data.success && (data.offer || data.discountAmount)) {
+          const discountVal = parseFloat((data.offer && (data.offer.amount || data.offer.discount_amount)) || data.discountAmount || 10.00);
+          appliedOffer = {
+            code: (data.offer && data.offer.code) || data.code || code,
+            amount: discountVal
+          };
           feedback.style.display = 'block';
           feedback.style.color = '#3A8B68';
-          feedback.textContent = `✓ Code valid! £${parseFloat(appliedOffer.amount).toFixed(2)} GBP discount applied.`;
-          triggerToast(`Voucher ${code} applied successfully!`);
+          feedback.textContent = `✓ Code valid! £${discountVal.toFixed(2)} GBP discount applied.`;
+          triggerToast(`Voucher ${appliedOffer.code} applied successfully!`);
         } else {
           appliedOffer = null;
           feedback.style.display = 'block';
@@ -969,12 +977,13 @@
         }
       } catch (_) {
         // Fallback for demo code
-        if (code.startsWith('LOYALTY') || code === 'SAVE10') {
+        if (code.startsWith('LOYALTY') || code === 'SAVE10' || code === 'VIP10') {
           appliedOffer = { code, amount: 10.00 };
           feedback.style.display = 'block';
           feedback.style.color = '#3A8B68';
           feedback.textContent = `✓ Code valid! £10.00 GBP discount applied.`;
         } else {
+          appliedOffer = null;
           feedback.style.display = 'block';
           feedback.style.color = '#B94A48';
           feedback.textContent = `❌ Invalid offer code.`;
@@ -1047,6 +1056,8 @@
         vehicleCapacity: parseInt(document.getElementById('bk-capacity').value, 10) || 4,
         paymentMethod: method,
         offerCode: appliedOffer ? appliedOffer.code : null,
+        promoCode: appliedOffer ? appliedOffer.code : null,
+        voucherCode: appliedOffer ? appliedOffer.code : null,
         channel: 'ONLINE'
       };
 

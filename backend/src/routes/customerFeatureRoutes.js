@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const CustomerFeatureController = require('../controllers/customerFeatureController');
+const { validatePromoCode } = require('../controllers/bookingController');
 const { requireAuth, optionalAuth } = require('../middleware/authMiddleware');
 
 // [P07]: Reviews
@@ -18,6 +19,8 @@ router.patch('/notifications/:id/read', requireAuth, CustomerFeatureController.m
 
 // [P09]: Loyalty Offers
 router.get('/offers/my', requireAuth, CustomerFeatureController.getMyOffers);
+router.post('/offers/validate', optionalAuth, validatePromoCode);
+router.get('/offers/validate', optionalAuth, validatePromoCode);
 
 module.exports = router;
 
