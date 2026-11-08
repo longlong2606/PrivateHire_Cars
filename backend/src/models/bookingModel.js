@@ -103,13 +103,22 @@ class BookingModel {
   static async findByAccountId(accountId) {
     const sql = `
       SELECT b.*, 
-             v.reg_number AS vehicle_reg, v.make_model AS vehicle_model, 
-             d.name AS driver_name, d.telephone AS driver_phone,
+             v.reg_number AS vehicle_reg, 
+             v.make_model AS vehicle_model,
+             v.colour AS vehicle_colour,
+             v.capacity AS vehicle_capacity_seats,
+             v.status AS vehicle_status,
+             COALESCE(d.name, vd.name) AS driver_name, 
+             COALESCE(d.telephone, vd.telephone) AS driver_phone,
+             COALESCE(d.driver_code, vd.driver_code) AS driver_code,
+             COALESCE(d.reference_number, vd.reference_number) AS driver_ref,
+             COALESCE(d.status, vd.status) AS driver_status,
              r.id AS review_id, r.journey_rating, r.vehicle_rating, r.driver_rating, 
              r.review_text, r.created_at AS review_created_at
       FROM bookings b
       LEFT JOIN vehicles v ON b.vehicle_id = v.id
       LEFT JOIN drivers d ON b.driver_id = d.id
+      LEFT JOIN drivers vd ON v.driver_id = vd.id
       LEFT JOIN reviews r ON b.id = r.booking_id
       WHERE b.account_id = $1 
       ORDER BY b.created_at DESC
@@ -121,13 +130,22 @@ class BookingModel {
   static async findById(id) {
     const sql = `
       SELECT b.*, 
-             v.reg_number AS vehicle_reg, v.make_model AS vehicle_model, 
-             d.name AS driver_name, d.telephone AS driver_phone,
+             v.reg_number AS vehicle_reg, 
+             v.make_model AS vehicle_model,
+             v.colour AS vehicle_colour,
+             v.capacity AS vehicle_capacity_seats,
+             v.status AS vehicle_status,
+             COALESCE(d.name, vd.name) AS driver_name, 
+             COALESCE(d.telephone, vd.telephone) AS driver_phone,
+             COALESCE(d.driver_code, vd.driver_code) AS driver_code,
+             COALESCE(d.reference_number, vd.reference_number) AS driver_ref,
+             COALESCE(d.status, vd.status) AS driver_status,
              r.id AS review_id, r.journey_rating, r.vehicle_rating, r.driver_rating, 
              r.review_text, r.created_at AS review_created_at
       FROM bookings b
       LEFT JOIN vehicles v ON b.vehicle_id = v.id
       LEFT JOIN drivers d ON b.driver_id = d.id
+      LEFT JOIN drivers vd ON v.driver_id = vd.id
       LEFT JOIN reviews r ON b.id = r.booking_id
       WHERE b.id = $1
     `;
@@ -138,13 +156,22 @@ class BookingModel {
   static async findByCode(bookingCode) {
     const sql = `
       SELECT b.*, 
-             v.reg_number AS vehicle_reg, v.make_model AS vehicle_model, 
-             d.name AS driver_name, d.telephone AS driver_phone,
+             v.reg_number AS vehicle_reg, 
+             v.make_model AS vehicle_model,
+             v.colour AS vehicle_colour,
+             v.capacity AS vehicle_capacity_seats,
+             v.status AS vehicle_status,
+             COALESCE(d.name, vd.name) AS driver_name, 
+             COALESCE(d.telephone, vd.telephone) AS driver_phone,
+             COALESCE(d.driver_code, vd.driver_code) AS driver_code,
+             COALESCE(d.reference_number, vd.reference_number) AS driver_ref,
+             COALESCE(d.status, vd.status) AS driver_status,
              r.id AS review_id, r.journey_rating, r.vehicle_rating, r.driver_rating, 
              r.review_text, r.created_at AS review_created_at
       FROM bookings b
       LEFT JOIN vehicles v ON b.vehicle_id = v.id
       LEFT JOIN drivers d ON b.driver_id = d.id
+      LEFT JOIN drivers vd ON v.driver_id = vd.id
       LEFT JOIN reviews r ON b.id = r.booking_id
       WHERE b.booking_code = $1
     `;
@@ -229,11 +256,15 @@ class BookingModel {
     const sql = `
       SELECT b.*, a.name AS customer_name, a.email AS customer_email, a.telephone AS customer_phone,
              v.reg_number AS vehicle_reg, v.make_model AS vehicle_model,
-             d.name AS driver_name, d.telephone AS driver_phone
+             v.colour AS vehicle_colour, v.capacity AS vehicle_capacity_seats, v.status AS vehicle_status,
+             COALESCE(d.name, vd.name) AS driver_name, 
+             COALESCE(d.telephone, vd.telephone) AS driver_phone,
+             COALESCE(d.driver_code, vd.driver_code) AS driver_code
       FROM bookings b
       JOIN accounts a ON b.account_id = a.id
       LEFT JOIN vehicles v ON b.vehicle_id = v.id
       LEFT JOIN drivers d ON b.driver_id = d.id
+      LEFT JOIN drivers vd ON v.driver_id = vd.id
       ORDER BY b.created_at DESC
     `;
     const res = await db.query(sql);

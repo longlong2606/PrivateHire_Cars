@@ -97,3 +97,4 @@ linkAllVehiclesToDrivers().catch(err => {
   console.error('Lỗi khi liên kết xe và tài xế:', err);
   process.exit(1);
 });
+

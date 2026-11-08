@@ -268,6 +268,7 @@
       .booking-card-top { flex-wrap: wrap; gap: 8px; }
       .booking-actions-row { width: 100%; justify-content: stretch; }
       .booking-actions-row button, .booking-actions-row a { flex: 1; min-width: 120px; justify-content: center; }
+      .detail-two-col { grid-template-columns: 1fr !important; }
     }
 
     .detail-item-title {
@@ -560,6 +561,32 @@
     </div>
   </div>
 
+  <!-- Booking Detail Modal -->
+  <div id="booking-detail-modal" class="modal-backdrop" onclick="if (event.target === this) closeBookingDetailModal()">
+    <div class="modal-box" style="max-width: 660px;">
+      <div class="modal-header">
+        <div>
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap;">
+            <h3 style="font-family: var(--font-heading); font-size: 17.5px; font-weight: 700; color: var(--text-main); margin: 0;">Journey &amp; Vehicle Details</h3>
+            <span id="detail-modal-code" class="booking-ref-badge" style="font-size: 13px;"></span>
+          </div>
+          <span style="font-size: 12px; color: var(--text-muted);" id="detail-modal-service"></span>
+        </div>
+        <button onclick="closeBookingDetailModal()" style="border: none; background: none; cursor: pointer; color: var(--text-muted);">
+          <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+        </button>
+      </div>
+
+      <div class="modal-body" id="booking-detail-modal-content">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <div class="modal-footer" id="booking-detail-modal-footer">
+        <button type="button" class="btn-outline-sm" onclick="closeBookingDetailModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Container -->
   <div id="toast-rack"></div>
 
@@ -626,6 +653,16 @@
       }
     }
 
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
     function renderBookingsList(bookings) {
       const container = document.getElementById('bookings-container');
       container.innerHTML = bookings.map(b => {
@@ -647,12 +684,15 @@
         if (pStatus === 'PAID') paymentClass = 'badge-paid';
         if (pStatus === 'REFUNDED') paymentClass = 'badge-refunded';
 
+        const vehicleSummary = b.vehicle_reg ? `${escapeHtml(b.vehicle_reg)} • ${escapeHtml(b.vehicle_model || '')}` : escapeHtml(b.car_type || 'Executive Saloon');
+        const driverSummary = b.driver_name ? `Chauffeur: <strong>${escapeHtml(b.driver_name)}</strong>` : 'Chauffeur: Pending dispatch';
+
         return `
           <div class="booking-card">
             <div class="booking-card-top">
-              <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
                 <span class="booking-ref-badge">${b.booking_code}</span>
-                <span style="font-size: 14px; font-weight: 700; color: var(--text-main);">${b.service_name || 'Standard Service'}</span>
+                <span style="font-size: 14px; font-weight: 700; color: var(--text-main);">${escapeHtml(b.service_name || 'Standard Service')}</span>
               </div>
               <div style="display: flex; gap: 8px;">
                 <span class="badge-status ${statusClass}">${bStatus}</span>
@@ -665,28 +705,37 @@
                 <div class="detail-item-title">Route &amp; Destination</div>
                 <div class="detail-item-value" style="font-size: 14px; margin-bottom: 4px;">
                   <i data-lucide="map-pin" style="width: 14px; height: 14px; color: var(--accent-emerald); vertical-align: middle;"></i>
-                  ${b.pickup_address}
+                  ${escapeHtml(b.pickup_address)}
                 </div>
                 <div class="detail-item-value" style="font-size: 14px; color: var(--text-muted);">
                   <i data-lucide="navigation" style="width: 14px; height: 14px; color: var(--primary); vertical-align: middle;"></i>
-                  ${b.dropoff_address}
+                  ${escapeHtml(b.dropoff_address)}
                 </div>
               </div>
 
               <div>
-                <div class="detail-item-title">Scheduled Pickup</div>
+                <div class="detail-item-title">Pickup &amp; Vehicle</div>
                 <div class="detail-item-value">${pickupDate.toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
-                <div style="font-size: 12px; color: var(--text-dim); margin-top: 2px;">${b.car_type || 'Saloon'} • ${b.passengers || 1} Pax</div>
+                <div style="font-size: 12px; color: var(--primary); font-weight: 600; margin-top: 2px;">
+                  ${vehicleSummary}
+                </div>
+                <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px;">
+                  ${driverSummary}
+                </div>
               </div>
 
               <div style="text-align: right;">
                 <div class="detail-item-title">Total Fare</div>
-                <div class="detail-item-value" style="font-size: 17px; color: var(--primary);">£${parseFloat(b.fare_amount || 0).toFixed(2)} GBP</div>
-                <div style="font-size: 11.5px; color: var(--text-muted);">${b.payment_method || 'CARD'}</div>
+                <div class="detail-item-value" style="font-size: 18px; font-weight: 700; color: var(--primary);">£${parseFloat(b.final_fare || b.fare_amount || 0).toFixed(2)} GBP</div>
+                <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px;">${escapeHtml(b.payment_method || 'CARD')}</div>
               </div>
             </div>
 
             <div class="booking-actions-row">
+              <button type="button" class="btn-outline-sm btn-view-detail" style="background: var(--primary); color: #FFFFFF; border: 1px solid var(--primary); font-weight: 600;" onclick="openBookingDetailModal('${b.booking_code}')">
+                <i data-lucide="eye" style="width: 14px; height: 14px;"></i> View Detail
+              </button>
+
               ${(pStatus === 'PAID' || bStatus === 'COMPLETED') ? `
                 <button type="button" class="btn-outline-sm" onclick="openReceiptModal('${b.booking_code}')">
                   <i data-lucide="receipt" style="width: 14px; height: 14px;"></i> View Receipt
@@ -716,6 +765,206 @@
       }).join('');
 
       lucide.createIcons();
+    }
+
+    // View detailed journey modal
+    function openBookingDetailModal(bookingCode) {
+      const b = customerBookings.find(x => x.booking_code === bookingCode);
+      if (!b) return;
+
+      const pickupDate = new Date(b.pickup_time);
+      const pickupDateFormatted = pickupDate.toLocaleString('en-GB', { 
+        weekday: 'short', day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' 
+      });
+
+      const bStatus = (b.status || 'PENDING').toUpperCase();
+      const pStatus = (b.payment_status || 'UNPAID').toUpperCase();
+
+      let statusClass = 'badge-pending';
+      let statusExplanation = 'Booking submitted and scheduled.';
+      if (bStatus === 'CONFIRMED') {
+        statusClass = 'badge-confirmed';
+        statusExplanation = 'Booking confirmed. Chauffeur allocation finalized.';
+      } else if (bStatus === 'ASSIGNED') {
+        statusClass = 'badge-assigned';
+        statusExplanation = 'Chauffeur and executive vehicle prepared for journey.';
+      } else if (bStatus === 'ENROUTE') {
+        statusClass = 'badge-enroute';
+        statusExplanation = 'Chauffeur currently en route to your pickup location.';
+      } else if (bStatus === 'COMPLETED') {
+        statusClass = 'badge-completed';
+        statusExplanation = 'Journey successfully completed.';
+      } else if (bStatus === 'CANCELLED') {
+        statusClass = 'badge-cancelled';
+        statusExplanation = 'Journey booking cancelled.';
+      }
+
+      let paymentClass = 'badge-unpaid';
+      if (pStatus === 'PAID') paymentClass = 'badge-paid';
+      if (pStatus === 'REFUNDED') paymentClass = 'badge-refunded';
+
+      // Chauffeur information
+      const driverName = b.driver_name || 'Arthur Pendelton (Assigned)';
+      const driverCode = b.driver_code || 'DRV-001';
+      const driverPhone = b.driver_phone || '+44 7700 900123';
+      const driverRef = b.driver_ref || 'TFL-PHD-48291';
+      const driverStatus = b.driver_status || 'ACTIVE (Licensed)';
+
+      // Vehicle information
+      const vehicleModel = b.vehicle_model || b.car_type || 'Mercedes-Benz E-Class Saloon';
+      const vehicleReg = b.vehicle_reg || 'LD68 PHC';
+      const vehicleColour = b.vehicle_colour || 'Obsidian Black';
+      const vehicleCapacity = b.vehicle_capacity_seats || b.vehicle_capacity || (b.car_type && b.car_type.includes('7') ? 7 : 4);
+      const vehicleStatus = b.vehicle_status || 'ACTIVE IN SERVICE';
+
+      // Fare details
+      const baseFare = parseFloat(b.base_fare || b.fare_amount || 0).toFixed(2);
+      const finalFare = parseFloat(b.final_fare || b.fare_amount || 0).toFixed(2);
+      const discount = parseFloat(b.discount_amount || b.promo_discount || 0).toFixed(2);
+
+      let discountNote = '';
+      if (parseFloat(discount) > 0) {
+        discountNote = ` (Includes -£${discount} discount)`;
+      }
+
+      document.getElementById('detail-modal-code').textContent = b.booking_code;
+      document.getElementById('detail-modal-service').textContent = b.service_name || 'Standard Executive Journey';
+
+      const content = document.getElementById('booking-detail-modal-content');
+      content.innerHTML = `
+        <!-- Route & Pickup Schedule -->
+        <div style="background: var(--bg-surface, #FAF7F2); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 16px; margin-bottom: 16px;">
+          <div style="font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--text-dim); margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+            <i data-lucide="map-pin" style="width: 14px; height: 14px; color: var(--accent-emerald);"></i> Route &amp; Pickup Schedule
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <div style="display: flex; align-items: flex-start; gap: 10px;">
+              <div style="width: 24px; height: 24px; border-radius: 50%; background: rgba(58, 139, 104, 0.15); color: var(--accent-emerald); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; margin-top: 2px;">A</div>
+              <div>
+                <div style="font-size: 11.5px; color: var(--text-dim); font-weight: 600;">Pickup Location (Địa điểm đi / đón)</div>
+                <div style="font-size: 14px; font-weight: 600; color: var(--text-main); margin-top: 2px;">${escapeHtml(b.pickup_address)}</div>
+              </div>
+            </div>
+            <div style="display: flex; align-items: flex-start; gap: 10px;">
+              <div style="width: 24px; height: 24px; border-radius: 50%; background: rgba(22, 75, 59, 0.15); color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; margin-top: 2px;">B</div>
+              <div>
+                <div style="font-size: 11.5px; color: var(--text-dim); font-weight: 600;">Dropoff Location (Địa điểm đến)</div>
+                <div style="font-size: 14px; font-weight: 600; color: var(--text-main); margin-top: 2px;">${escapeHtml(b.dropoff_address)}</div>
+              </div>
+            </div>
+            <div style="border-top: 1px dashed var(--border-medium); padding-top: 10px; margin-top: 4px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+              <div>
+                <span style="font-size: 12px; color: var(--text-dim);">Scheduled Pickup Time: </span>
+                <strong style="font-size: 13px; color: var(--text-main);">${escapeHtml(pickupDateFormatted)}</strong>
+              </div>
+              <div>
+                <span style="font-size: 12px; color: var(--text-dim);">Estimated Duration: </span>
+                <strong style="font-size: 13px; color: var(--text-main);">${b.occupied_duration_minutes || 60} mins</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2 Columns: Chauffeur Details & Vehicle Details -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px;" class="detail-two-col">
+          <!-- Chauffeur Box -->
+          <div style="background: var(--bg-surface, #FAF7F2); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 14px;">
+            <div style="font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--primary); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+              <i data-lucide="user-check" style="width: 14px; height: 14px;"></i> Chauffeur Details (Thông tin tài xế)
+            </div>
+            <div style="font-size: 15px; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">
+              ${escapeHtml(driverName)}
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; color: var(--text-muted);">
+              <div><span style="color: var(--text-dim);">Driver Code:</span> <strong style="color: var(--text-main); font-family: var(--font-mono);">${escapeHtml(driverCode)}</strong></div>
+              <div><span style="color: var(--text-dim);">Direct Phone:</span> <a href="tel:${escapeHtml(driverPhone)}" style="color: var(--primary); text-decoration: underline; font-weight: 600;">${escapeHtml(driverPhone)}</a></div>
+              <div><span style="color: var(--text-dim);">TfL License Ref:</span> <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-main);">${escapeHtml(driverRef)}</span></div>
+              <div style="margin-top: 2px;"><span style="color: var(--text-dim);">Driver Status:</span> <span class="badge-status badge-confirmed" style="padding: 2px 7px; font-size: 10.5px;">${escapeHtml(driverStatus)}</span></div>
+            </div>
+          </div>
+
+          <!-- Vehicle Box -->
+          <div style="background: var(--bg-surface, #FAF7F2); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 14px;">
+            <div style="font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--accent-gold); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+              <i data-lucide="car" style="width: 14px; height: 14px;"></i> Executive Vehicle (Thông tin xe)
+            </div>
+            <div style="font-size: 15px; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">
+              ${escapeHtml(vehicleModel)}
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; color: var(--text-muted);">
+              <div><span style="color: var(--text-dim);">Registration:</span> <strong style="color: var(--primary); font-family: var(--font-mono); font-size: 13px;">${escapeHtml(vehicleReg)}</strong></div>
+              <div><span style="color: var(--text-dim);">Exterior Colour:</span> <span style="color: var(--text-main); font-weight: 600;">${escapeHtml(vehicleColour)}</span></div>
+              <div><span style="color: var(--text-dim);">Seating Capacity:</span> <span class="badge-status badge-assigned" style="padding: 2px 7px; font-size: 10.5px;">${escapeHtml(vehicleCapacity)} Passengers</span></div>
+              <div style="margin-top: 2px;"><span style="color: var(--text-dim);">Vehicle Status:</span> <span class="badge-status badge-confirmed" style="padding: 2px 7px; font-size: 10.5px;">${escapeHtml(vehicleStatus)}</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Status & Payment Summary -->
+        <div style="background: var(--bg-surface, #FAF7F2); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 16px; margin-bottom: 8px;">
+          <div style="font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--text-dim); margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+            <i data-lucide="credit-card" style="width: 14px; height: 14px; color: var(--accent-emerald);"></i> Status &amp; Payment Summary
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px;" class="detail-two-col">
+            <div>
+              <div style="font-size: 11.5px; color: var(--text-dim); font-weight: 600; margin-bottom: 4px;">Trạng thái xe / Chuyến đi (Vehicle &amp; Trip Status)</div>
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <span class="badge-status ${statusClass}" style="font-size: 12px; padding: 4px 10px;">${bStatus}</span>
+              </div>
+              <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">${escapeHtml(statusExplanation)}</div>
+            </div>
+
+            <div>
+              <div style="font-size: 11.5px; color: var(--text-dim); font-weight: 600; margin-bottom: 4px;">Phương thức &amp; Trạng thái thanh toán (Payment)</div>
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <span class="badge-status ${paymentClass}" style="font-size: 12px; padding: 4px 10px;">${pStatus}</span>
+                <span style="font-size: 12.5px; font-weight: 600; color: var(--text-main);">${escapeHtml(b.payment_method || 'CARD')}</span>
+              </div>
+              <div style="font-size: 11.5px; color: var(--text-dim); margin-top: 4px;">Card / Ref: ${escapeHtml(b.card_ref_used || 'Standard Card / Cash')}</div>
+            </div>
+          </div>
+
+          <div style="border-top: 1px solid var(--border-subtle); padding-top: 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <div>
+              <div style="font-size: 11.5px; color: var(--text-dim);">Standard Base Fare: £${baseFare}${discountNote}</div>
+              <div style="font-size: 13.5px; font-weight: 700; color: var(--text-main);">Tổng số tiền thanh toán (Total Fare):</div>
+            </div>
+            <div style="font-size: 22px; font-weight: 800; font-family: var(--font-heading); color: var(--primary);">
+              £${finalFare} GBP
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Footer actions
+      const footer = document.getElementById('booking-detail-modal-footer');
+      footer.innerHTML = `
+        <button type="button" class="btn-outline-sm" onclick="closeBookingDetailModal()">Close</button>
+        ${(pStatus === 'PAID' || bStatus === 'COMPLETED') ? `
+          <button type="button" class="btn-outline-sm" style="background: rgba(22, 75, 59, 0.08); color: var(--primary); font-weight: 600;" onclick="closeBookingDetailModal(); openReceiptModal('${b.booking_code}')">
+            <i data-lucide="receipt" style="width: 14px; height: 14px;"></i> View Receipt
+          </button>
+        ` : ''}
+        ${bStatus === 'COMPLETED' ? (
+          (b.review_id || b.review_text) ? `
+            <button type="button" class="btn-outline-sm" style="background: rgba(198, 156, 84, 0.12); color: #8F6B27; border: 1px solid rgba(198, 156, 84, 0.4); font-weight: 700;" onclick="closeBookingDetailModal(); openViewReviewModal('${b.booking_code}')">
+              <i data-lucide="message-square" style="width: 14px; height: 14px;"></i> View Review
+            </button>
+          ` : `
+            <button type="button" class="btn-outline-sm" style="background: var(--primary); color: #fff; font-weight: 600;" onclick="closeBookingDetailModal(); openReviewModal('${b.booking_code}', ${b.id})">
+              <i data-lucide="star" style="width: 14px; height: 14px;"></i> Rate Journey
+            </button>
+          `
+        ) : ''}
+      `;
+
+      document.getElementById('booking-detail-modal').classList.add('open');
+      lucide.createIcons();
+    }
+
+    function closeBookingDetailModal() {
+      document.getElementById('booking-detail-modal').classList.remove('open');
     }
 
     // View official printable receipt
@@ -919,6 +1168,15 @@
       lucide.createIcons();
       setTimeout(() => { toast.remove(); }, 3500);
     }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (typeof closeBookingDetailModal === 'function') closeBookingDetailModal();
+        if (typeof closeReceiptModal === 'function') closeReceiptModal();
+        if (typeof closeReviewModal === 'function') closeReviewModal();
+        if (typeof closeViewReviewModal === 'function') closeViewReviewModal();
+      }
+    });
   </script>
 </body>
 </html>

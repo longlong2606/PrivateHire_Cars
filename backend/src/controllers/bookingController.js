@@ -110,8 +110,10 @@ const createBooking = async (req, res) => {
     });
 
     let assignedVehicleId = null;
+    let assignedDriverId = null;
     if (availableVehicles.length > 0) {
       assignedVehicleId = availableVehicles[0].id;
+      assignedDriverId = availableVehicles[0].driver_id || null;
     }
 
     // 5. Booking Code (e.g. BK-841920)
@@ -149,6 +151,7 @@ const createBooking = async (req, res) => {
       promoDiscount: promoDiscount,
       finalFare: finalFare,
       vehicleId: assignedVehicleId,
+      driverId: assignedDriverId,
     });
 
     // Mark promo offer as used if booking is confirmed
