@@ -1,5 +1,6 @@
 const BookingModel = require('../models/bookingModel');
 const ServiceModel = require('../models/serviceModel');
+const BookingDraftModel = require('../models/bookingDraftModel');
 
 /**
  * [BOOKING]: Tạo cuốc xe trực tuyến mới
@@ -127,6 +128,10 @@ const createBooking = async (req, res) => {
         createdAt: booking.created_at,
       },
     });
+
+    // Form State Persistence: Clear draft state upon confirmed booking
+    const draftToken = req.body?.draftToken || req.headers?.['x-draft-token'] || `usr-${customer.id}`;
+    await BookingDraftModel.deleteDraft({ accountId: customer.id, draftToken }).catch(() => {});
   } catch (error) {
     console.error('Error creating booking:', error);
     res.status(500).json({
@@ -200,9 +205,173 @@ const getBookingById = async (req, res) => {
   }
 };
 
+/**
+ * [FORM STATE PERSISTENCE]: Lưu/cập nhật trạng thái nháp của form đặt xe
+ */
+const saveBookingDraft = async (req, res) => {
+  try {
+    const customer = req.user || null;
+    const {
+      draftToken,
+      pickupAddress,
+      dropoffAddress,
+      service,
+      serviceId,
+      serviceName,
+      vehicleCapacity,
+      carType,
+      notes,
+      fareAmount,
+      formMetadata,
+    } = req.body;
+
+    const token = draftToken || req.headers?.['x-draft-token'] || (customer ? `usr-${customer.id}` : `vst-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`);
+
+    let resolvedFare = fareAmount;
+    let resolvedServiceId = serviceId || null;
+    let resolvedServiceName = serviceName || null;
+    let resolvedCapacity = vehicleCapacity ? parseInt(vehicleCapacity, 10) : 4;
+    let resolvedDuration = 60;
+    let resolvedCurrency = 'GBP';
+
+    const serviceKey = service || serviceId || serviceName;
+    if (serviceKey) {
+      try {
+        const quote = await ServiceModel.calculateFareAndDuration(serviceKey, resolvedCapacity);
+        if (quote) {
+          resolvedServiceId = quote.serviceId;
+          resolvedServiceName = quote.serviceName;
+          resolvedCapacity = quote.vehicleCapacity;
+          resolvedDuration = quote.occupiedDurationMinutes;
+          resolvedCurrency = quote.currency;
+          if (resolvedFare === undefined || resolvedFare === null) {
+            resolvedFare = quote.fixedFare;
+          }
+        }
+      } catch (_) {}
+    }
+
+    const draft = await BookingDraftModel.saveDraft({
+      accountId: customer ? customer.id : null,
+      draftToken: token,
+      pickupAddress,
+      dropoffAddress,
+      serviceId: resolvedServiceId,
+      serviceName: resolvedServiceName,
+      vehicleCapacity: resolvedCapacity,
+      fareAmount: resolvedFare,
+      fareCurrency: resolvedCurrency,
+      occupiedDurationMinutes: resolvedDuration,
+      carType: carType || (resolvedCapacity === 7 ? 'Seven-Passenger Executive MPV' : 'Four-Passenger Executive Saloon'),
+      notes,
+      formMetadata,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Booking form state persisted successfully',
+      draftToken: token,
+      draft: {
+        id: draft.id,
+        draftToken: draft.draft_token,
+        accountId: draft.account_id,
+        pickupAddress: draft.pickup_address,
+        dropoffAddress: draft.dropoff_address,
+        serviceName: draft.service_name,
+        vehicleCapacity: draft.vehicle_capacity,
+        fareAmount: draft.fare_amount,
+        fareCurrency: draft.fare_currency,
+        occupiedDurationMinutes: draft.occupied_duration_minutes,
+        carType: draft.car_type,
+        notes: draft.notes,
+        updatedAt: draft.updated_at,
+      },
+    });
+  } catch (error) {
+    console.error('Error in saveBookingDraft:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error saving booking form state',
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * [FORM STATE PERSISTENCE]: Lấy trạng thái nháp của form đặt xe
+ */
+const getBookingDraft = async (req, res) => {
+  try {
+    const customer = req.user || null;
+    const draftToken = req.query?.draftToken || req.headers?.['x-draft-token'] || (customer ? `usr-${customer.id}` : null);
+
+    const draft = await BookingDraftModel.getDraft({
+      accountId: customer ? customer.id : null,
+      draftToken,
+    });
+
+    res.status(200).json({
+      success: true,
+      hasDraft: !!draft,
+      draft: draft ? {
+        id: draft.id,
+        draftToken: draft.draft_token,
+        accountId: draft.account_id,
+        pickupAddress: draft.pickup_address,
+        dropoffAddress: draft.dropoff_address,
+        serviceName: draft.service_name,
+        vehicleCapacity: draft.vehicle_capacity,
+        fareAmount: draft.fare_amount,
+        fareCurrency: draft.fare_currency,
+        occupiedDurationMinutes: draft.occupied_duration_minutes,
+        carType: draft.car_type,
+        notes: draft.notes,
+        updatedAt: draft.updated_at,
+      } : null,
+    });
+  } catch (error) {
+    console.error('Error in getBookingDraft:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error retrieving booking form state',
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * [FORM STATE PERSISTENCE]: Xóa trạng thái nháp
+ */
+const clearBookingDraft = async (req, res) => {
+  try {
+    const customer = req.user || null;
+    const draftToken = req.query?.draftToken || req.body?.draftToken || req.headers?.['x-draft-token'] || (customer ? `usr-${customer.id}` : null);
+
+    await BookingDraftModel.deleteDraft({
+      accountId: customer ? customer.id : null,
+      draftToken,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: 'Booking draft cleared successfully',
+    });
+  } catch (error) {
+    console.error('Error in clearBookingDraft:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error clearing booking draft',
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   createBooking,
   getMyBookings,
   getBookingById,
+  saveBookingDraft,
+  getBookingDraft,
+  clearBookingDraft,
 };
 

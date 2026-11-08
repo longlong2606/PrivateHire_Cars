@@ -131,4 +131,33 @@ ALTER TABLE bookings ADD COLUMN IF NOT EXISTS vehicle_capacity INTEGER DEFAULT 4
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS fare_currency VARCHAR(10) DEFAULT 'GBP';
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS occupied_duration_minutes INTEGER DEFAULT 60;
 
+-- ===================================================================
+-- 6. FORM STATE PERSISTENCE TABLE (Booking Drafts & Session In-Progress States)
+-- Requirement: Form State Persistence for booking data
+-- Persists in-progress booking form entries (pickup, dropoff, service, vehicle, notes)
+-- across page refreshes, browser restarts, and authentication redirects.
+-- ===================================================================
+CREATE TABLE IF NOT EXISTS booking_drafts (
+    id SERIAL PRIMARY KEY,
+    account_id INTEGER REFERENCES accounts(id) ON DELETE CASCADE,
+    draft_token VARCHAR(255) UNIQUE NOT NULL,
+    pickup_address TEXT,
+    dropoff_address TEXT,
+    service_id INTEGER REFERENCES services(id),
+    service_name VARCHAR(100),
+    vehicle_capacity INTEGER DEFAULT 4,
+    fare_amount NUMERIC(10, 2),
+    fare_currency VARCHAR(10) DEFAULT 'GBP',
+    occupied_duration_minutes INTEGER,
+    car_type VARCHAR(100),
+    notes TEXT,
+    form_metadata TEXT,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_booking_drafts_account ON booking_drafts(account_id);
+CREATE INDEX IF NOT EXISTS idx_booking_drafts_token ON booking_drafts(draft_token);
+
+
 

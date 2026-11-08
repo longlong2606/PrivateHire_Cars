@@ -108,8 +108,43 @@ const authorizeCustomerAccess = (paramKey = 'id') => {
   };
 };
 
+/**
+ * Middleware: optionalAuth
+ * Kiểm tra token nếu có, nếu hợp lệ thì gắn req.user, nếu không có token thì vẫn cho qua
+ */
+const optionalAuth = async (req, res, next) => {
+  try {
+    let token = null;
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.substring(7).trim();
+    }
+    if (!token && req.headers['x-session-token']) {
+      token = req.headers['x-session-token'].trim();
+    }
+    if (token) {
+      const session = await SessionModel.findValidSession(token);
+      if (session) {
+        req.user = {
+          id: session.account_id,
+          accountCode: session.account_code,
+          name: session.name,
+          email: session.email,
+          address: session.address,
+          telephone: session.telephone,
+          mockCardRef: session.mock_card_ref,
+          status: session.status,
+        };
+        req.sessionToken = token;
+      }
+    }
+  } catch (_) {}
+  next();
+};
+
 module.exports = {
   requireAuth,
+  optionalAuth,
   authorizeCustomerAccess,
 };
 

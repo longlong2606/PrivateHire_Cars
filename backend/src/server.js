@@ -63,6 +63,9 @@ app.get('/api', (req, res) => {
       bookings: {
         create: 'POST /api/bookings (Protected: visitors blocked)',
         myBookings: 'GET /api/bookings/my-bookings (Protected: own bookings only)',
+        saveDraft: 'POST /api/bookings/draft (Form State Persistence: auto-saves in-progress booking)',
+        getDraft: 'GET /api/bookings/draft (Restores saved booking form draft)',
+        clearDraft: 'DELETE /api/bookings/draft (Clears saved booking form draft)',
       },
       services: {
         list: 'GET /api/services (6 Seeded Services with Fixed Sample Fares and Durations)',

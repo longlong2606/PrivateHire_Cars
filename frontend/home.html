@@ -1942,9 +1942,17 @@
                 Book an executive ride. Visitors must sign in to confirm dispatch.
               </p>
             </div>
-            <span id="booking-auth-badge" style="font-size: 10.5px; font-weight: 700; padding: 4px 10px; border-radius: 12px; background: rgba(185, 74, 72, 0.1); color: #B94A48; font-family: var(--font-mono); border: 1px solid rgba(185, 74, 72, 0.25); white-space: nowrap;">
-              VISITOR (AUTH REQUIRED)
-            </span>
+            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
+              <span id="booking-auth-badge" style="font-size: 10.5px; font-weight: 700; padding: 4px 10px; border-radius: 12px; background: rgba(185, 74, 72, 0.1); color: #B94A48; font-family: var(--font-mono); border: 1px solid rgba(185, 74, 72, 0.25); white-space: nowrap;">
+                VISITOR (AUTH REQUIRED)
+              </span>
+              <!-- [FORM STATE PERSISTENCE]: Real-time status indicator & clear draft button -->
+              <div id="bk-persistence-badge" style="display: none; align-items: center; gap: 5px; font-size: 10px; font-weight: 600; font-family: var(--font-mono); color: #3A8B68; background: rgba(58, 139, 104, 0.1); border: 1px solid rgba(58, 139, 104, 0.3); padding: 2px 8px; border-radius: 10px; white-space: nowrap;">
+                <span id="bk-persistence-dot" style="width: 6px; height: 6px; border-radius: 50%; background: #3A8B68; display: inline-block;"></span>
+                <span id="bk-persistence-text">Draft Auto-Saved</span>
+                <button type="button" id="bk-clear-draft-btn" onclick="clearBookingDraftState()" title="Clear booking form draft" style="background: none; border: none; cursor: pointer; color: #84988F; padding: 0 0 0 4px; font-size: 11px; line-height: 1; display: inline-flex; align-items: center;" onmouseover="this.style.color='#B94A48'" onmouseout="this.style.color='#84988F'">✕</button>
+              </div>
+            </div>
           </div>
 
           <div style="margin-top: 18px; display: flex; flex-direction: column; gap: 14px;">
@@ -2869,6 +2877,9 @@
             bkPickup.style.borderColor = "";
             bkDropoff.style.borderColor = "";
           }, 1000);
+          if (typeof saveBookingFormState === 'function') {
+            saveBookingFormState(true);
+          }
         }
       }
 
@@ -3316,7 +3327,263 @@
         setTimeout(() => { card.style.boxShadow = ''; }, 1500);
       }
       triggerToast(`Selected service: ${serviceName} (${capacity === 7 ? '7-passenger' : '4-passenger'})`);
+      if (typeof saveBookingFormState === 'function') {
+        saveBookingFormState(true);
+      }
       lucide.createIcons();
+    }
+
+    // =========================================================================
+    // [FORM STATE PERSISTENCE]: Auto-save, restore and sync booking form state
+    // =========================================================================
+    let bookingAutoSaveTimer = null;
+
+    function getOrCreateBookingDraftToken() {
+      const sessionToken = localStorage.getItem('sessionToken');
+      const savedUser = localStorage.getItem('currentUser');
+      if (sessionToken && savedUser) {
+        try {
+          const u = JSON.parse(savedUser);
+          if (u.id) return `usr-${u.id}`;
+        } catch (_) {}
+      }
+      let token = localStorage.getItem('booking_draft_token');
+      if (!token) {
+        token = 'vst-' + Date.now() + '-' + Math.random().toString(36).substring(2, 8);
+        localStorage.setItem('booking_draft_token', token);
+      }
+      return token;
+    }
+
+    function renderPersistenceBadge(state, message) {
+      const badge = document.getElementById('bk-persistence-badge');
+      const dot = document.getElementById('bk-persistence-dot');
+      const text = document.getElementById('bk-persistence-text');
+      if (!badge || !dot || !text) return;
+
+      badge.style.display = 'inline-flex';
+      text.textContent = message;
+
+      if (state === 'SAVING') {
+        dot.style.background = '#E0A838';
+        badge.style.color = '#B8860B';
+        badge.style.borderColor = 'rgba(224, 168, 56, 0.4)';
+        badge.style.background = 'rgba(224, 168, 56, 0.12)';
+      } else if (state === 'RESTORED') {
+        dot.style.background = '#2B7A78';
+        badge.style.color = '#164B3B';
+        badge.style.borderColor = 'rgba(22, 75, 59, 0.35)';
+        badge.style.background = 'rgba(22, 75, 59, 0.1)';
+      } else {
+        dot.style.background = '#3A8B68';
+        badge.style.color = '#3A8B68';
+        badge.style.borderColor = 'rgba(58, 139, 104, 0.35)';
+        badge.style.background = 'rgba(58, 139, 104, 0.1)';
+      }
+    }
+
+    function saveBookingFormState(immediate = false) {
+      const pickupEl = document.getElementById('bk-pickup-input');
+      const dropoffEl = document.getElementById('bk-dropoff-input');
+      const serviceEl = document.getElementById('bk-service-select');
+      const capacityEl = document.getElementById('bk-capacity-select');
+      const carTypeEl = document.getElementById('bk-car-type');
+
+      if (!pickupEl || !dropoffEl) return;
+
+      const pickup = pickupEl.value.trim();
+      const dropoff = dropoffEl.value.trim();
+      const service = serviceEl ? serviceEl.value : 'Airport transfer';
+      const capacity = capacityEl ? parseInt(capacityEl.value, 10) : 4;
+      const carType = carTypeEl ? carTypeEl.value : (capacity === 7 ? 'Seven-Passenger Executive MPV' : 'Four-Passenger Executive Saloon');
+
+      if (!pickup && !dropoff) {
+        localStorage.removeItem('booking_form_draft');
+        const badge = document.getElementById('bk-persistence-badge');
+        if (badge) badge.style.display = 'none';
+        return;
+      }
+
+      let fare = 45.00;
+      let duration = 90;
+      if (serviceEl && serviceEl.options[serviceEl.selectedIndex]) {
+        const opt = serviceEl.options[serviceEl.selectedIndex];
+        fare = capacity === 7 ? parseFloat(opt.getAttribute('data-seven') || '65') : parseFloat(opt.getAttribute('data-four') || '45');
+        duration = parseInt(opt.getAttribute('data-dur') || '90', 10);
+      }
+
+      const draftPayload = {
+        pickupAddress: pickup,
+        dropoffAddress: dropoff,
+        serviceName: service,
+        vehicleCapacity: capacity,
+        carType: carType,
+        fareAmount: fare,
+        occupiedDurationMinutes: duration,
+        savedAt: new Date().toISOString(),
+      };
+
+      localStorage.setItem('booking_form_draft', JSON.stringify(draftPayload));
+      renderPersistenceBadge('SAVING', 'Saving draft...');
+
+      clearTimeout(bookingAutoSaveTimer);
+
+      const doRemotePersist = async () => {
+        try {
+          const draftToken = getOrCreateBookingDraftToken();
+          const sessionToken = localStorage.getItem('sessionToken');
+          const headers = { 'Content-Type': 'application/json' };
+          if (sessionToken) headers['Authorization'] = `Bearer ${sessionToken}`;
+
+          const res = await fetch(`${API_BASE}/api/bookings/draft`, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({
+              draftToken,
+              pickupAddress: pickup,
+              dropoffAddress: dropoff,
+              serviceName: service,
+              vehicleCapacity: capacity,
+              carType: carType,
+              fareAmount: fare,
+              occupiedDurationMinutes: duration,
+            }),
+          });
+
+          if (res.ok) {
+            renderPersistenceBadge('SAVED', 'Draft Auto-Saved');
+          } else {
+            renderPersistenceBadge('SAVED', 'Draft Saved Locally');
+          }
+        } catch (_) {
+          renderPersistenceBadge('SAVED', 'Draft Saved Locally');
+        }
+      };
+
+      if (immediate) {
+        doRemotePersist();
+      } else {
+        bookingAutoSaveTimer = setTimeout(doRemotePersist, 700);
+      }
+    }
+
+    async function restoreBookingFormState() {
+      const pickupEl = document.getElementById('bk-pickup-input');
+      const dropoffEl = document.getElementById('bk-dropoff-input');
+      const serviceEl = document.getElementById('bk-service-select');
+      const capacityEl = document.getElementById('bk-capacity-select');
+
+      if (!pickupEl || !dropoffEl) return;
+
+      let draft = null;
+
+      const cached = localStorage.getItem('booking_form_draft');
+      if (cached) {
+        try {
+          draft = JSON.parse(cached);
+        } catch (_) {}
+      }
+
+      const sessionToken = localStorage.getItem('sessionToken');
+      const draftToken = getOrCreateBookingDraftToken();
+      try {
+        const headers = {};
+        if (sessionToken) headers['Authorization'] = `Bearer ${sessionToken}`;
+        const query = draftToken ? `?draftToken=${encodeURIComponent(draftToken)}` : '';
+        const res = await fetch(`${API_BASE}/api/bookings/draft${query}`, { headers });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.hasDraft && data.draft) {
+            if (!draft || new Date(data.draft.updatedAt) >= new Date(draft.savedAt || 0)) {
+              draft = {
+                pickupAddress: data.draft.pickupAddress,
+                dropoffAddress: data.draft.dropoffAddress,
+                serviceName: data.draft.serviceName,
+                vehicleCapacity: data.draft.vehicleCapacity,
+                carType: data.draft.carType,
+                fareAmount: data.draft.fareAmount,
+                occupiedDurationMinutes: data.draft.occupiedDurationMinutes,
+                savedAt: data.draft.updatedAt,
+              };
+              localStorage.setItem('booking_form_draft', JSON.stringify(draft));
+            }
+          }
+        }
+      } catch (_) {}
+
+      if (draft && (draft.pickupAddress || draft.dropoffAddress)) {
+        if (draft.pickupAddress) pickupEl.value = draft.pickupAddress;
+        if (draft.dropoffAddress) dropoffEl.value = draft.dropoffAddress;
+
+        if (draft.serviceName && serviceEl) {
+          for (let i = 0; i < serviceEl.options.length; i++) {
+            if (serviceEl.options[i].value === draft.serviceName) {
+              serviceEl.selectedIndex = i;
+              break;
+            }
+          }
+        }
+
+        if (draft.vehicleCapacity && capacityEl) {
+          capacityEl.value = String(draft.vehicleCapacity);
+        }
+
+        updateCalculatedFareAndDuration();
+        renderPersistenceBadge('RESTORED', 'Draft Restored');
+      }
+    }
+
+    async function clearBookingDraftState() {
+      localStorage.removeItem('booking_form_draft');
+      const pickupEl = document.getElementById('bk-pickup-input');
+      const dropoffEl = document.getElementById('bk-dropoff-input');
+      if (pickupEl) pickupEl.value = '';
+      if (dropoffEl) dropoffEl.value = '';
+
+      const badge = document.getElementById('bk-persistence-badge');
+      if (badge) badge.style.display = 'none';
+
+      try {
+        const draftToken = getOrCreateBookingDraftToken();
+        const sessionToken = localStorage.getItem('sessionToken');
+        const headers = { 'Content-Type': 'application/json' };
+        if (sessionToken) headers['Authorization'] = `Bearer ${sessionToken}`;
+        await fetch(`${API_BASE}/api/bookings/draft`, {
+          method: 'DELETE',
+          headers,
+          body: JSON.stringify({ draftToken }),
+        });
+      } catch (_) {}
+
+      triggerToast('Booking form draft cleared.', 'info');
+    }
+
+    function initBookingFormPersistence() {
+      const pickupEl = document.getElementById('bk-pickup-input');
+      const dropoffEl = document.getElementById('bk-dropoff-input');
+      const serviceEl = document.getElementById('bk-service-select');
+      const capacityEl = document.getElementById('bk-capacity-select');
+
+      if (pickupEl) {
+        pickupEl.addEventListener('input', () => saveBookingFormState(false));
+      }
+      if (dropoffEl) {
+        dropoffEl.addEventListener('input', () => saveBookingFormState(false));
+      }
+      if (serviceEl) {
+        serviceEl.addEventListener('change', () => {
+          updateCalculatedFareAndDuration();
+          saveBookingFormState(true);
+        });
+      }
+      if (capacityEl) {
+        capacityEl.addEventListener('change', () => {
+          updateCalculatedFareAndDuration();
+          saveBookingFormState(true);
+        });
+      }
+
+      restoreBookingFormState();
     }
 
     // Submit Online Booking (AC: Protect customer endpoints so visitors cannot submit online bookings)
@@ -3326,6 +3593,7 @@
 
       // 1. Kiểm tra quyền của Visitor: nếu chưa đăng nhập, kích hoạt chặn 401
       if (!sessionToken || !savedUser) {
+        saveBookingFormState(true);
         openVisitorProtectionModal();
         triggerToast('Visitors cannot submit online bookings. Authentication required!', 'error');
         return;
@@ -3353,6 +3621,7 @@
             'Authorization': `Bearer ${sessionToken}`,
           },
           body: JSON.stringify({
+            draftToken: getOrCreateBookingDraftToken(),
             pickupAddress: pickup,
             dropoffAddress: dropoff,
             service: document.getElementById('bk-service-select') ? document.getElementById('bk-service-select').value : 'Airport transfer',
@@ -3368,6 +3637,7 @@
 
         if (!response.ok || !data.success) {
           if (response.status === 401) {
+            saveBookingFormState(true);
             openVisitorProtectionModal();
             triggerToast(data.message || 'Session expired. Please sign in again.', 'error');
             return;
@@ -3381,6 +3651,15 @@
         document.getElementById('modal-client-name').innerText = `${b.passengerName} (${b.bookingCode})`;
         document.getElementById('modal-card-label').innerText = `${b.cardRefUsed} • ${b.carType}`;
         document.getElementById('booking-confirmed-modal').classList.add('open');
+
+        // Form State Persistence: Xóa nháp khi cuốc xe đã được đặt thành công
+        localStorage.removeItem('booking_form_draft');
+        const bkBadge = document.getElementById('bk-persistence-badge');
+        if (bkBadge) bkBadge.style.display = 'none';
+        const pInput = document.getElementById('bk-pickup-input');
+        const dInput = document.getElementById('bk-dropoff-input');
+        if (pInput) pInput.value = '';
+        if (dInput) dInput.value = '';
 
         triggerToast(`🎉 Booking confirmed (${b.bookingCode}) saved to PostgreSQL!`, 'success');
 
@@ -3515,9 +3794,10 @@
       }
     }
 
-    // Check logged in user on startup
+    // Check logged in user on startup & initialize form state persistence
     window.addEventListener("DOMContentLoaded", () => {
       checkSessionState();
+      initBookingFormPersistence();
     });
 
     // Handle Registration Submit with Backend API (AC1 - AC5)

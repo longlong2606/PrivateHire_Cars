@@ -139,6 +139,31 @@ async function checkDatabase() {
       console.log('   (Chưa có cuốc xe nào được đặt)');
     }
 
+    // 6. Kiểm tra bảng booking_drafts (Form State Persistence)
+    console.log('\n---------------------------------------------------------------');
+    console.log('📝 5. KIỂM TRA BẢNG NHÁP FORM ĐẶT XE (booking_drafts - Form State Persistence):');
+    const draftRes = await client.query(`
+      SELECT 
+        id,
+        account_id,
+        draft_token,
+        pickup_address,
+        dropoff_address,
+        service_name,
+        vehicle_capacity || ' seats' AS capacity,
+        '£' || trim(to_char(COALESCE(fare_amount, 0), '999990.00')) || ' GBP' AS fare,
+        to_char(updated_at, 'YYYY-MM-DD HH24:MI:SS') AS updated_at
+      FROM booking_drafts 
+      ORDER BY updated_at DESC
+      LIMIT 5
+    `);
+    console.log(`   Tổng số bản nháp đang lưu: ${draftRes.rowCount} bản nháp`);
+    if (draftRes.rowCount > 0) {
+      console.table(draftRes.rows);
+    } else {
+      console.log('   (Hiện chưa có bản nháp form nào. Nhập thông tin trên form đặt xe để tự động lưu nháp)');
+    }
+
     client.release();
     await pool.end();
 
