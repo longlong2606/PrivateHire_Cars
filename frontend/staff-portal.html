@@ -444,11 +444,16 @@
     <section id="tab-fleet" class="tab-content" style="display: none;">
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
         <div class="card-panel">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-            <h2 class="panel-title" style="margin-bottom: 0;">Executive Fleet</h2>
-            <button class="btn-action btn-primary" onclick="openAddVehicleModal()">+ Add Vehicle</button>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+            <h2 class="panel-title" style="margin-bottom: 0;">
+              Executive Fleet (<span id="fleet-count-badge">150</span>)
+            </h2>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="filter-fleet-input" placeholder="Search fleet..." oninput="filterFleetTable()" style="height: 32px; font-size: 12px; padding: 0 8px; border: 1px solid var(--border-medium); border-radius: var(--radius-sm);" />
+              <button class="btn-action btn-primary" onclick="openAddVehicleModal()">+ Add Vehicle</button>
+            </div>
           </div>
-          <div class="table-container">
+          <div class="table-container" style="max-height: 520px; overflow-y: auto;">
             <table>
               <thead>
                 <tr>
@@ -467,11 +472,16 @@
         </div>
 
         <div class="card-panel">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-            <h2 class="panel-title" style="margin-bottom: 0;">Licensed Chauffeurs</h2>
-            <button class="btn-action btn-primary" onclick="openAddDriverModal()">+ Add Chauffeur</button>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+            <h2 class="panel-title" style="margin-bottom: 0;">
+              Licensed Chauffeurs (<span id="driver-count-badge">150</span>)
+            </h2>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="filter-driver-input" placeholder="Search chauffeurs..." oninput="filterDriverTable()" style="height: 32px; font-size: 12px; padding: 0 8px; border: 1px solid var(--border-medium); border-radius: var(--radius-sm);" />
+              <button class="btn-action btn-primary" onclick="openAddDriverModal()">+ Add Chauffeur</button>
+            </div>
           </div>
-          <div class="table-container">
+          <div class="table-container" style="max-height: 520px; overflow-y: auto;">
             <table>
               <thead>
                 <tr>
@@ -868,32 +878,84 @@
       } catch (_) {}
     }
 
-    // Driver Assignment Modal
+    // Driver Assignment Modal & Fleet
+    let allVehicles = [];
     let driversList = [];
+
+    function renderFleetTable(vehicles) {
+      const tbody = document.getElementById('fleet-table-body');
+      if (!tbody) return;
+      if (!vehicles || vehicles.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 16px;">No matching vehicles found.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = vehicles.map(v => `
+        <tr>
+          <td><strong style="color: var(--primary);">${v.registration_number}</strong></td>
+          <td>${v.make} ${v.model || ''}</td>
+          <td>${v.colour}</td>
+          <td><span class="badge badge-assigned">${v.capacity} Pax</span></td>
+          <td><span class="badge ${v.status === 'AVAILABLE' ? 'badge-completed' : 'badge-pending'}">${v.status}</span></td>
+        </tr>
+      `).join('');
+    }
+
+    function renderDriverTable(drivers) {
+      const tbody = document.getElementById('driver-table-body');
+      if (!tbody) return;
+      if (!drivers || drivers.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 16px;">No matching chauffeurs found.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = drivers.map(d => `
+        <tr>
+          <td><strong style="color: var(--primary);">${d.driver_code}</strong></td>
+          <td>${d.name}</td>
+          <td>${d.phone}</td>
+          <td><span class="badge ${d.status === 'ACTIVE' ? 'badge-completed' : 'badge-pending'}">${d.status}</span></td>
+        </tr>
+      `).join('');
+    }
+
+    function filterFleetTable() {
+      const q = (document.getElementById('filter-fleet-input')?.value || '').toLowerCase().trim();
+      const filtered = allVehicles.filter(v => 
+        (v.registration_number && v.registration_number.toLowerCase().includes(q)) || 
+        (v.make && v.make.toLowerCase().includes(q)) || 
+        (v.model && v.model.toLowerCase().includes(q)) ||
+        (v.colour && v.colour.toLowerCase().includes(q)) ||
+        (v.status && v.status.toLowerCase().includes(q))
+      );
+      renderFleetTable(filtered);
+    }
+
+    function filterDriverTable() {
+      const q = (document.getElementById('filter-driver-input')?.value || '').toLowerCase().trim();
+      const filtered = driversList.filter(d => 
+        (d.driver_code && d.driver_code.toLowerCase().includes(q)) || 
+        (d.name && d.name.toLowerCase().includes(q)) || 
+        (d.phone && d.phone.toLowerCase().includes(q)) ||
+        (d.status && d.status.toLowerCase().includes(q))
+      );
+      renderDriverTable(filtered);
+    }
+
     async function loadFleetAndDrivers() {
       try {
         const res = await authenticatedFetch(`${API_BASE}/api/staff/fleet`);
         const data = await res.json();
         if (res.ok && data.success) {
-          document.getElementById('fleet-table-body').innerHTML = (data.vehicles || []).map(v => `
-            <tr>
-              <td><strong>${v.registration_number}</strong></td>
-              <td>${v.make} ${v.model || ''}</td>
-              <td>${v.colour}</td>
-              <td>${v.capacity} Pax</td>
-              <td>${v.status}</td>
-            </tr>
-          `).join('') || '<tr><td colspan="5">No vehicles found.</td></tr>';
-
+          allVehicles = data.vehicles || [];
           driversList = data.drivers || [];
-          document.getElementById('driver-table-body').innerHTML = driversList.map(d => `
-            <tr>
-              <td><strong>${d.driver_code}</strong></td>
-              <td>${d.name}</td>
-              <td>${d.phone}</td>
-              <td>${d.status}</td>
-            </tr>
-          `).join('') || '<tr><td colspan="4">No chauffeurs found.</td></tr>';
+
+          const fleetBadge = document.getElementById('fleet-count-badge');
+          if (fleetBadge) fleetBadge.textContent = allVehicles.length;
+
+          const driverBadge = document.getElementById('driver-count-badge');
+          if (driverBadge) driverBadge.textContent = driversList.length;
+
+          renderFleetTable(allVehicles);
+          renderDriverTable(driversList);
         }
       } catch (_) {}
     }
