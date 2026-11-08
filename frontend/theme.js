@@ -18,23 +18,25 @@
     return 'light';
   }
 
-  var currentTheme = getPreferredTheme();
-  if (currentTheme === 'dark') {
-    document.documentElement.setAttribute('data-theme', 'dark');
-  } else {
-    document.documentElement.removeAttribute('data-theme');
+  function applyTheme(theme) {
+    if (theme === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      if (document.body) document.body.setAttribute('data-theme', 'dark');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+      if (document.body) document.body.removeAttribute('data-theme');
+    }
   }
+
+  var currentTheme = getPreferredTheme();
+  applyTheme(currentTheme);
 
   // 2. Global Toggle Function
   window.toggleTheme = function () {
     var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
     var nextTheme = isDark ? 'light' : 'dark';
 
-    if (nextTheme === 'dark') {
-      document.documentElement.setAttribute('data-theme', 'dark');
-    } else {
-      document.documentElement.removeAttribute('data-theme');
-    }
+    applyTheme(nextTheme);
 
     try {
       localStorage.setItem('appTheme', nextTheme);
@@ -116,11 +118,19 @@
     document.body.style.overflow = '';
   };
 
+  function syncDomTheme() {
+    var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    if (isDark && document.body) {
+      document.body.setAttribute('data-theme', 'dark');
+    }
+    window.updateThemeUI();
+  }
+
   // 5. Update UI once DOM is ready
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', window.updateThemeUI);
+    document.addEventListener('DOMContentLoaded', syncDomTheme);
   } else {
-    window.updateThemeUI();
+    syncDomTheme();
   }
 })();
 
