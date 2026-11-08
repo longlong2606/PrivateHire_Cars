@@ -326,4 +326,132 @@ test('PRD Compliance Test Suite: 9 Core Business Rules & Epics', async (t) => {
     assert.ok(offers.length >= 1, 'Loyalty promo voucher must be awarded upon 3rd completed booking');
     assert.equal(parseFloat(offers[0].discount_amount), 10.00, 'Award is £10 off');
   });
+
+  await t.test('8. SCRUM-8: Customer maintains profile with valid details, duplicate email blocked', async () => {
+    const { updateCustomerProfile } = require('../src/controllers/authController');
+
+    // 8a. Update profile successfully
+    const updateRes = createMockRes();
+    await updateCustomerProfile(
+      {
+        params: { id: customer.id },
+        body: {
+          name: 'James Bond 007',
+          email: 'bond.james@mi6.gov.uk',
+          telephone: '+44 7700 900007',
+          address: 'MI6 Headquarters, Vauxhall Cross, London',
+          mockCardRef: 'MOCK_AMEX_3782',
+        },
+      },
+      updateRes
+    );
+    assert.equal(updateRes.statusCode, 200);
+    assert.equal(updateRes.body.customer.name, 'James Bond 007');
+    assert.equal(updateRes.body.customer.email, 'bond.james@mi6.gov.uk');
+
+    // 8b. Block duplicate email used by another account
+    const dupRes = createMockRes();
+    await updateCustomerProfile(
+      {
+        params: { id: customer.id },
+        body: {
+          name: 'James Bond',
+          email: 'staff@privatehirecars.com',
+          telephone: '+44 7700 900007',
+        },
+      },
+      dupRes
+    );
+    assert.equal(dupRes.statusCode, 400);
+    assert.match(dupRes.body.message, /already in use/i);
+  });
+
+  await t.test('9. SCRUM-9: Submit General vs Trip-specific customer enquiries', async () => {
+    // 9a. General enquiry (by guest or customer)
+    const genRes = createMockRes();
+    await CustomerFeatureController.submitEnquiry(
+      {
+        body: {
+          enquiryType: 'GENERAL',
+          name: 'Anonymous Visitor',
+          email: 'visitor@example.com',
+          subject: 'Corporate Rates',
+          message: 'Do you offer monthly corporate invoicing?',
+        },
+      },
+      genRes
+    );
+    assert.equal(genRes.statusCode, 201);
+    assert.ok(genRes.body.referenceNumber.startsWith('ENQ-'));
+
+    // 9b. Trip-specific enquiry without login blocked (401)
+    const tripFailRes = createMockRes();
+    await CustomerFeatureController.submitEnquiry(
+      {
+        body: {
+          enquiryType: 'TRIP_SPECIFIC',
+          name: 'Visitor',
+          email: 'visitor@example.com',
+          message: 'Where is my car?',
+        },
+      },
+      tripFailRes
+    );
+    assert.equal(tripFailRes.statusCode, 401);
+
+    // 9c. Trip-specific enquiry by signed-in customer with valid booking (201)
+    const tripOkRes = createMockRes();
+    await CustomerFeatureController.submitEnquiry(
+      {
+        user: customer,
+        body: {
+          enquiryType: 'TRIP_SPECIFIC',
+          bookingId: createdBooking.id,
+          name: 'James Bond',
+          email: 'bond.james@mi6.gov.uk',
+          message: 'Please ensure driver has bottled still water in vehicle.',
+        },
+      },
+      tripOkRes
+    );
+    assert.equal(tripOkRes.statusCode, 201);
+    assert.ok(tripOkRes.body.referenceNumber.startsWith('ENQ-'));
+  });
+
+  await t.test('10. SCRUM-12 & SCRUM-22: Vehicle & Driver Availability Search', async () => {
+    const { checkVehicleAvailability } = require('../src/controllers/bookingController');
+
+    // 10a. Customer checks vehicle availability
+    const availRes = createMockRes();
+    await checkVehicleAvailability(
+      {
+        query: {
+          pickupTime: new Date(Date.now() + 48 * 3600 * 1000).toISOString(),
+          service: 'Airport transfer',
+          vehicleCapacity: '4',
+        },
+      },
+      availRes
+    );
+    assert.equal(availRes.statusCode, 200);
+    assert.ok(availRes.body.count >= 1);
+
+    // 10b. Staff checks availability and quote (SCRUM-22)
+    const staffAvailRes = createMockRes();
+    await StaffController.checkAvailability(
+      {
+        query: {
+          pickupTime: new Date(Date.now() + 48 * 3600 * 1000).toISOString(),
+          service: 'Airport transfer',
+          passengerCount: '3',
+          channel: 'TELEPHONE',
+        },
+      },
+      staffAvailRes
+    );
+    assert.equal(staffAvailRes.statusCode, 200);
+    assert.equal(staffAvailRes.body.quote.baseFare, 45.00);
+    assert.equal(staffAvailRes.body.quote.automaticOnlineDiscount, 0.00, 'Telephone has no online discount');
+    assert.ok(staffAvailRes.body.availableVehicles.length >= 1);
+  });
 });

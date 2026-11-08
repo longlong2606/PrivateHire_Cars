@@ -18,3 +18,4 @@ router.patch('/notifications/:id/read', requireAuth, CustomerFeatureController.m
 router.get('/offers/my', requireAuth, CustomerFeatureController.getMyOffers);
 
 module.exports = router;
+

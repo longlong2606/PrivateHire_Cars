@@ -42,3 +42,4 @@ class EnquiryModel {
 }
 
 module.exports = EnquiryModel;
+

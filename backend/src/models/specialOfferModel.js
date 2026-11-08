@@ -39,3 +39,4 @@ class SpecialOfferModel {
 }
 
 module.exports = SpecialOfferModel;
+

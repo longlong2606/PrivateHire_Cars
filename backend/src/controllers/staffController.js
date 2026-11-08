@@ -357,6 +357,141 @@ class StaffController {
       res.status(500).json({ success: false, message: error.message });
     }
   }
+
+  /**
+   * [SCRUM-22]: Tra cứu tính khả dụng của xe và tài xế (Staff Availability & Quote Search)
+   */
+  static async checkAvailability(req, res) {
+    try {
+      const { pickupTime, service = 'Airport transfer', passengerCount = 1, channel = 'TELEPHONE' } = req.query;
+      const count = parseInt(passengerCount, 10) || 1;
+      const capacity = count > 4 ? 7 : 4;
+      const pickupDate = pickupTime ? new Date(pickupTime) : new Date();
+
+      let baseFare = 45.00;
+      let durationMinutes = 90;
+      let serviceName = service;
+
+      try {
+        const quote = await ServiceModel.calculateFareAndDuration(service, capacity);
+        if (quote) {
+          baseFare = quote.fixedFare;
+          durationMinutes = quote.occupiedDurationMinutes;
+          serviceName = quote.serviceName;
+        }
+      } catch (_) {}
+
+      const availableVehicles = await VehicleModel.getAvailableVehicles({
+        capacity,
+        pickupTime: pickupDate,
+        durationMinutes,
+      });
+
+      const start = pickupDate;
+      const end = new Date(start.getTime() + durationMinutes * 60 * 1000);
+
+      const db = require('../config/db');
+      const busyDriversRes = await db.query(
+        `SELECT driver_id, pickup_time, occupied_duration_minutes
+         FROM bookings
+         WHERE driver_id IS NOT NULL AND status IN ('ASSIGNED', 'ENROUTE')`
+      );
+
+      const busyDriverIds = new Set();
+      for (const b of busyDriversRes.rows) {
+        const bStart = new Date(b.pickup_time);
+        const bDuration = (parseInt(b.occupied_duration_minutes, 10) || 60) * 60 * 1000;
+        const bEnd = new Date(bStart.getTime() + bDuration);
+
+        if (start < bEnd && end > bStart) {
+          busyDriverIds.add(b.driver_id);
+        }
+      }
+
+      const allActiveDrivers = await DriverModel.getActiveDrivers();
+      const availableDrivers = allActiveDrivers.filter(d => !busyDriverIds.has(d.id));
+
+      res.json({
+        success: true,
+        quote: {
+          serviceName,
+          passengerCount: count,
+          vehicleCapacity: capacity,
+          occupiedDurationMinutes: durationMinutes,
+          baseFare: parseFloat(baseFare),
+          channel,
+          currency: 'GBP',
+          automaticOnlineDiscount: 0.00,
+          finalFare: parseFloat(baseFare),
+        },
+        availableVehicles,
+        availableDrivers,
+      });
+    } catch (error) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
+  /**
+   * [SCRUM-25]: Quản trị xe minicab (Add Vehicle)
+   */
+  static async addVehicle(req, res) {
+    try {
+      const { regNumber, makeModel, colour, capacity = 4, status = 'ACTIVE' } = req.body;
+      if (!regNumber || !makeModel || !colour) {
+        return res.status(400).json({ success: false, message: 'Registration number, make/model and colour are required' });
+      }
+
+      const cap = parseInt(capacity, 10);
+      if (cap !== 4 && cap !== 7) {
+        return res.status(400).json({ success: false, message: 'Vehicle capacity must be strictly 4 or 7' });
+      }
+
+      const vehicle = await VehicleModel.create({
+        regNumber,
+        makeModel,
+        colour,
+        capacity: cap,
+        status: status || 'ACTIVE',
+      });
+
+      res.status(201).json({ success: true, message: 'Vehicle added to executive fleet.', vehicle });
+    } catch (error) {
+      if (error.code === '23505') {
+        return res.status(400).json({ success: false, message: 'Vehicle registration number already exists.' });
+      }
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
+  /**
+   * [SCRUM-26]: Quản trị tài xế (Add Driver)
+   */
+  static async addDriver(req, res) {
+    try {
+      const { name, telephone, referenceNumber, status = 'ACTIVE' } = req.body;
+      if (!name || !telephone || !referenceNumber) {
+        return res.status(400).json({ success: false, message: 'Name, telephone and reference number are required' });
+      }
+
+      const driverCode = 'DRV-' + Math.floor(100 + Math.random() * 900);
+      const driver = await DriverModel.create({
+        driverCode,
+        name,
+        telephone,
+        referenceNumber,
+        status: status || 'ACTIVE',
+      });
+
+      res.status(201).json({ success: true, message: 'Licensed chauffeur added to system.', driver });
+    } catch (error) {
+      if (error.code === '23505') {
+        return res.status(400).json({ success: false, message: 'Driver reference number already exists.' });
+      }
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
 }
 
 module.exports = StaffController;
+

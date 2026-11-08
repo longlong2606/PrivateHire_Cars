@@ -121,6 +121,23 @@ class AccountModel {
       readRecord: readResult.rows[0],
     };
   }
+  /**
+   * [SCRUM-8]: Cập nhật hồ sơ khách hàng (Maintain Profile)
+   */
+  static async updateProfile(id, { name, email, telephone, address, mockCardRef }) {
+    const sql = `
+      UPDATE accounts
+      SET name = COALESCE($1, name),
+          email = COALESCE($2, email),
+          telephone = COALESCE($3, telephone),
+          address = COALESCE($4, address),
+          mock_card_ref = COALESCE($5, mock_card_ref)
+      WHERE id = $6
+      RETURNING id, account_code, name, email, telephone, address, mock_card_ref, role, status, created_at;
+    `;
+    const res = await db.query(sql, [name, email, telephone, address, mockCardRef, id]);
+    return res.rows[0];
+  }
 }
 
 module.exports = AccountModel;

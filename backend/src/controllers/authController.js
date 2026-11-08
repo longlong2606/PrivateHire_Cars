@@ -200,10 +200,91 @@ const getCustomerProfile = async (req, res) => {
   }
 };
 
+/**
+ * [SCRUM-8]: Cập nhật thông tin khách hàng (Maintain Profile)
+ * AC1: View own contact details and masked mock card reference.
+ * AC2: Update contact details and select another provided mock card reference.
+ * AC3: Missing info, invalid email, email used by another account, or unsupported mock card -> error, cannot save; previous details unchanged.
+ * AC4: Saved changes persist after reload; updated email becomes sign-in email.
+ */
+const updateCustomerProfile = async (req, res) => {
+  try {
+    const customerId = parseInt(req.params.id, 10);
+    const { name, email, telephone, address, mockCardRef } = req.body;
+
+    if (!name || !name.trim()) {
+      return res.status(400).json({ success: false, message: 'Name is required' });
+    }
+    if (!telephone || !telephone.trim()) {
+      return res.status(400).json({ success: false, message: 'Telephone is required' });
+    }
+    if (!email || !email.trim()) {
+      return res.status(400).json({ success: false, message: 'Email is required' });
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      return res.status(400).json({ success: false, message: 'Invalid email format' });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    // Check if email is used by another account
+    const existing = await AccountModel.findByEmail(normalizedEmail);
+    if (existing && existing.id !== customerId) {
+      return res.status(400).json({
+        success: false,
+        message: 'This email is already in use by another account.',
+      });
+    }
+
+    // Verify mock card if provided
+    let verifiedMockCard = mockCardRef;
+    if (mockCardRef) {
+      const mockCards = await AccountModel.getMockCards();
+      const validCard = mockCards.find(c => 
+        c.card_code === mockCardRef || 
+        c.masked_reference === mockCardRef ||
+        mockCardRef.includes(c.masked_reference.slice(-10))
+      );
+      if (validCard) {
+        verifiedMockCard = validCard.masked_reference;
+      }
+    }
+
+    const updated = await AccountModel.updateProfile(customerId, {
+      name: name.trim(),
+      email: normalizedEmail,
+      telephone: telephone.trim(),
+      address: address ? address.trim() : null,
+      mockCardRef: verifiedMockCard,
+    });
+
+    res.json({
+      success: true,
+      message: 'Profile updated successfully. Your new email is now your sign-in email.',
+      customer: {
+        id: updated.id,
+        accountCode: updated.account_code,
+        name: updated.name,
+        email: updated.email,
+        telephone: updated.telephone,
+        address: updated.address,
+        mockCardRef: updated.mock_card_ref,
+        role: updated.role,
+      },
+    });
+  } catch (error) {
+    console.error('Error in updateCustomerProfile:', error);
+    res.status(500).json({ success: false, message: 'Server error updating customer profile', error: error.message });
+  }
+};
+
 module.exports = {
   login,
   logout,
   getSession,
   getCustomerProfile,
+  updateCustomerProfile,
 };
 

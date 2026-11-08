@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const {
   createBooking,
+  checkVehicleAvailability,
   simulatePayment,
   amendBooking,
   cancelBooking,
@@ -19,6 +20,9 @@ const { requireAuth, optionalAuth } = require('../middleware/authMiddleware');
 router.post('/draft', optionalAuth, saveBookingDraft);
 router.get('/draft', optionalAuth, getBookingDraft);
 router.delete('/draft', optionalAuth, clearBookingDraft);
+
+// [SCRUM-12]: Xem các xe khả dụng phù hợp (Check Vehicle Availability)
+router.get('/available-vehicles', checkVehicleAvailability);
 
 // [P09]: Xác thực mã ưu đãi đặc biệt
 router.get('/validate-promo', requireAuth, validatePromoCode);

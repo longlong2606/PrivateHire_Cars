@@ -29,3 +29,4 @@ class NotificationModel {
 }
 
 module.exports = NotificationModel;
+

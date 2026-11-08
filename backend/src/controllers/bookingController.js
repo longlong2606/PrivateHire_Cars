@@ -731,8 +731,45 @@ const clearBookingDraft = async (req, res) => {
   }
 };
 
+/**
+ * [SCRUM-12]: Kiểm tra xe khả dụng theo thời gian và sức chứa (Check Vehicle Availability)
+ */
+const checkVehicleAvailability = async (req, res) => {
+  try {
+    const { pickupTime, service, vehicleCapacity = 4 } = req.query;
+    const capacity = parseInt(vehicleCapacity, 10) || 4;
+
+    let durationMinutes = 60;
+    if (service) {
+      try {
+        const quote = await ServiceModel.calculateFareAndDuration(service, capacity);
+        if (quote) durationMinutes = quote.occupiedDurationMinutes;
+      } catch (_) {}
+    }
+
+    const pickupDate = pickupTime ? new Date(pickupTime) : new Date();
+    const available = await VehicleModel.getAvailableVehicles({
+      capacity,
+      pickupTime: pickupDate,
+      durationMinutes,
+    });
+
+    res.json({
+      success: true,
+      count: available.length,
+      durationMinutes,
+      pickupTime: pickupDate.toISOString(),
+      vehicles: available,
+    });
+  } catch (error) {
+    console.error('Error checking availability:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
   createBooking,
+  checkVehicleAvailability,
   simulatePayment,
   amendBooking,
   cancelBooking,

@@ -22,6 +22,11 @@ router.post('/refunds/:id/process', StaffController.processRefund);
 
 // Fleet & Drivers
 router.get('/fleet', StaffController.getFleetAndDrivers);
+router.post('/vehicles', StaffController.addVehicle);
+router.post('/drivers', StaffController.addDriver);
+
+// [SCRUM-22]: Staff Availability & Prices Search
+router.get('/availability', StaffController.checkAvailability);
 
 // Popularity & Loyalty Analytics (P08)
 router.get('/reports/popularity-loyalty', StaffController.getPopularityAndLoyaltyReports);
@@ -31,3 +36,4 @@ router.get('/enquiries', StaffController.getEnquiries);
 router.post('/enquiries/:id/reply', StaffController.replyEnquiry);
 
 module.exports = router;
+

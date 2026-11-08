@@ -3,6 +3,7 @@ const EnquiryModel = require('../models/enquiryModel');
 const NotificationModel = require('../models/notificationModel');
 const SpecialOfferModel = require('../models/specialOfferModel');
 const BookingModel = require('../models/bookingModel');
+const EmailService = require('../services/emailService');
 
 class CustomerFeatureController {
   /**
@@ -12,7 +13,7 @@ class CustomerFeatureController {
   static async submitReview(req, res) {
     try {
       const customer = req.user;
-      const { bookingId, journeyRating, vehicleRating, driverRating, reviewText } = req.body;
+      const { bookingId, journeyRating, vehicleRating, driverRating, reviewText, comments } = req.body;
 
       if (!bookingId) {
         return res.status(400).json({ success: false, message: 'Booking ID is required' });
@@ -59,7 +60,7 @@ class CustomerFeatureController {
         journeyRating: jRating,
         vehicleRating: vRating,
         driverRating: dRating,
-        reviewText: reviewText || '',
+        reviewText: reviewText || comments || '',
       });
 
       res.status(201).json({
@@ -82,38 +83,73 @@ class CustomerFeatureController {
   }
 
   /**
-   * [Epic 1]: Gửi thắc mắc / khiếu nại (Customer Enquiry)
-   * General (khách vãng lai hoặc đăng nhập) hoặc Trip-specific (chỉ khách đăng nhập)
+   * [SCRUM-9]: Gửi thắc mắc / khiếu nại (Customer Enquiry)
+   * AC1: Form offers General and Trip-specific types.
+   * AC2: Guest or signed-in customer can submit a general enquiry with message + valid reply email.
+   * AC3: Trip-specific requires signed-in customer and one of their own bookings.
+   * AC4: Missing message, invalid reply email, or another customer's booking -> error, not saved.
+   * AC5: Valid enquiry saved with a reference number so staff can retrieve and answer.
    */
   static async submitEnquiry(req, res) {
     try {
-      const { bookingId, name, email, subject, message } = req.body;
+      const { enquiryType = 'GENERAL', bookingId, name, email, subject, message } = req.body;
       const accountId = req.user ? req.user.id : null;
 
       if (!name || !name.trim()) return res.status(400).json({ success: false, message: 'Name is required' });
-      if (!email || !email.trim()) return res.status(400).json({ success: false, message: 'Email is required' });
-      if (!subject || !subject.trim()) return res.status(400).json({ success: false, message: 'Subject is required' });
+      if (!email || !email.trim()) return res.status(400).json({ success: false, message: 'Valid reply email is required' });
+      
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email.trim())) {
+        return res.status(400).json({ success: false, message: 'Invalid reply email format' });
+      }
+
       if (!message || !message.trim()) return res.status(400).json({ success: false, message: 'Message is required' });
 
-      if (bookingId && accountId) {
-        const booking = await BookingModel.findById(bookingId);
-        if (booking && booking.account_id !== accountId) {
-          return res.status(403).json({ success: false, message: 'Cannot file enquiry against another customer booking' });
+      let resolvedBookingId = null;
+      if (enquiryType === 'TRIP_SPECIFIC' || bookingId) {
+        if (!accountId) {
+          return res.status(401).json({
+            success: false,
+            message: 'Trip-specific enquiries require signing in to your registered customer account.',
+          });
         }
+
+        if (!bookingId) {
+          return res.status(400).json({
+            success: false,
+            message: 'Please select one of your bookings for a trip-specific enquiry.',
+          });
+        }
+
+        const booking = await BookingModel.findById(bookingId);
+        if (!booking || booking.account_id !== accountId) {
+          return res.status(403).json({
+            success: false,
+            message: 'Cannot file enquiry against a booking not owned by your account.',
+          });
+        }
+        resolvedBookingId = booking.id;
       }
+
+      const enquirySubject = subject && subject.trim() 
+        ? subject.trim() 
+        : (enquiryType === 'TRIP_SPECIFIC' ? `Trip Enquiry for Booking #${resolvedBookingId}` : 'General Chauffeur Service Enquiry');
 
       const enquiry = await EnquiryModel.create({
         accountId,
-        bookingId: bookingId || null,
-        name,
-        email,
-        subject,
-        message,
+        bookingId: resolvedBookingId,
+        name: name.trim(),
+        email: email.trim(),
+        subject: enquirySubject,
+        message: message.trim(),
       });
+
+      const referenceCode = `ENQ-${String(enquiry.id + 100000).substring(1)}`;
 
       res.status(201).json({
         success: true,
-        message: 'Enquiry submitted. Our support team will reply via email shortly.',
+        referenceNumber: referenceCode,
+        message: `Enquiry ${referenceCode} submitted successfully. London Dispatch will reply via email.`,
         enquiry,
       });
     } catch (error) {
@@ -144,11 +180,42 @@ class CustomerFeatureController {
   }
 
   /**
-   * [P09]: Lấy danh sách ưu đãi khách hàng thân thiết
+   * [SCRUM-28]: Lấy danh sách ưu đãi khách hàng thân thiết (Special-offer recommendation)
+   * AC1: Opening Offers page creates recommendation only if customer has >= 3 Completed bookings and has never received one.
+   * AC2: Shows customer-linked offer code + configured discount (e.g. £10 GBP); no expiry date.
+   * AC3: Offer appears in account and real recommendation email is sent.
+   * AC4: Reopening shows existing recommendation; no new one created.
+   * AC5: Only linked customer can access/use it; redeemable for one confirmed booking.
    */
   static async getMyOffers(req, res) {
     try {
-      const offers = await SpecialOfferModel.getOffersForAccount(req.user.id);
+      const customerId = req.user.id;
+      let offers = await SpecialOfferModel.getOffersForAccount(customerId);
+
+      if (offers.length === 0) {
+        const completedCount = await BookingModel.countCompletedByCustomer(customerId);
+        if (completedCount >= 3) {
+          const promoCode = 'LOYALTY10-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+          const newOffer = await SpecialOfferModel.createOffer({
+            accountId: customerId,
+            code: promoCode,
+            discountAmount: 10.00,
+            description: 'Customer Loyalty Milestone £10 Discount Voucher',
+          });
+          offers = [newOffer];
+
+          // Real email recommendation (SCRUM-28 AC3)
+          if (req.user.email) {
+            await EmailService.sendSpecialOfferEmail({
+              toEmail: req.user.email,
+              name: req.user.name || 'Valued Customer',
+              promoCode,
+              discountAmount: 10.00,
+            }).catch(e => console.warn('Offer email notice:', e.message));
+          }
+        }
+      }
+
       res.json({ success: true, offers });
     } catch (error) {
       res.status(500).json({ success: false, message: error.message });

@@ -39,3 +39,4 @@ class DriverModel {
 }
 
 module.exports = DriverModel;
+

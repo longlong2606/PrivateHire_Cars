@@ -314,15 +314,15 @@
       </button>
       <button class="nav-tab-btn" onclick="switchStaffTab('tab-refunds')">
         <i data-lucide="rotate-ccw" style="width: 16px; height: 16px;"></i>
-        <span>Refunds Queue (P05)</span>
+        <span>Refunds Queue</span>
       </button>
       <button class="nav-tab-btn" onclick="switchStaffTab('tab-fleet')">
         <i data-lucide="truck" style="width: 16px; height: 16px;"></i>
-        <span>Fleet &amp; Chauffeurs (P06)</span>
+        <span>Fleet &amp; Chauffeurs</span>
       </button>
       <button class="nav-tab-btn" onclick="switchStaffTab('tab-reports')">
         <i data-lucide="bar-chart-3" style="width: 16px; height: 16px;"></i>
-        <span>Popularity &amp; Loyalty Analytics (P08)</span>
+        <span>Popularity &amp; Loyalty Analytics</span>
       </button>
       <button class="nav-tab-btn" onclick="switchStaffTab('tab-enquiries')">
         <i data-lucide="help-circle" style="width: 16px; height: 16px;"></i>
@@ -381,7 +381,7 @@
               Call Centre Assisted Booking Desk (P02, P06)
             </h2>
             <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
-              Verify caller identity by telephone or email. <strong>Important (P02):</strong> Telephone bookings charge standard Table 8 demonstration rates without the 15% online self-service discount.
+              Verify caller identity by telephone or email. <strong>Important:</strong> Telephone bookings charge standard demonstration rates without the 15% online self-service discount.
             </p>
           </div>
         </div>
@@ -398,6 +398,46 @@
             </button>
           </div>
           <div id="caller-search-results" style="margin-top: 12px;"></div>
+        </div>
+
+        <!-- [SCRUM-22]: Staff Availability & Accurate Quote Tool -->
+        <div style="background: rgba(22, 75, 59, 0.04); border: 1.5px solid rgba(22, 75, 59, 0.2); border-radius: 10px; padding: 18px; margin-bottom: 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <label style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--primary); display: flex; align-items: center; gap: 6px; margin: 0;">
+              <i data-lucide="calculator" style="width: 16px; height: 16px;"></i>
+              <span>Step 2: Check Minicab &amp; Driver Availability &amp; Accurate Price (SCRUM-22)</span>
+            </label>
+            <span style="font-size: 11px; font-family: var(--font-mono); color: var(--text-dim); background: #FAF7F2; padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border);">No 15% discount for Telephone</span>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1.2fr 1.2fr 1fr auto; gap: 12px; align-items: flex-end;">
+            <div>
+              <label style="font-size: 11.5px; font-weight: 600; color: #5E7168; display: block; margin-bottom: 4px;">Pickup Date &amp; Time</label>
+              <input type="datetime-local" id="stf-avail-time" class="form-input" style="height: 38px; font-size: 12px;" />
+            </div>
+            <div>
+              <label style="font-size: 11.5px; font-weight: 600; color: #5E7168; display: block; margin-bottom: 4px;">Service</label>
+              <select id="stf-avail-service" class="form-input" style="height: 38px; font-size: 12px;">
+                <option value="Airport transfer" selected>Airport transfer (90m)</option>
+                <option value="Local journey">Local journey (60m)</option>
+                <option value="Long-distance journey">Long-distance journey (180m)</option>
+                <option value="Hotel transfer">Hotel transfer (60m)</option>
+                <option value="Airport meet-and-greet">Airport meet-and-greet (120m)</option>
+                <option value="Driver and car daily hire">Driver and car daily hire (480m)</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size: 11.5px; font-weight: 600; color: #5E7168; display: block; margin-bottom: 4px;">Passenger Count</label>
+              <input type="number" id="stf-avail-pax" class="form-input" min="1" max="7" value="2" style="height: 38px; font-size: 12px;" />
+            </div>
+            <button type="button" class="btn-primary-solid" onclick="checkStaffAvailabilityLive()" style="height: 38px; padding: 0 16px; font-size: 12px; white-space: nowrap;">
+              <i data-lucide="search" style="width: 14px; height: 14px;"></i>
+              <span>Search Availability</span>
+            </button>
+          </div>
+
+          <!-- Availability & Price Result Panel -->
+          <div id="stf-avail-result-box" style="display: none; margin-top: 14px; background: #FFFFFF; border: 1px solid var(--border); border-radius: 8px; padding: 14px; font-size: 12.5px;"></div>
         </div>
 
         <!-- Phone Booking Creation Form -->
@@ -422,7 +462,7 @@
             </div>
 
             <div>
-              <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 6px;">Service Type (Table 8 Rates) *</label>
+              <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 6px;">Service Type (Standard Rates) *</label>
               <select id="stf-service" class="form-input" onchange="updateStaffFareQuote()">
                 <option value="Airport transfer" data-four="45.00" data-seven="65.00">Airport transfer (£45 / £65 GBP)</option>
                 <option value="Local journey" data-four="20.00" data-seven="30.00">Local journey (£20 / £30 GBP)</option>
@@ -451,7 +491,7 @@
 
             <div>
               <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 6px;">Staff Fare Quote (No 15% Online Discount)</label>
-              <input type="text" id="stf-quote-display" class="form-input" readonly value="£45.00 GBP (Standard Table 8 Rate)" style="background: rgba(22, 75, 59, 0.08); font-weight: 700; color: var(--primary);" />
+              <input type="text" id="stf-quote-display" class="form-input" readonly value="£45.00 GBP (Standard Rate)" style="background: rgba(22, 75, 59, 0.08); font-weight: 700; color: var(--primary);" />
             </div>
           </div>
 
@@ -512,7 +552,7 @@
           <div class="panel-header">
             <h2 class="panel-title">
               <i data-lucide="car" style="width: 18px; height: 18px;"></i>
-              Executive Fleet Vehicles (P06)
+              Executive Fleet Vehicles
             </h2>
           </div>
           <table class="data-table">
@@ -533,7 +573,7 @@
           <div class="panel-header">
             <h2 class="panel-title">
               <i data-lucide="user-check" style="width: 18px; height: 18px;"></i>
-              Licensed Chauffeurs (P06)
+              Licensed Chauffeurs
             </h2>
           </div>
           <table class="data-table">
@@ -559,7 +599,7 @@
           <div class="panel-header">
             <h2 class="panel-title">
               <i data-lucide="award" style="width: 18px; height: 18px;"></i>
-              P08: Vehicle Popularity
+              Vehicle Popularity (Completed Bookings)
             </h2>
             <span style="font-size: 11px; font-family: var(--font-mono); color: var(--text-dim);">COMPLETED TRIPS DESC</span>
           </div>
@@ -581,9 +621,9 @@
           <div class="panel-header">
             <h2 class="panel-title">
               <i data-lucide="heart-handshake" style="width: 18px; height: 18px;"></i>
-              P08: Customer Loyalty Metrics
+              Customer Loyalty Metrics
             </h2>
-            <span style="font-size: 11px; font-family: var(--font-mono); color: var(--text-dim);">&ge; 3 TRIPS = REWARD (P09)</span>
+            <span style="font-size: 11px; font-family: var(--font-mono); color: var(--text-dim);">&ge; 3 COMPLETED TRIPS = REWARD</span>
           </div>
           <table class="data-table">
             <thead>
@@ -637,7 +677,7 @@
   <div class="modal-backdrop" id="modal-assign-chauffeur">
     <div class="modal-card">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-        <h3 style="font-family: var(--font-heading); font-size: 18px; color: var(--primary);">Assign Driver to Confirmed Journey (P03)</h3>
+        <h3 style="font-family: var(--font-heading); font-size: 18px; color: var(--primary);">Assign Driver to Confirmed Journey</h3>
         <button onclick="closeModal('modal-assign-chauffeur')" style="background: none; border: none; font-size: 18px; cursor: pointer;">&times;</button>
       </div>
       <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
@@ -833,7 +873,7 @@
 
                 ${b.status === 'ENROUTE' ? `
                   <button class="btn-action-sm" onclick="triggerApproachingAlert(${b.id})" ${b.approaching_alert ? 'disabled style="opacity:0.5;"' : ''}>
-                    <i data-lucide="bell-ring" style="width:13px; height:13px;"></i> ${b.approaching_alert ? 'Alert Sent ✓' : 'Send Alert (P04)'}
+                    <i data-lucide="bell-ring" style="width:13px; height:13px;"></i> ${b.approaching_alert ? 'Alert Sent ✓' : 'Send Alert'}
                   </button>
                   <button class="btn-action-sm" style="color:var(--accent-emerald);" onclick="updateJourneyState(${b.id}, 'COMPLETED')">
                     <i data-lucide="check-circle" style="width:13px; height:13px;"></i> Complete Journey
@@ -990,7 +1030,7 @@
       const c = document.getElementById('stf-capacity').value;
       const opt = s.options[s.selectedIndex];
       const fare = c === '7' ? opt.getAttribute('data-seven') : opt.getAttribute('data-four');
-      document.getElementById('stf-quote-display').value = `£${Number(fare).toFixed(2)} GBP (Standard Table 8 Rate, No Online Discount)`;
+      document.getElementById('stf-quote-display').value = `£${Number(fare).toFixed(2)} GBP (Standard Rate, No Online Discount)`;
     }
 
     async function handleStaffBookingSubmit(e) {
@@ -1147,7 +1187,7 @@
               <td>${c.name}</td>
               <td style="font-weight:800; color:var(--accent-emerald);">${c.completed_trips_count} completed</td>
               <td>
-                ${c.completed_trips_count >= 3 ? '<span class="badge-PAID">LOYALTY VOUCHER AWARDED (P09)</span>' : '<span style="font-size:11px; color:var(--text-dim);">' + (3 - c.completed_trips_count) + ' more needed</span>'}
+                ${c.completed_trips_count >= 3 ? '<span class="badge-PAID">LOYALTY VOUCHER AWARDED</span>' : '<span style="font-size:11px; color:var(--text-dim);">' + (3 - c.completed_trips_count) + ' more needed</span>'}
               </td>
             </tr>
           `).join('');
@@ -1239,5 +1279,74 @@
       lucide.createIcons();
     });
   </script>
+
+  <!-- Add Vehicle Modal (SCRUM-25) -->
+  <div id="modal-add-vehicle" style="display:none; position:fixed; inset:0; background:rgba(37,53,46,0.65); backdrop-filter:blur(4px); z-index:9999; align-items:center; justify-content:center; padding:20px;">
+    <div style="background:#FFFFFF; border:1px solid var(--border); border-radius:14px; max-width:440px; width:100%; padding:24px; box-shadow:var(--shadow-elevated);">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:12px; margin-bottom:16px;">
+        <h3 style="margin:0; font-size:16px; font-weight:700; color:var(--primary); display:flex; align-items:center; gap:8px;">
+          <i data-lucide="car" style="width:18px; height:18px;"></i> Add New Executive Vehicle
+        </h3>
+        <button type="button" onclick="closeModal('modal-add-vehicle')" style="background:transparent; border:none; font-size:20px; cursor:pointer;">&times;</button>
+      </div>
+      <form onsubmit="handleAddNewVehicle(event)" style="display:flex; flex-direction:column; gap:12px;">
+        <div>
+          <label style="font-size:12px; font-weight:600; display:block; margin-bottom:4px;">Registration Number *</label>
+          <input type="text" id="veh-reg" class="form-input" placeholder="e.g. LJ24 EXEC" required style="font-family:var(--font-mono); text-transform:uppercase;" />
+        </div>
+        <div>
+          <label style="font-size:12px; font-weight:600; display:block; margin-bottom:4px;">Make &amp; Model *</label>
+          <input type="text" id="veh-model" class="form-input" placeholder="e.g. Mercedes-Benz S-Class" required />
+        </div>
+        <div>
+          <label style="font-size:12px; font-weight:600; display:block; margin-bottom:4px;">Colour *</label>
+          <input type="text" id="veh-colour" class="form-input" placeholder="e.g. Obsidian Black" required />
+        </div>
+        <div>
+          <label style="font-size:12px; font-weight:600; display:block; margin-bottom:4px;">Capacity (4 or 7) *</label>
+          <select id="veh-cap" class="form-input" required>
+            <option value="4" selected>4-passenger Executive Saloon</option>
+            <option value="7">7-passenger Executive MPV</option>
+          </select>
+        </div>
+        <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:8px;">
+          <button type="submit" class="btn-primary-solid" style="padding:8px 16px; font-size:12px;">Save Vehicle</button>
+          <button type="button" class="btn-action-sm" onclick="closeModal('modal-add-vehicle')">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Driver Modal (SCRUM-26) -->
+  <div id="modal-add-driver" style="display:none; position:fixed; inset:0; background:rgba(37,53,46,0.65); backdrop-filter:blur(4px); z-index:9999; align-items:center; justify-content:center; padding:20px;">
+    <div style="background:#FFFFFF; border:1px solid var(--border); border-radius:14px; max-width:440px; width:100%; padding:24px; box-shadow:var(--shadow-elevated);">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:12px; margin-bottom:16px;">
+        <h3 style="margin:0; font-size:16px; font-weight:700; color:var(--primary); display:flex; align-items:center; gap:8px;">
+          <i data-lucide="user-check" style="width:18px; height:18px;"></i> Add Licensed Chauffeur
+        </h3>
+        <button type="button" onclick="closeModal('modal-add-driver')" style="background:transparent; border:none; font-size:20px; cursor:pointer;">&times;</button>
+      </div>
+      <form onsubmit="handleAddNewDriver(event)" style="display:flex; flex-direction:column; gap:12px;">
+        <div>
+          <label style="font-size:12px; font-weight:600; display:block; margin-bottom:4px;">Full Name *</label>
+          <input type="text" id="drv-name" class="form-input" placeholder="e.g. Alexander Cross" required />
+        </div>
+        <div>
+          <label style="font-size:12px; font-weight:600; display:block; margin-bottom:4px;">Telephone *</label>
+          <input type="tel" id="drv-phone" class="form-input" placeholder="+44 7700 900888" required />
+        </div>
+        <div>
+          <label style="font-size:12px; font-weight:600; display:block; margin-bottom:4px;">TFL License Reference *</label>
+          <input type="text" id="drv-ref" class="form-input" placeholder="e.g. TFL-PHD-8829" required style="font-family:var(--font-mono); text-transform:uppercase;" />
+        </div>
+        <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:8px;">
+          <button type="submit" class="btn-primary-solid" style="padding:8px 16px; font-size:12px;">Save Chauffeur</button>
+          <button type="button" class="btn-action-sm" onclick="closeModal('modal-add-driver')">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
 </body>
 </html>
+
