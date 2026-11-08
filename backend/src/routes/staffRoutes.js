@@ -15,6 +15,7 @@ router.post('/bookings/:id/collect-cash', StaffController.collectCash);
 
 // Caller lookup
 router.get('/customers/search', StaffController.searchCustomer);
+router.get('/caller-lookup', StaffController.searchCustomer);
 
 // Refunds queue
 router.get('/refunds', StaffController.getRefunds);

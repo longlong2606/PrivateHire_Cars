@@ -42,7 +42,7 @@ class StaffController {
         LIMIT 10
       `;
       const result = await db.query(sql, [`%${q}%`]);
-      res.json({ success: true, count: result.rows.length, customers: result.rows });
+      res.json({ success: true, count: result.rows.length, customers: result.rows, customer: result.rows[0] });
     } catch (error) {
       res.status(500).json({ success: false, message: error.message });
     }

@@ -272,8 +272,11 @@
         <span class="brand-badge">Call Centre Operations</span>
       </div>
 
-      <div style="display: flex; align-items: center; gap: 14px;">
-        <span style="font-size: 13px; color: #E8E2D5;">Authorised Staff: <strong>London Dispatch Desk</strong></span>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <span style="font-size: 13px; color: #E8E2D5;">Authorised Staff: <strong id="staff-user-name">London Dispatch Desk</strong></span>
+        <a href="database-viewer.html" target="_blank" class="btn-action" style="font-size: 12px; background: rgba(198, 156, 84, 0.2); border: 1px solid var(--accent-gold); color: #FFFFFF; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;" title="Open Standalone Database Inspector">
+          <i data-lucide="database" style="width: 14px; height: 14px;"></i> Open DB Inspector
+        </a>
         <a href="booking.html" class="btn-action" style="font-size: 12px;">Go to Customer Web</a>
       </div>
     </div>
@@ -281,6 +284,17 @@
 
   <main class="main-layout">
     
+    <!-- Auth Status Banner -->
+    <div id="staff-auth-banner" style="display: none; background: #FFF8E1; border: 1px solid #FFE082; border-radius: var(--radius-sm); padding: 12px 18px; margin-bottom: 20px; align-items: center; justify-content: space-between; gap: 12px;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <i data-lucide="shield-alert" style="width: 20px; height: 20px; color: #F57F17;"></i>
+        <span style="font-size: 13.5px; color: #3E2723;"><strong>Staff Session Required:</strong> To query protected bookings and dispatch data, please authenticate with Call Centre credentials.</span>
+      </div>
+      <button onclick="autoLoginStaff(true)" class="btn-action btn-primary" style="font-size: 12px; white-space: nowrap;">
+        <i data-lucide="key" style="width: 14px; height: 14px;"></i> 1-Click Dispatcher Sign-In
+      </button>
+    </div>
+
     <!-- Tab Controls -->
     <div class="tabs-bar">
       <button class="tab-btn active" onclick="switchTab('dispatch')"><i data-lucide="radio" style="width: 15px; height: 15px;"></i> Active Dispatch &amp; Journeys</button>
@@ -290,6 +304,9 @@
       <button class="tab-btn" onclick="switchTab('refunds')"><i data-lucide="rotate-ccw" style="width: 15px; height: 15px;"></i> Refund Queue</button>
       <button class="tab-btn" onclick="switchTab('enquiries')"><i data-lucide="mail" style="width: 15px; height: 15px;"></i> Customer Enquiries</button>
       <button class="tab-btn" onclick="switchTab('insights')"><i data-lucide="bar-chart-2" style="width: 15px; height: 15px;"></i> Popularity &amp; Loyalty</button>
+      <button class="tab-btn" onclick="switchTab('database')" style="background: rgba(198, 156, 84, 0.1); border-color: rgba(198, 156, 84, 0.35); color: var(--accent-gold); font-weight: 700;">
+        <i data-lucide="database" style="width: 15px; height: 15px;"></i> Database &amp; Accounts (<span id="staff-tab-db-count">0</span>)
+      </button>
     </div>
 
     <!-- 1. Dispatch & Journey Operations Tab -->
@@ -567,6 +584,74 @@
       </div>
     </section>
 
+    <!-- 8. Database & System Accounts Tab -->
+    <section id="tab-database" class="tab-content" style="display: none;">
+      <div class="card-panel">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+          <div>
+            <h2 class="panel-title" style="margin-bottom: 2px;">
+              <i data-lucide="database" style="width: 20px; height: 20px; color: var(--accent-gold);"></i>
+              PostgreSQL Registered Accounts &amp; Cards Table (`accounts`)
+            </h2>
+            <p style="font-size: 12.5px; color: var(--text-muted);">
+              Direct database synchronization with Render PostgreSQL (<code style="color: var(--primary);">scrum_db_rf6t</code>).
+            </p>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <button class="btn-action" onclick="loadDatabaseRecords()" style="font-size: 12.5px;">
+              <i data-lucide="refresh-cw" style="width: 13px; height: 13px;"></i> Refresh DB
+            </button>
+            <a href="database-viewer.html" target="_blank" class="btn-action btn-primary" style="font-size: 12.5px; display: inline-flex; align-items: center; gap: 6px;">
+              <i data-lucide="external-link" style="width: 13px; height: 13px;"></i> Full Screen DB Inspector
+            </a>
+          </div>
+        </div>
+
+        <!-- Live DB Summary KPIs -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 20px;">
+          <div style="background: #FAF7F2; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 14px;">
+            <span style="font-size: 11.5px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 4px;">Registered Customers</span>
+            <strong id="staff-db-acc-count" style="font-size: 22px; font-family: var(--font-heading); color: var(--primary);">0</strong>
+          </div>
+          <div style="background: #FAF7F2; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 14px;">
+            <span style="font-size: 11.5px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 4px;">Verified Test Cards</span>
+            <strong id="staff-db-card-count" style="font-size: 22px; font-family: var(--font-heading); color: var(--accent-gold);">0</strong>
+          </div>
+          <div style="background: #FAF7F2; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 14px;">
+            <span style="font-size: 11.5px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 4px;">PostgreSQL Engine</span>
+            <strong style="font-size: 13.5px; color: var(--accent-emerald); display: flex; align-items: center; gap: 6px; margin-top: 6px;">
+              <i data-lucide="check-circle" style="width: 14px; height: 14px;"></i> LIVE (Render Cloud)
+            </strong>
+          </div>
+          <div style="background: #FAF7F2; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 14px;">
+            <span style="font-size: 11.5px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 4px;">DataGrip Connection</span>
+            <span style="font-size: 12px; font-family: var(--font-mono); color: var(--text-dim); display: block; margin-top: 6px;">Port 5432 &bull; SSL Required</span>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Account Code</th>
+                <th>Customer Name</th>
+                <th>Email Address</th>
+                <th>Telephone</th>
+                <th>Address</th>
+                <th>Mock Card Ref</th>
+                <th>Status</th>
+                <th>Registered At</th>
+              </tr>
+            </thead>
+            <tbody id="staff-database-tbody">
+              <tr><td colspan="9" style="text-align: center; padding: 24px; color: var(--text-muted);">Loading database accounts from PostgreSQL...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
   </main>
 
   <!-- Driver Assignment Modal -->
@@ -599,12 +684,90 @@
       return `http://${window.location.hostname || 'localhost'}:5000`;
     })();
 
-    window.addEventListener('DOMContentLoaded', () => {
+    let staffUser = null;
+
+    // Staff Auto Login Gate
+    async function autoLoginStaff(showNotice = false) {
+      try {
+        const res = await fetch(`${API_BASE}/api/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: 'staff@privatehirecars.com', password: 'Staff123!' })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          localStorage.setItem('sessionToken', data.sessionToken);
+          localStorage.setItem('currentUser', JSON.stringify(data.user));
+          staffUser = data.user;
+          const userElem = document.getElementById('staff-user-name');
+          if (userElem) userElem.textContent = data.user.name;
+          const banner = document.getElementById('staff-auth-banner');
+          if (banner) banner.style.display = 'none';
+          if (showNotice) triggerToast("Signed in as Call Centre Dispatcher!");
+          refreshAllStaffData();
+          return true;
+        }
+      } catch (err) {
+        console.error("Staff auto login error:", err);
+      }
+      return false;
+    }
+
+    // Authenticated fetch wrapper for Staff API
+    async function authenticatedFetch(url, options = {}) {
+      let token = localStorage.getItem('sessionToken');
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(options.headers || {})
+      };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      let res = await fetch(url, { ...options, headers });
+      if (res.status === 401) {
+        const ok = await autoLoginStaff(false);
+        if (ok) {
+          token = localStorage.getItem('sessionToken');
+          headers['Authorization'] = `Bearer ${token}`;
+          res = await fetch(url, { ...options, headers });
+        } else {
+          const banner = document.getElementById('staff-auth-banner');
+          if (banner) banner.style.display = 'flex';
+        }
+      }
+      return res;
+    }
+
+    function refreshAllStaffData() {
       loadDispatchQueue();
       loadFleetAndDrivers();
       loadRefundQueue();
       loadEnquiriesQueue();
       loadInsightsMetrics();
+      loadDatabaseRecords();
+    }
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      const cur = localStorage.getItem('currentUser');
+      if (cur) {
+        try {
+          const parsed = JSON.parse(cur);
+          if (parsed && parsed.role === 'STAFF') {
+            staffUser = parsed;
+            const userElem = document.getElementById('staff-user-name');
+            if (userElem) userElem.textContent = staffUser.name;
+          } else {
+            await autoLoginStaff(false);
+          }
+        } catch (_) {
+          await autoLoginStaff(false);
+        }
+      } else {
+        await autoLoginStaff(false);
+      }
+
+      refreshAllStaffData();
       lucide.createIcons();
     });
 
@@ -612,7 +775,9 @@
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
       event.currentTarget.classList.add('active');
-      document.getElementById(`tab-${tabId}`).style.display = 'block';
+      const target = document.getElementById(`tab-${tabId}`);
+      if (target) target.style.display = 'block';
+      if (tabId === 'database') loadDatabaseRecords();
       lucide.createIcons();
     }
 
@@ -620,7 +785,7 @@
     async function loadDispatchQueue() {
       const tbody = document.getElementById('dispatch-table-body');
       try {
-        const res = await fetch(`${API_BASE}/api/staff/bookings`);
+        const res = await authenticatedFetch(`${API_BASE}/api/staff/bookings`);
         const data = await res.json();
         if (res.ok && data.success && data.bookings) {
           tbody.innerHTML = data.bookings.map(b => {
@@ -661,9 +826,8 @@
 
     async function progressJourney(bookingId, nextStatus) {
       try {
-        const res = await fetch(`${API_BASE}/api/staff/bookings/${bookingId}/status`, {
+        const res = await authenticatedFetch(`${API_BASE}/api/staff/bookings/${bookingId}/status`, {
           method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status: nextStatus, staffId: 1 })
         });
         const data = await res.json();
@@ -676,9 +840,8 @@
 
     async function sendApproachingAlert(bookingId) {
       try {
-        const res = await fetch(`${API_BASE}/api/staff/bookings/${bookingId}/approaching-alert`, {
+        const res = await authenticatedFetch(`${API_BASE}/api/staff/bookings/${bookingId}/approaching-alert`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ staffId: 1 })
         });
         const data = await res.json();
@@ -693,9 +856,8 @@
     async function confirmCashCollected(bookingId, amount) {
       if (!confirm(`Confirm cash receipt of £${parseFloat(amount).toFixed(2)} GBP for booking?`)) return;
       try {
-        const res = await fetch(`${API_BASE}/api/staff/bookings/${bookingId}/collect-cash`, {
+        const res = await authenticatedFetch(`${API_BASE}/api/staff/bookings/${bookingId}/collect-cash`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ staffId: 1 })
         });
         const data = await res.json();
@@ -710,10 +872,10 @@
     let driversList = [];
     async function loadFleetAndDrivers() {
       try {
-        const res = await fetch(`${API_BASE}/api/staff/fleet`);
+        const res = await authenticatedFetch(`${API_BASE}/api/staff/fleet`);
         const data = await res.json();
         if (res.ok && data.success) {
-          document.getElementById('fleet-table-body').innerHTML = data.vehicles.map(v => `
+          document.getElementById('fleet-table-body').innerHTML = (data.vehicles || []).map(v => `
             <tr>
               <td><strong>${v.registration_number}</strong></td>
               <td>${v.make} ${v.model || ''}</td>
@@ -721,7 +883,7 @@
               <td>${v.capacity} Pax</td>
               <td>${v.status}</td>
             </tr>
-          `).join('');
+          `).join('') || '<tr><td colspan="5">No vehicles found.</td></tr>';
 
           driversList = data.drivers || [];
           document.getElementById('driver-table-body').innerHTML = driversList.map(d => `
@@ -731,10 +893,11 @@
               <td>${d.phone}</td>
               <td>${d.status}</td>
             </tr>
-          `).join('');
+          `).join('') || '<tr><td colspan="4">No chauffeurs found.</td></tr>';
         }
       } catch (_) {}
     }
+    const loadFleetData = loadFleetAndDrivers;
 
     function openAssignDriverModal(bookingId) {
       document.getElementById('assign-booking-id').value = bookingId;
@@ -751,9 +914,8 @@
       const bId = document.getElementById('assign-booking-id').value;
       const dId = document.getElementById('assign-driver-select').value;
       try {
-        const res = await fetch(`${API_BASE}/api/staff/bookings/${bId}/status`, {
+        const res = await authenticatedFetch(`${API_BASE}/api/staff/bookings/${bId}/status`, {
           method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status: 'ASSIGNED', driverId: dId, staffId: 1 })
         });
         const data = await res.json();
@@ -771,16 +933,19 @@
       const q = document.getElementById('caller-search-query').value.trim();
       if (!q) return;
       try {
-        const res = await fetch(`${API_BASE}/api/staff/caller-lookup?query=${encodeURIComponent(q)}`);
+        const res = await authenticatedFetch(`${API_BASE}/api/staff/customers/search?query=${encodeURIComponent(q)}`);
         const data = await res.json();
-        if (res.ok && data.success && data.customer) {
-          verifiedCustomer = data.customer;
-          document.getElementById('caller-matched-info').textContent = `Account: ${verifiedCustomer.name} (${verifiedCustomer.telephone}) — ${verifiedCustomer.email}`;
+        const matched = data.customer || (data.customers && data.customers[0]);
+        if (res.ok && data.success && matched) {
+          verifiedCustomer = matched;
+          document.getElementById('caller-matched-info').textContent = `Account: ${verifiedCustomer.name} (${verifiedCustomer.telephone}) — ${verifiedCustomer.email} (Code: ${verifiedCustomer.account_code || verifiedCustomer.id})`;
           document.getElementById('caller-verification-box').style.display = 'block';
         } else {
           triggerToast("Caller not found in database.", "error");
         }
-      } catch (_) {}
+      } catch (_) {
+        triggerToast("Error searching customer database.", "error");
+      }
     }
     function confirmCallerVerified() {
       if (!verifiedCustomer) return;
@@ -803,9 +968,8 @@
         staffId: 1
       };
       try {
-        const res = await fetch(`${API_BASE}/api/staff/bookings`, {
+        const res = await authenticatedFetch(`${API_BASE}/api/staff/bookings`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
         const data = await res.json();
@@ -828,14 +992,14 @@
         return;
       }
       try {
-        const res = await fetch(`${API_BASE}/api/staff/availability?pickupTime=${encodeURIComponent(pTime)}&serviceName=${encodeURIComponent(service)}&passengers=${pax}`);
+        const res = await authenticatedFetch(`${API_BASE}/api/staff/availability?pickupTime=${encodeURIComponent(pTime)}&serviceName=${encodeURIComponent(service)}&passengers=${pax}`);
         const data = await res.json();
         if (res.ok && data.success) {
           box.innerHTML = `
             <div style="font-size: 14px; line-height: 1.8;">
               <strong style="color: var(--primary);">Standard Quote:</strong> £${parseFloat(data.baseFare).toFixed(2)} GBP (No Online Discount for Phone)<br>
-              <strong>Available Suitable Vehicles:</strong> ${data.availableVehicles.length} vehicles available<br>
-              <strong>Available Chauffeurs:</strong> ${data.availableDrivers.length} chauffeurs free during this window<br>
+              <strong>Available Suitable Vehicles:</strong> ${(data.availableVehicles || []).length} vehicles available<br>
+              <strong>Available Chauffeurs:</strong> ${(data.availableDrivers || []).length} chauffeurs free during this window<br>
               <span style="font-size: 12px; color: var(--text-dim);">(Note: Resources are not reserved at search stage)</span>
             </div>
           `;
@@ -847,7 +1011,7 @@
     async function loadRefundQueue() {
       const tbody = document.getElementById('refunds-table-body');
       try {
-        const res = await fetch(`${API_BASE}/api/staff/refunds`);
+        const res = await authenticatedFetch(`${API_BASE}/api/staff/refunds`);
         const data = await res.json();
         if (res.ok && data.success && data.refunds && data.refunds.length > 0) {
           tbody.innerHTML = data.refunds.map(r => `
@@ -869,9 +1033,8 @@
     async function processRefund(refundId) {
       if (!confirm("Confirm refund processing?")) return;
       try {
-        const res = await fetch(`${API_BASE}/api/staff/refunds/${refundId}/process`, {
+        const res = await authenticatedFetch(`${API_BASE}/api/staff/refunds/${refundId}/process`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ staffId: 1 })
         });
         const data = await res.json();
@@ -886,7 +1049,7 @@
     async function loadEnquiriesQueue() {
       const tbody = document.getElementById('enquiries-table-body');
       try {
-        const res = await fetch(`${API_BASE}/api/staff/enquiries`);
+        const res = await authenticatedFetch(`${API_BASE}/api/staff/enquiries`);
         const data = await res.json();
         if (res.ok && data.success && data.enquiries) {
           tbody.innerHTML = data.enquiries.map(e => `
@@ -908,9 +1071,8 @@
       const replyMsg = prompt(`Enter reply to be sent via real email to ${email}:`);
       if (!replyMsg) return;
       try {
-        const res = await fetch(`${API_BASE}/api/staff/enquiries/${enquiryId}/reply`, {
+        const res = await authenticatedFetch(`${API_BASE}/api/staff/enquiries/${enquiryId}/reply`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ replyMessage: replyMsg, staffId: 1 })
         });
         const data = await res.json();
@@ -924,7 +1086,7 @@
     // Insights Metrics
     async function loadInsightsMetrics() {
       try {
-        const res = await fetch(`${API_BASE}/api/staff/reports/popularity-loyalty`);
+        const res = await authenticatedFetch(`${API_BASE}/api/staff/reports/popularity-loyalty`);
         const data = await res.json();
         if (res.ok && data.success) {
           document.getElementById('popular-vehicles-body').innerHTML = (data.popularVehicles || []).map(v => `
@@ -946,6 +1108,56 @@
       } catch (_) {}
     }
 
+    // Live Database Records Table
+    async function loadDatabaseRecords() {
+      const tbody = document.getElementById('staff-database-tbody');
+      try {
+        const res = await authenticatedFetch(`${API_BASE}/api/accounts`);
+        const data = await res.json();
+        if (res.ok && data.success && data.data) {
+          const accounts = data.data;
+          const tabCount = document.getElementById('staff-tab-db-count');
+          if (tabCount) tabCount.textContent = accounts.length;
+          const accCount = document.getElementById('staff-db-acc-count');
+          if (accCount) accCount.textContent = accounts.length;
+          const cardCount = accounts.filter(a => a.mock_card_ref && a.mock_card_ref !== '—').length;
+          const cardElem = document.getElementById('staff-db-card-count');
+          if (cardElem) cardElem.textContent = cardCount;
+
+          if (accounts.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px;">No registered accounts in database.</td></tr>';
+            return;
+          }
+
+          tbody.innerHTML = accounts.map(a => `
+            <tr>
+              <td><span style="font-family: var(--font-mono); font-size: 11px;">#${a.id}</span></td>
+              <td><strong style="font-family: var(--font-mono); color: var(--primary);">${a.account_code || '—'}</strong></td>
+              <td><strong>${escapeHtml(a.name || '—')}</strong></td>
+              <td>${escapeHtml(a.email || '—')}</td>
+              <td>${escapeHtml(a.telephone || '—')}</td>
+              <td style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${escapeHtml(a.address || '')}">${escapeHtml(a.address || '—')}</td>
+              <td><span style="background: rgba(22,75,59,0.08); padding: 2px 6px; border-radius: 4px; font-family: var(--font-mono); font-size: 11px;">${escapeHtml(a.mock_card_ref || 'None')}</span></td>
+              <td><span style="background: rgba(58,139,104,0.12); color: var(--accent-emerald); padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 11px;">${a.status || 'ACTIVE'}</span></td>
+              <td style="font-size: 11.5px; color: var(--text-dim); white-space: nowrap;">${a.created_at ? new Date(a.created_at).toLocaleString() : '—'}</td>
+            </tr>
+          `).join('');
+        }
+      } catch (err) {
+        console.error("Error loading staff DB records:", err);
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
     // Modal Add Vehicle
     function openAddVehicleModal() {
       document.getElementById('modal-add-vehicle').style.display = 'flex';
@@ -962,9 +1174,8 @@
       const status = document.getElementById('veh-status').value;
 
       try {
-        const res = await fetch(`${API_BASE}/api/staff/vehicles`, {
+        const res = await authenticatedFetch(`${API_BASE}/api/staff/vehicles`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ regNumber, makeModel, colour, capacity, status })
         });
         const data = await res.json();
@@ -972,7 +1183,7 @@
           triggerToast("Vehicle added to fleet successfully!");
           closeAddVehicleModal();
           e.target.reset();
-          loadFleetData();
+          loadFleetAndDrivers();
         } else {
           triggerToast(data.message || "Failed to add vehicle", "error");
         }
@@ -996,9 +1207,8 @@
       const status = document.getElementById('drv-status').value;
 
       try {
-        const res = await fetch(`${API_BASE}/api/staff/drivers`, {
+        const res = await authenticatedFetch(`${API_BASE}/api/staff/drivers`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name, telephone, referenceNumber, status })
         });
         const data = await res.json();
@@ -1006,7 +1216,7 @@
           triggerToast("Chauffeur registered successfully!");
           closeAddDriverModal();
           e.target.reset();
-          loadFleetData();
+          loadFleetAndDrivers();
         } else {
           triggerToast(data.message || "Failed to add driver", "error");
         }
