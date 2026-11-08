@@ -566,8 +566,8 @@
         <span class="tab-btn-text">Demand &amp; Loyalty</span>
       </button>
       <button class="tab-btn" data-tab="database" onclick="switchTab('database', this)">
-        <i data-lucide="database" style="width: 16px; height: 16px;"></i>
-        <span class="tab-btn-text">Database &amp; Accounts</span>
+        <i data-lucide="users" style="width: 16px; height: 16px;"></i>
+        <span class="tab-btn-text">Accounts &amp; Roles</span>
         <span class="nav-badge gold" id="staff-tab-db-count">0</span>
       </button>
     </nav>
@@ -730,7 +730,7 @@
               </div>
               <div class="field-group">
                 <label class="field-label">Service Type *</label>
-                <select id="asst-service" class="field-select">
+                <select id="asst-service" class="field-select" onchange="recalculateAssistedFare()">
                   <option value="Airport transfer" selected>Airport transfer (£45 / £65 GBP)</option>
                   <option value="Local journey">Local journey (£20 / £30 GBP)</option>
                   <option value="Long-distance journey">Long-distance journey (£80 / £120 GBP)</option>
@@ -739,11 +739,70 @@
                   <option value="Driver and car daily hire">Driver and car daily hire (£200 / £280 GBP)</option>
                 </select>
               </div>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div class="field-group">
+                  <label class="field-label">Vehicle Capacity (Chỗ ngồi) *</label>
+                  <select id="asst-capacity" class="field-select" onchange="recalculateAssistedFare()">
+                    <option value="4" selected>4-Seat Saloon (4 Chỗ)</option>
+                    <option value="7">7-Seat MPV (7 Chỗ)</option>
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Passenger Count (Số khách) *</label>
+                  <select id="asst-passengers" class="field-select" onchange="handleAssistedPassengerChange()">
+                    <option value="1">1 Passenger</option>
+                    <option value="2" selected>2 Passengers</option>
+                    <option value="3">3 Passengers</option>
+                    <option value="4">4 Passengers</option>
+                    <option value="5">5 Passengers (Requires 7-Seat MPV)</option>
+                    <option value="6">6 Passengers (Requires 7-Seat MPV)</option>
+                    <option value="7">7 Passengers (Requires 7-Seat MPV)</option>
+                  </select>
+                </div>
+              </div>
+              <div class="field-group">
+                <label class="field-label">Payment Method (Phương thức thanh toán) *</label>
+                <select id="asst-payment-method" class="field-select">
+                  <option value="CASH" selected>💵 Cash Payment to Chauffeur (Tiền mặt)</option>
+                  <option value="MOCK_CARD">💳 Card on File / Simulated Card (Thẻ ngân hàng)</option>
+                  <option value="INVOICE">📑 Corporate Account Invoice (Hóa đơn trả sau)</option>
+                </select>
+              </div>
+              <div class="field-group">
+                <label class="field-label">Special Offer / Voucher Code (Áp mã giảm giá)</label>
+                <div style="display: flex; gap: 8px;">
+                  <input type="text" id="asst-promo-code" class="field-input" placeholder="e.g. PHC-OFFER-XXXX or SAVE10" style="text-transform: uppercase;" />
+                  <button type="button" class="btn-action" onclick="verifyAndApplyAssistedPromo()" style="white-space: nowrap; font-size: 12px; padding: 0 12px;">
+                    <i data-lucide="tag" style="width: 13px; height: 13px;"></i> Apply Voucher
+                  </button>
+                </div>
+                <div id="asst-promo-feedback" style="font-size: 12px; margin-top: 5px; display: none;"></div>
+              </div>
               <div class="field-group">
                 <label class="field-label">Pickup &amp; Destination *</label>
                 <input type="text" id="asst-pickup" class="field-input" placeholder="Pickup Address" required style="margin-bottom: 6px;" />
                 <input type="text" id="asst-dropoff" class="field-input" placeholder="Dropoff Destination" required />
               </div>
+
+              <!-- Live Fare Breakdown Summary Box -->
+              <div id="asst-fare-summary-box" style="background: #FAF7F2; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 16px;">
+                <div style="display: flex; justify-content: space-between; font-size: 12.5px; margin-bottom: 4px;">
+                  <span style="color: var(--text-muted);">Table 8 Standard Fare:</span>
+                  <strong id="asst-summary-base" style="font-family: var(--font-mono);">£45.00</strong>
+                </div>
+                <div id="asst-summary-discount-row" style="display: none; justify-content: space-between; font-size: 12.5px; margin-bottom: 4px; color: #16A34A;">
+                  <span>Voucher Discount:</span>
+                  <strong id="asst-summary-discount" style="font-family: var(--font-mono);">-£0.00</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 14px; padding-top: 6px; border-top: 1px dashed var(--border-medium);">
+                  <span style="font-weight: 700; color: var(--primary);">Total Fare to Pay:</span>
+                  <strong id="asst-summary-final" style="font-family: var(--font-mono); color: var(--primary); font-size: 15.5px;">£45.00 GBP</strong>
+                </div>
+                <div style="font-size: 11px; color: var(--text-dim); margin-top: 5px; display: flex; align-items: center; gap: 4px;">
+                  <i data-lucide="info" style="width: 12px; height: 12px;"></i> Rule P02: Assisted bookings receive standard Table 8 pricing (no 15% online discount).
+                </div>
+              </div>
+
               <button type="submit" class="btn-action btn-primary" style="width: 100%; height: 42px; justify-content: center;">
                 Create Assisted Booking
               </button>
@@ -1060,16 +1119,16 @@
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
           <div>
             <h2 class="panel-title" style="margin-bottom: 2px;">
-              <i data-lucide="database" style="width: 20px; height: 20px; color: var(--accent-gold);"></i>
-              PostgreSQL Registered Accounts &amp; Cards Table (`accounts`)
+              <i data-lucide="users" style="width: 20px; height: 20px; color: var(--accent-gold);"></i>
+              PostgreSQL Account Directory &amp; Role Management (`accounts`)
             </h2>
             <p style="font-size: 12.5px; color: var(--text-muted);">
-              Direct database synchronization with Render PostgreSQL (<code style="color: var(--primary);">scrum_db_rf6t</code>).
+              Full database inspection of all schema fields. Users with the <code style="color: var(--accent-gold); font-weight: 700;">ADMIN</code> role can modify user access levels.
             </p>
           </div>
           <div style="display: flex; gap: 10px;">
             <button class="btn-action" onclick="loadDatabaseRecords()" style="font-size: 12.5px;">
-              <i data-lucide="refresh-cw" style="width: 13px; height: 13px;"></i> Refresh DB
+              <i data-lucide="refresh-cw" style="width: 13px; height: 13px;"></i> Refresh Accounts
             </button>
             <a href="database-viewer.html" target="_blank" class="btn-action btn-primary" style="font-size: 12.5px; display: inline-flex; align-items: center; gap: 6px;">
               <i data-lucide="external-link" style="width: 13px; height: 13px;"></i> Full Screen DB Inspector
@@ -1077,10 +1136,19 @@
           </div>
         </div>
 
+        <!-- Role Access Privilege Indicator Banner -->
+        <div id="admin-privilege-indicator" style="background: rgba(198, 156, 84, 0.12); border: 1px solid var(--accent-gold); color: #8F6B27; border-radius: var(--radius-sm); padding: 10px 14px; font-size: 13px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <i data-lucide="shield-alert" style="width: 16px; height: 16px;"></i>
+            <span id="admin-privilege-text">Checking role administration permissions...</span>
+          </div>
+          <span id="admin-privilege-badge" class="badge" style="background: var(--accent-gold); color: #fff;">CHECKING</span>
+        </div>
+
         <!-- Live DB Summary KPIs -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 20px;">
           <div style="background: #FAF7F2; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 14px;">
-            <span style="font-size: 11.5px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 4px;">Registered Customers</span>
+            <span style="font-size: 11.5px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 4px;">Registered Accounts</span>
             <strong id="staff-db-acc-count" style="font-size: 22px; font-family: var(--font-heading); color: var(--primary);">0</strong>
           </div>
           <div style="background: #FAF7F2; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 14px;">
@@ -1094,28 +1162,47 @@
             </strong>
           </div>
           <div style="background: #FAF7F2; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 14px;">
-            <span style="font-size: 11.5px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 4px;">DataGrip Connection</span>
-            <span style="font-size: 12px; font-family: var(--font-mono); color: var(--text-dim); display: block; margin-top: 6px;">Port 5432 &bull; SSL Required</span>
+            <span style="font-size: 11.5px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 4px;">Role Administration</span>
+            <span style="font-size: 12px; font-family: var(--font-mono); color: var(--text-dim); display: block; margin-top: 6px;">Admin Authorization Active</span>
           </div>
         </div>
 
-        <div class="table-container">
+        <!-- Search & Filter Controls -->
+        <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 240px; position: relative;">
+            <input type="text" id="account-search-input" class="field-input" placeholder="Search by name, email, phone or account code..." oninput="filterAccounts()" style="padding-left: 34px;" />
+            <i data-lucide="search" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: var(--text-muted);"></i>
+          </div>
+          <div style="width: 190px;">
+            <select id="account-role-filter" class="field-select" onchange="filterAccounts()">
+              <option value="ALL">All Roles (Tất cả vai trò)</option>
+              <option value="ADMIN">ADMIN (Quản trị viên)</option>
+              <option value="STAFF">STAFF (Nhân viên)</option>
+              <option value="CUSTOMER">CUSTOMER (Khách hàng)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="table-container" style="overflow-x: auto;">
           <table>
             <thead>
               <tr>
                 <th>ID</th>
                 <th>Account Code</th>
-                <th>Customer Name</th>
+                <th>Name</th>
                 <th>Email Address</th>
                 <th>Telephone</th>
                 <th>Address</th>
                 <th>Mock Card Ref</th>
                 <th>Status</th>
-                <th>Registered At</th>
+                <th>Role</th>
+                <th>Created At</th>
+                <th>Updated At</th>
+                <th style="min-width: 150px;">Role Management (Admin)</th>
               </tr>
             </thead>
             <tbody id="staff-database-tbody">
-              <tr><td colspan="9" style="text-align: center; padding: 24px; color: var(--text-muted);">Loading database accounts from PostgreSQL...</td></tr>
+              <tr><td colspan="12" style="text-align: center; padding: 24px; color: var(--text-muted);">Loading database accounts from PostgreSQL...</td></tr>
             </tbody>
           </table>
         </div>
@@ -1332,6 +1419,8 @@
         const nextHour = new Date(Date.now() + 3600000);
         pTimeInput.value = new Date(nextHour.getTime() - nextHour.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
       }
+      if (typeof recalculateAssistedFare === 'function') recalculateAssistedFare();
+      if (typeof updateAdminPrivilegeIndicator === 'function') updateAdminPrivilegeIndicator();
       lucide.createIcons();
     });
 
@@ -1343,7 +1432,7 @@
       refunds: { breadcrumb: 'Fleet & Service / Refund Queue', title: 'Customer Refund Queue & Authorisation' },
       enquiries: { breadcrumb: 'Fleet & Service / Enquiries', title: 'Customer Service Enquiries & Direct Replies' },
       insights: { breadcrumb: 'Analytics & System / Demand & Loyalty', title: 'Vehicle Popularity & Customer Loyalty Insights' },
-      database: { breadcrumb: 'Analytics & System / Database & Accounts', title: 'Live PostgreSQL Database & Accounts Synchronizer' }
+      database: { breadcrumb: 'System / Accounts & Roles', title: 'PostgreSQL Account Directory & Role Administration' }
     };
 
     function switchTab(tabId, el) {
@@ -1651,15 +1740,123 @@
       document.getElementById('asst-customer-label').value = `${verifiedCustomer.name} (${verifiedCustomer.email})`;
       triggerToast("Caller verified! Ready for assisted booking.");
     }
+    const TABLE_8_RATES = {
+      'Airport transfer': { 4: 45.00, 7: 65.00 },
+      'Local journey': { 4: 20.00, 7: 30.00 },
+      'Long-distance journey': { 4: 80.00, 7: 120.00 },
+      'Hotel transfer': { 4: 30.00, 7: 45.00 },
+      'Airport meet-and-greet': { 4: 55.00, 7: 80.00 },
+      'Driver and car daily hire': { 4: 200.00, 7: 280.00 },
+    };
+
+    let appliedAssistedPromo = null;
+
+    function handleAssistedPassengerChange() {
+      const pElem = document.getElementById('asst-passengers');
+      const capElem = document.getElementById('asst-capacity');
+      if (!pElem || !capElem) return;
+
+      const pCount = parseInt(pElem.value, 10);
+      if (pCount > 4 && capElem.value !== '7') {
+        capElem.value = '7';
+        triggerToast("Passenger party exceeds 4: Auto-selected 7-Seat Executive MPV.", "info");
+      }
+      recalculateAssistedFare();
+    }
+
+    function recalculateAssistedFare() {
+      const sElem = document.getElementById('asst-service');
+      const cElem = document.getElementById('asst-capacity');
+      if (!sElem || !cElem) return;
+
+      const service = sElem.value;
+      const capacity = parseInt(cElem.value, 10) || 4;
+      const rate = (TABLE_8_RATES[service] && TABLE_8_RATES[service][capacity]) ? TABLE_8_RATES[service][capacity] : 45.00;
+
+      const baseElem = document.getElementById('asst-summary-base');
+      const discRow = document.getElementById('asst-summary-discount-row');
+      const discElem = document.getElementById('asst-summary-discount');
+      const finalElem = document.getElementById('asst-summary-final');
+
+      if (baseElem) baseElem.textContent = `£${rate.toFixed(2)}`;
+
+      let discount = 0;
+      if (appliedAssistedPromo && appliedAssistedPromo.discountAmount) {
+        discount = appliedAssistedPromo.discountAmount;
+        if (discRow) discRow.style.display = 'flex';
+        if (discElem) discElem.textContent = `-£${discount.toFixed(2)}`;
+      } else {
+        if (discRow) discRow.style.display = 'none';
+      }
+
+      const finalFare = Math.max(0, rate - discount);
+      if (finalElem) finalElem.textContent = `£${finalFare.toFixed(2)} GBP`;
+    }
+
+    async function verifyAndApplyAssistedPromo() {
+      const codeInput = document.getElementById('asst-promo-code');
+      const feedback = document.getElementById('asst-promo-feedback');
+      const cId = document.getElementById('asst-customer-id').value;
+
+      if (!codeInput || !codeInput.value.trim()) {
+        triggerToast("Please enter a voucher code to apply.", "error");
+        return;
+      }
+
+      const code = codeInput.value.trim().toUpperCase();
+      try {
+        const res = await authenticatedFetch(`${API_BASE}/api/staff/verify-voucher`, {
+          method: 'POST',
+          body: JSON.stringify({ code, customerId: cId || undefined }),
+        });
+        const data = await res.json();
+        if (res.ok && data.success && data.valid) {
+          appliedAssistedPromo = {
+            code: data.code,
+            discountAmount: parseFloat(data.discountAmount) || 10.00,
+          };
+          if (feedback) {
+            feedback.style.display = 'block';
+            feedback.style.color = '#16A34A';
+            feedback.innerHTML = `✓ <strong>Voucher Verified:</strong> ${escapeHtml(data.message)}`;
+          }
+          triggerToast(`Voucher ${data.code} applied (-£${appliedAssistedPromo.discountAmount.toFixed(2)})!`);
+          recalculateAssistedFare();
+        } else {
+          appliedAssistedPromo = null;
+          if (feedback) {
+            feedback.style.display = 'block';
+            feedback.style.color = '#DC2626';
+            feedback.innerHTML = `✕ ${escapeHtml(data.message || 'Invalid or expired voucher code.')}`;
+          }
+          triggerToast(data.message || "Invalid voucher code.", "error");
+          recalculateAssistedFare();
+        }
+      } catch (err) {
+        triggerToast("Error verifying voucher code.", "error");
+      }
+    }
+
     async function submitAssistedBooking() {
       const cId = document.getElementById('asst-customer-id').value;
       if (!cId) {
-        triggerToast("Please verify caller first.", "error");
+        triggerToast("Please verify caller first in Step 1.", "error");
         return;
       }
+      const capacity = parseInt(document.getElementById('asst-capacity').value, 10) || 4;
+      const passengers = parseInt(document.getElementById('asst-passengers').value, 10) || 1;
+      const paymentMethod = document.getElementById('asst-payment-method').value;
+      const promoCode = appliedAssistedPromo ? appliedAssistedPromo.code : document.getElementById('asst-promo-code').value.trim();
+
       const payload = {
         accountId: cId,
+        customerId: cId,
         serviceName: document.getElementById('asst-service').value,
+        service: document.getElementById('asst-service').value,
+        vehicleCapacity: capacity,
+        passengerCount: passengers,
+        paymentMethod: paymentMethod,
+        promoCode: promoCode || undefined,
         pickupAddress: document.getElementById('asst-pickup').value.trim(),
         dropoffAddress: document.getElementById('asst-dropoff').value.trim(),
         channel: document.getElementById('asst-channel').value,
@@ -1672,10 +1869,21 @@
         });
         const data = await res.json();
         if (res.ok && data.success) {
-          triggerToast("Assisted booking created successfully! Added to dispatch queue.");
+          triggerToast(`Assisted booking ${data.booking.booking_code} created successfully! Final Fare: £${data.booking.final_fare}`);
+          appliedAssistedPromo = null;
+          document.getElementById('asst-pickup').value = '';
+          document.getElementById('asst-dropoff').value = '';
+          document.getElementById('asst-promo-code').value = '';
+          const fb = document.getElementById('asst-promo-feedback');
+          if (fb) fb.style.display = 'none';
+          recalculateAssistedFare();
           loadDispatchQueue();
+        } else {
+          triggerToast(data.message || "Failed to create assisted booking", "error");
         }
-      } catch (_) {}
+      } catch (_) {
+        triggerToast("Server connection error creating booking", "error");
+      }
     }
 
     // Availability Search
@@ -1996,43 +2204,178 @@
       }
     }
 
-    // Live Database Records Table
+    // Live Database Records & Role Management Table
+    let allAccountsCache = [];
+
+    function isCurrentUserAdmin() {
+      const cur = localStorage.getItem('currentUser');
+      let userObj = staffUser;
+      if (!userObj && cur) {
+        try { userObj = JSON.parse(cur); } catch(_) {}
+      }
+      if (!userObj) return false;
+      const r = (userObj.role || '').toUpperCase();
+      const e = (userObj.email || '').toLowerCase();
+      const adminEmails = ['longhvn2006@gmail.com', 'nguyennhanduc20345@gmail.com'];
+      return r === 'ADMIN' || adminEmails.includes(e);
+    }
+
+    function updateAdminPrivilegeIndicator() {
+      const banner = document.getElementById('admin-privilege-indicator');
+      const textElem = document.getElementById('admin-privilege-text');
+      const badgeElem = document.getElementById('admin-privilege-badge');
+      if (!banner || !textElem || !badgeElem) return;
+
+      const isAdmin = isCurrentUserAdmin();
+      if (isAdmin) {
+        banner.style.background = 'rgba(198, 156, 84, 0.12)';
+        banner.style.borderColor = 'var(--accent-gold)';
+        banner.style.color = '#8F6B27';
+        textElem.innerHTML = '<strong>Administrator Mode Active:</strong> You have permission to inspect all database columns and update user roles (CUSTOMER, STAFF, ADMIN).';
+        badgeElem.textContent = 'ADMIN PRIVILEGES';
+        badgeElem.style.background = 'var(--accent-gold)';
+      } else {
+        banner.style.background = 'rgba(30, 58, 138, 0.08)';
+        banner.style.borderColor = 'rgba(30, 58, 138, 0.25)';
+        banner.style.color = '#1E3A8A';
+        textElem.innerHTML = '<strong>Staff Inspection Mode:</strong> Viewing all database fields. Modifying user roles is restricted to accounts with the ADMIN role.';
+        badgeElem.textContent = 'STAFF READ-ONLY';
+        badgeElem.style.background = '#1E3A8A';
+      }
+    }
+
     async function loadDatabaseRecords() {
-      const tbody = document.getElementById('staff-database-tbody');
+      updateAdminPrivilegeIndicator();
       try {
-        const res = await authenticatedFetch(`${API_BASE}/api/accounts`);
+        const res = await authenticatedFetch(`${API_BASE}/api/staff/accounts`);
         const data = await res.json();
-        if (res.ok && data.success && data.data) {
-          const accounts = data.data;
+        if (res.ok && data.success && (data.accounts || data.data)) {
+          allAccountsCache = data.accounts || data.data;
           const tabCount = document.getElementById('staff-tab-db-count');
-          if (tabCount) tabCount.textContent = accounts.length;
+          if (tabCount) tabCount.textContent = allAccountsCache.length;
           const accCount = document.getElementById('staff-db-acc-count');
-          if (accCount) accCount.textContent = accounts.length;
-          const cardCount = accounts.filter(a => a.mock_card_ref && a.mock_card_ref !== '—').length;
+          if (accCount) accCount.textContent = allAccountsCache.length;
+          const cardCount = allAccountsCache.filter(a => a.mock_card_ref && a.mock_card_ref !== '—' && a.mock_card_ref !== 'None').length;
           const cardElem = document.getElementById('staff-db-card-count');
           if (cardElem) cardElem.textContent = cardCount;
 
-          if (accounts.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px;">No registered accounts in database.</td></tr>';
-            return;
-          }
-
-          tbody.innerHTML = accounts.map(a => `
-            <tr>
-              <td><span style="font-family: var(--font-mono); font-size: 11px;">#${a.id}</span></td>
-              <td><strong style="font-family: var(--font-mono); color: var(--primary);">${a.account_code || '—'}</strong></td>
-              <td><strong>${escapeHtml(a.name || '—')}</strong></td>
-              <td>${escapeHtml(a.email || '—')}</td>
-              <td>${escapeHtml(a.telephone || '—')}</td>
-              <td style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${escapeHtml(a.address || '')}">${escapeHtml(a.address || '—')}</td>
-              <td><span style="background: rgba(22,75,59,0.08); padding: 2px 6px; border-radius: 4px; font-family: var(--font-mono); font-size: 11px;">${escapeHtml(a.mock_card_ref || 'None')}</span></td>
-              <td><span style="background: rgba(58,139,104,0.12); color: var(--accent-emerald); padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 11px;">${a.status || 'ACTIVE'}</span></td>
-              <td style="font-size: 11.5px; color: var(--text-dim); white-space: nowrap;">${a.created_at ? new Date(a.created_at).toLocaleString() : '—'}</td>
-            </tr>
-          `).join('');
+          filterAccounts();
         }
       } catch (err) {
         console.error("Error loading staff DB records:", err);
+      }
+    }
+
+    function filterAccounts() {
+      const q = (document.getElementById('account-search-input')?.value || '').toLowerCase().trim();
+      const roleFilter = document.getElementById('account-role-filter')?.value || 'ALL';
+
+      const filtered = allAccountsCache.filter(a => {
+        const name = (a.name || '').toLowerCase();
+        const email = (a.email || '').toLowerCase();
+        const phone = (a.telephone || '').toLowerCase();
+        const code = (a.account_code || '').toLowerCase();
+        const addr = (a.address || '').toLowerCase();
+        const role = (a.role || 'CUSTOMER').toUpperCase();
+
+        const matchQuery = !q || name.includes(q) || email.includes(q) || phone.includes(q) || code.includes(q) || addr.includes(q);
+        const matchRole = roleFilter === 'ALL' || role === roleFilter;
+        return matchQuery && matchRole;
+      });
+
+      renderAccountsTable(filtered);
+    }
+
+    function renderAccountsTable(accounts) {
+      const tbody = document.getElementById('staff-database-tbody');
+      if (!tbody) return;
+
+      if (!accounts || accounts.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="12" style="text-align: center; padding: 24px; color: var(--text-muted);">No matching accounts found in PostgreSQL.</td></tr>';
+        return;
+      }
+
+      const isAdmin = isCurrentUserAdmin();
+
+      tbody.innerHTML = accounts.map(a => {
+        const role = (a.role || 'CUSTOMER').toUpperCase();
+        let roleBadge = '';
+        if (role === 'ADMIN') {
+          roleBadge = '<span class="badge" style="background: rgba(198, 156, 84, 0.18); color: #8F6B27; border: 1px solid var(--accent-gold); font-weight: 800;">ADMIN</span>';
+        } else if (role === 'STAFF') {
+          roleBadge = '<span class="badge" style="background: rgba(37, 99, 235, 0.15); color: #1D4ED8; border: 1px solid #93C5FD; font-weight: 700;">STAFF</span>';
+        } else {
+          roleBadge = '<span class="badge" style="background: rgba(34, 197, 94, 0.15); color: #15803D; border: 1px solid #86EFAC; font-weight: 700;">CUSTOMER</span>';
+        }
+
+        let actionHtml = '';
+        if (isAdmin) {
+          actionHtml = `
+            <div style="display: flex; gap: 6px; align-items: center;">
+              <select id="role-select-${a.id}" class="field-select" style="height: 30px; font-size: 11.5px; padding: 2px 6px; min-width: 95px;">
+                <option value="CUSTOMER" ${role === 'CUSTOMER' ? 'selected' : ''}>CUSTOMER</option>
+                <option value="STAFF" ${role === 'STAFF' ? 'selected' : ''}>STAFF</option>
+                <option value="ADMIN" ${role === 'ADMIN' ? 'selected' : ''}>ADMIN</option>
+              </select>
+              <button type="button" class="btn-action btn-primary" onclick="changeUserRole(${a.id})" style="height: 30px; padding: 0 10px; font-size: 11px; font-weight: 700; white-space: nowrap;">
+                Save
+              </button>
+            </div>
+          `;
+        } else {
+          actionHtml = `
+            <span style="font-size: 11.5px; color: var(--text-dim); display: inline-flex; align-items: center; gap: 4px;" title="Only users with ADMIN role can edit account roles">
+              <i data-lucide="lock" style="width: 12px; height: 12px;"></i> Admin Only
+            </span>
+          `;
+        }
+
+        return `
+          <tr>
+            <td><span style="font-family: var(--font-mono); font-size: 11px;">#${a.id}</span></td>
+            <td><strong style="font-family: var(--font-mono); color: var(--primary);">${escapeHtml(a.account_code || '—')}</strong></td>
+            <td><strong>${escapeHtml(a.name || '—')}</strong></td>
+            <td>${escapeHtml(a.email || '—')}</td>
+            <td>${escapeHtml(a.telephone || '—')}</td>
+            <td style="max-width: 180px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${escapeHtml(a.address || '')}">${escapeHtml(a.address || '—')}</td>
+            <td><span style="background: rgba(22,75,59,0.08); padding: 2px 6px; border-radius: 4px; font-family: var(--font-mono); font-size: 11px;">${escapeHtml(a.mock_card_ref || 'None')}</span></td>
+            <td><span style="background: rgba(58,139,104,0.12); color: var(--accent-emerald); padding: 2px 6px; border-radius: 4px; font-weight: 700; font-size: 11px;">${escapeHtml(a.status || 'ACTIVE')}</span></td>
+            <td>${roleBadge}</td>
+            <td style="font-size: 11.5px; color: var(--text-dim); white-space: nowrap;">${a.created_at ? new Date(a.created_at).toLocaleString() : '—'}</td>
+            <td style="font-size: 11.5px; color: var(--text-dim); white-space: nowrap;">${a.updated_at ? new Date(a.updated_at).toLocaleString() : '—'}</td>
+            <td>${actionHtml}</td>
+          </tr>
+        `;
+      }).join('');
+
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons();
+      }
+    }
+
+    async function changeUserRole(accountId) {
+      if (!isCurrentUserAdmin()) {
+        triggerToast("Access Denied: Only accounts with the ADMIN role can modify user roles.", "error");
+        return;
+      }
+      const selectElem = document.getElementById(`role-select-${accountId}`);
+      if (!selectElem) return;
+      const newRole = selectElem.value;
+
+      try {
+        const res = await authenticatedFetch(`${API_BASE}/api/staff/accounts/${accountId}/role`, {
+          method: 'PATCH',
+          body: JSON.stringify({ role: newRole }),
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          triggerToast(`Account #${accountId} role updated to ${newRole}!`);
+          loadDatabaseRecords();
+        } else {
+          triggerToast(data.message || "Failed to update account role.", "error");
+        }
+      } catch (err) {
+        triggerToast("Network error updating account role.", "error");
       }
     }
 

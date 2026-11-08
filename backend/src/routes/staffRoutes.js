@@ -9,6 +9,7 @@ router.use(requireAuth, requireStaff);
 // Bookings & Journey Dispatch
 router.get('/bookings', StaffController.getAllBookings);
 router.post('/bookings', StaffController.createStaffBooking);
+router.post('/verify-voucher', StaffController.verifyPromoCode);
 router.patch('/bookings/:id/status', StaffController.updateJourneyStatus);
 router.post('/bookings/:id/approaching-alert', StaffController.sendApproachingAlert);
 router.post('/bookings/:id/collect-cash', StaffController.collectCash);
@@ -16,6 +17,10 @@ router.post('/bookings/:id/collect-cash', StaffController.collectCash);
 // Caller lookup
 router.get('/customers/search', StaffController.searchCustomer);
 router.get('/caller-lookup', StaffController.searchCustomer);
+
+// Account Management & Role Administration (Admin editable)
+router.get('/accounts', StaffController.getAllAccounts);
+router.patch('/accounts/:id/role', StaffController.updateAccountRole);
 
 // Refunds queue
 router.get('/refunds', StaffController.getRefunds);

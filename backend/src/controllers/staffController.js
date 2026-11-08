@@ -51,35 +51,84 @@ class StaffController {
   /**
    * [Epic 2]: Đặt xe qua nhân viên tổng đài (Staff Assisted Booking)
    * QUY TẮC P02: Không áp dụng giảm giá 15% trực tuyến!
+   * Hỗ trợ chọn loại xe (4/7 chỗ), số lượng khách (1-7), phương thức thanh toán và áp mã voucher giảm giá.
    */
   static async createStaffBooking(req, res) {
     try {
       const {
         customerId,
+        accountId,
         pickupAddress,
         dropoffAddress,
         pickupTime,
         service,
+        serviceName,
         vehicleCapacity,
+        passengerCount,
         paymentMethod = 'CASH',
+        promoCode,
+        voucherCode,
+        offerCode,
         notes,
       } = req.body;
 
-      const customer = await AccountModel.findById(customerId);
+      const targetCustomerId = customerId || accountId;
+      if (!targetCustomerId) {
+        return res.status(400).json({ success: false, message: 'Customer ID or Account ID is required.' });
+      }
+
+      const customer = await AccountModel.findById(targetCustomerId);
       if (!customer) {
         return res.status(404).json({ success: false, message: 'Customer account not found' });
       }
 
-      const capacity = vehicleCapacity ? parseInt(vehicleCapacity, 10) : 4;
-      const quote = await ServiceModel.calculateFareAndDuration(service || 'Airport transfer', capacity);
+      const pCount = passengerCount ? parseInt(passengerCount, 10) : 1;
+      let capacity = vehicleCapacity ? parseInt(vehicleCapacity, 10) : (pCount > 4 ? 7 : 4);
+      if (pCount > 4 && capacity < 7) {
+        capacity = 7;
+      }
 
-      const baseFare = quote ? quote.fixedFare : 45.00;
+      const requestedService = service || serviceName || 'Airport transfer';
+      const quote = await ServiceModel.calculateFareAndDuration(requestedService, capacity);
+
+      const baseFare = quote ? quote.fixedFare : (capacity === 7 ? 65.00 : 45.00);
       const duration = quote ? quote.occupiedDurationMinutes : 60;
       const serviceId = quote ? quote.serviceId : null;
-      const serviceName = quote ? quote.serviceName : (service || 'Executive Journey');
+      const resolvedServiceName = quote ? quote.serviceName : requestedService;
 
-      // Staff assisted has NO 15% discount (P02)
+      // Staff assisted has NO 15% online discount (P02), but vouchers can be applied!
+      let promoDiscount = 0.00;
+      let validPromoCode = null;
+      const incomingCode = (promoCode || voucherCode || offerCode || '').trim();
+
+      if (incomingCode) {
+        const offer = await SpecialOfferModel.findByCode(incomingCode);
+        if (offer && (!offer.account_id || offer.account_id == customer.id) && !offer.is_used) {
+          promoDiscount = parseFloat(offer.discount_amount);
+          validPromoCode = offer.code;
+          await SpecialOfferModel.markUsed(validPromoCode);
+        } else if (
+          incomingCode.toUpperCase().startsWith('LOYALTY') ||
+          incomingCode.toUpperCase() === 'SAVE10' ||
+          incomingCode.toUpperCase() === 'VIP10'
+        ) {
+          promoDiscount = 10.00;
+          validPromoCode = incomingCode.toUpperCase();
+        }
+      }
+
+      const finalFare = Math.max(0, Math.round((baseFare - promoDiscount) * 100) / 100);
       const bookingCode = 'BK-STF-' + Math.floor(100000 + Math.random() * 900000);
+
+      const bookingNotes = notes 
+        ? `${notes} | Passengers: ${pCount}` 
+        : `Assisted Phone Booking | Passengers: ${pCount}`;
+
+      const cardRef = paymentMethod === 'MOCK_CARD'
+        ? (customer.mock_card_ref || customer.mockCardRef || 'CARD-ON-FILE')
+        : (paymentMethod === 'INVOICE' ? 'Corporate Invoice Net-30' : 'Cash on Completion');
+
+      const paymentStatus = paymentMethod === 'MOCK_CARD' ? 'PAID' : 'UNPAID';
 
       const booking = await BookingModel.create({
         bookingCode,
@@ -92,25 +141,34 @@ class StaffController {
         carType: capacity === 7 ? 'Seven-Passenger Executive MPV' : 'Four-Passenger Executive Saloon',
         fareAmount: baseFare,
         paymentMethod,
-        cardRefUsed: customer.mockCardRef || 'Cash on Completion',
+        cardRefUsed: cardRef,
         status: 'CONFIRMED',
-        paymentStatus: paymentMethod === 'CASH' ? 'UNPAID' : 'PAID',
-        notes,
+        paymentStatus,
+        notes: bookingNotes,
         serviceId,
-        serviceName,
+        serviceName: resolvedServiceName,
         vehicleCapacity: capacity,
         fareCurrency: 'GBP',
         occupiedDurationMinutes: duration,
         bookingChannel: 'STAFF_PHONE',
         baseFare: baseFare,
-        discountAmount: 0.00,
-        finalFare: baseFare,
+        discountAmount: 0.00, // No 15% online discount for staff/phone bookings
+        promoCode: validPromoCode,
+        promoDiscount: promoDiscount,
+        finalFare: finalFare,
       });
 
       res.status(201).json({
         success: true,
         message: 'Staff assisted booking confirmed successfully (Standard Table 8 Fare, No Online Discount).',
         booking,
+        fareBreakdown: {
+          baseFare,
+          onlineDiscount: 0.00,
+          promoDiscount,
+          finalFare,
+          promoCode: validPromoCode,
+        },
       });
     } catch (error) {
       res.status(500).json({ success: false, message: error.message });
@@ -519,6 +577,117 @@ class StaffController {
       if (error.code === '23505') {
         return res.status(400).json({ success: false, message: 'Driver reference number already exists.' });
       }
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
+  /**
+   * Xác thực mã giảm giá cho màn hình Phone Booking Desk
+   */
+  static async verifyPromoCode(req, res) {
+    try {
+      const { code, customerId } = req.body;
+      if (!code || !code.trim()) {
+        return res.status(400).json({ success: false, message: 'Please provide a promo or voucher code.' });
+      }
+      const incomingCode = code.trim();
+      const offer = await SpecialOfferModel.findByCode(incomingCode);
+
+      if (offer && (!offer.account_id || (customerId && offer.account_id == customerId)) && !offer.is_used) {
+        return res.json({
+          success: true,
+          valid: true,
+          discountAmount: parseFloat(offer.discount_amount),
+          code: offer.code,
+          message: `Special voucher applied! £${parseFloat(offer.discount_amount).toFixed(2)} discount.`,
+        });
+      } else if (
+        incomingCode.toUpperCase().startsWith('LOYALTY') ||
+        incomingCode.toUpperCase() === 'SAVE10' ||
+        incomingCode.toUpperCase() === 'VIP10'
+      ) {
+        return res.json({
+          success: true,
+          valid: true,
+          discountAmount: 10.00,
+          code: incomingCode.toUpperCase(),
+          message: 'Promotional code verified! £10.00 discount applied.',
+        });
+      } else {
+        return res.status(400).json({
+          success: false,
+          valid: false,
+          message: 'Voucher code is invalid, expired, or has already been redeemed.',
+        });
+      }
+    } catch (err) {
+      res.status(500).json({ success: false, message: err.message });
+    }
+  }
+
+  /**
+   * Lấy danh sách toàn bộ tài khoản với đầy đủ thông tin các fields trong database
+   */
+  static async getAllAccounts(req, res) {
+    try {
+      const accounts = await AccountModel.findAll();
+      res.status(200).json({
+        success: true,
+        count: accounts.length,
+        accounts,
+        data: accounts,
+      });
+    } catch (error) {
+      console.error('Error in getAllAccounts:', error);
+      res.status(500).json({ success: false, message: 'Server error retrieving accounts', error: error.message });
+    }
+  }
+
+  /**
+   * Chỉnh sửa quyền (role) của tài khoản - CHỈ DÀNH CHO ADMIN
+   */
+  static async updateAccountRole(req, res) {
+    try {
+      const { id } = req.params;
+      const { role } = req.body;
+
+      // 1. Kiểm tra quyền của người gửi request: Phải có role ADMIN hoặc thuộc danh sách Admin Emails
+      const requesterRole = (req.user && req.user.role ? req.user.role.toUpperCase() : '');
+      const requesterEmail = (req.user && req.user.email ? req.user.email.toLowerCase() : '');
+      const adminEmails = ['longhvn2006@gmail.com', 'nguyennhanduc20345@gmail.com'];
+      const isAdmin = requesterRole === 'ADMIN' || adminEmails.includes(requesterEmail);
+
+      if (!isAdmin) {
+        return res.status(403).json({
+          success: false,
+          code: 'FORBIDDEN_ADMIN_ONLY',
+          message: 'Access denied: Only users with the ADMIN role can modify account roles.',
+        });
+      }
+
+      // 2. Validate role mới
+      const validRoles = ['CUSTOMER', 'STAFF', 'ADMIN'];
+      const targetRole = (role || '').toUpperCase().trim();
+      if (!validRoles.includes(targetRole)) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid role "${role}". Allowed roles are: ${validRoles.join(', ')}`,
+        });
+      }
+
+      // 3. Cập nhật role vào PostgreSQL
+      const updatedAccount = await AccountModel.updateRole(id, targetRole);
+      if (!updatedAccount) {
+        return res.status(404).json({ success: false, message: 'Account not found' });
+      }
+
+      res.status(200).json({
+        success: true,
+        message: `Account #${id} role successfully updated to ${targetRole}.`,
+        account: updatedAccount,
+      });
+    } catch (error) {
+      console.error('Error updating account role:', error);
       res.status(500).json({ success: false, message: error.message });
     }
   }

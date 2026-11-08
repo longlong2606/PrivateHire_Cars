@@ -2,13 +2,13 @@ const db = require('../config/db');
 
 class AccountModel {
   /**
-   * Lấy danh sách tất cả tài khoản
+   * Lấy danh sách tất cả tài khoản kèm đầy đủ các trường trong database
    */
   static async findAll() {
     const sql = `
-      SELECT id, account_code, name, email, address, telephone, mock_card_ref, status, created_at 
+      SELECT id, account_code, name, email, telephone, address, mock_card_ref, status, role, created_at, updated_at 
       FROM accounts 
-      ORDER BY id DESC
+      ORDER BY id ASC
     `;
     const result = await db.query(sql);
     return result.rows;
@@ -19,11 +19,30 @@ class AccountModel {
    */
   static async findById(id) {
     const sql = `
-      SELECT id, account_code, name, email, address, telephone, mock_card_ref, status, created_at 
+      SELECT id, account_code, name, email, telephone, address, mock_card_ref, status, role, created_at, updated_at 
       FROM accounts 
       WHERE id = $1
     `;
     const result = await db.query(sql, [id]);
+    return result.rows[0] || null;
+  }
+
+  /**
+   * Cập nhật role của tài khoản (dành cho Admin)
+   */
+  static async updateRole(id, role) {
+    const validRoles = ['CUSTOMER', 'STAFF', 'ADMIN'];
+    const normalizedRole = (role || '').toUpperCase().trim();
+    if (!validRoles.includes(normalizedRole)) {
+      throw new Error(`Invalid role: ${role}. Valid roles are: ${validRoles.join(', ')}`);
+    }
+    const sql = `
+      UPDATE accounts 
+      SET role = $1, updated_at = CURRENT_TIMESTAMP 
+      WHERE id = $2 
+      RETURNING id, account_code, name, email, telephone, address, mock_card_ref, status, role, created_at, updated_at
+    `;
+    const result = await db.query(sql, [normalizedRole, id]);
     return result.rows[0] || null;
   }
 

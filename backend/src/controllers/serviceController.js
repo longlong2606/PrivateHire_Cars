@@ -1,10 +1,11 @@
 const ServiceModel = require('../models/serviceModel');
+const db = require('../config/db');
 
 /**
  * Controller quản lý dữ liệu 6 dịch vụ cố định (Table 8)
  */
 
-// 1. Lấy danh sách 6 dịch vụ mẫu
+// 1. Lấy danh sách 6 dịch vụ mẫu kèm độ phổ biến thực tế (booking count)
 const getServices = async (req, res) => {
   try {
     let services = await ServiceModel.getAll();
@@ -14,38 +15,72 @@ const getServices = async (req, res) => {
       services = await ServiceModel.seedServices();
     }
 
+    // Lấy số lượng đặt của từng dịch vụ từ bảng bookings
+    const countsRes = await db.query(
+      'SELECT service_name, COUNT(*) AS total FROM bookings GROUP BY service_name ORDER BY total DESC'
+    ).catch(() => ({ rows: [] }));
+
+    const countMap = {};
+    let maxCount = 0;
+    let mostPopularServiceName = null;
+    for (const r of countsRes.rows) {
+      const c = parseInt(r.total, 10) || 0;
+      countMap[r.service_name] = c;
+      if (c > maxCount) {
+        maxCount = c;
+        mostPopularServiceName = r.service_name;
+      }
+    }
+
     res.status(200).json({
       success: true,
       message: 'Seeded services retrieved successfully',
       count: services.length,
       currency: 'GBP',
       pricingRule: 'Fixed sample fare by service and vehicle capacity; not calculated from actual travel distance.',
-      services: services.map(s => ({
-        id: s.id,
-        serviceCode: s.service_code,
-        serviceName: s.service_name,
-        description: s.description,
-        fourPassengerFare: parseFloat(s.four_passenger_fare),
-        sevenPassengerFare: parseFloat(s.seven_passenger_fare),
-        occupiedDurationMinutes: parseInt(s.occupied_duration_minutes, 10),
-        currency: s.currency || 'GBP',
-        fares: {
-          fourPassenger: {
-            amount: parseFloat(s.four_passenger_fare),
-            currency: s.currency || 'GBP',
-            formatted: `£${parseFloat(s.four_passenger_fare).toFixed(2)}`,
+      mostPopularService: mostPopularServiceName,
+      services: services.map(s => {
+        const fourFare = parseFloat(s.four_passenger_fare);
+        const sevenFare = parseFloat(s.seven_passenger_fare);
+        const bCount = countMap[s.service_name] || 0;
+        const isPopular = Boolean(mostPopularServiceName && s.service_name.toLowerCase() === mostPopularServiceName.toLowerCase() && maxCount > 0);
+
+        return {
+          id: s.id,
+          serviceCode: s.service_code,
+          serviceName: s.service_name,
+          description: s.description,
+          fourPassengerFare: fourFare,
+          sevenPassengerFare: sevenFare,
+          occupiedDurationMinutes: parseInt(s.occupied_duration_minutes, 10),
+          currency: s.currency || 'GBP',
+          bookingCount: bCount,
+          isMostPopular: isPopular,
+          onlineDiscountPercent: 15,
+          onlineFourPassengerFare: Math.round(fourFare * 0.85 * 100) / 100,
+          onlineSevenPassengerFare: Math.round(sevenFare * 0.85 * 100) / 100,
+          fares: {
+            fourPassenger: {
+              amount: fourFare,
+              onlineAmount: Math.round(fourFare * 0.85 * 100) / 100,
+              currency: s.currency || 'GBP',
+              formatted: `£${fourFare.toFixed(2)}`,
+              onlineFormatted: `£${(Math.round(fourFare * 0.85 * 100) / 100).toFixed(2)}`,
+            },
+            sevenPassenger: {
+              amount: sevenFare,
+              onlineAmount: Math.round(sevenFare * 0.85 * 100) / 100,
+              currency: s.currency || 'GBP',
+              formatted: `£${sevenFare.toFixed(2)}`,
+              onlineFormatted: `£${(Math.round(sevenFare * 0.85 * 100) / 100).toFixed(2)}`,
+            },
           },
-          sevenPassenger: {
-            amount: parseFloat(s.seven_passenger_fare),
-            currency: s.currency || 'GBP',
-            formatted: `£${parseFloat(s.seven_passenger_fare).toFixed(2)}`,
+          duration: {
+            minutes: parseInt(s.occupied_duration_minutes, 10),
+            formatted: `${s.occupied_duration_minutes} mins`,
           },
-        },
-        duration: {
-          minutes: parseInt(s.occupied_duration_minutes, 10),
-          formatted: `${s.occupied_duration_minutes} mins`,
-        },
-      })),
+        };
+      }),
     });
   } catch (error) {
     console.error('Error fetching services:', error);
