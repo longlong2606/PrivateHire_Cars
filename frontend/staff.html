@@ -937,39 +937,64 @@
     </section>
 
     <!-- 7. Insights Tab -->
+    <!-- 7. Demand & Loyalty Insights Tab -->
     <section id="tab-insights" class="tab-content" style="display: none;">
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
         <div class="card-panel">
-          <h2 class="panel-title">Vehicle Popularity (Completed Trips)</h2>
-          <div class="table-container">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+            <h2 class="panel-title" style="margin-bottom: 0;">
+              <i data-lucide="car" style="width: 20px; height: 20px; color: var(--primary);"></i>
+              Vehicle Popularity (Completed Trips)
+            </h2>
+            <button class="btn-action" onclick="loadInsightsMetrics()" style="font-size: 12px;">
+              <i data-lucide="refresh-cw" style="width: 13px; height: 13px;"></i> Refresh
+            </button>
+          </div>
+          <p style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 14px;">
+            Total stored Completed journeys associated with each vehicle, ordered by count descending.
+          </p>
+          <div class="table-container" style="max-height: 480px; overflow-y: auto;">
             <table>
               <thead>
                 <tr>
-                  <th>Vehicle</th>
+                  <th>Registration</th>
+                  <th>Make &amp; Model</th>
                   <th>Capacity</th>
-                  <th>Completed Bookings</th>
+                  <th>Completed Trips</th>
                 </tr>
               </thead>
               <tbody id="popular-vehicles-body">
-                <tr><td colspan="3">Loading metrics...</td></tr>
+                <tr><td colspan="4" style="text-align: center; padding: 24px; color: var(--text-muted);">Loading vehicle popularity metrics...</td></tr>
               </tbody>
             </table>
           </div>
         </div>
 
         <div class="card-panel">
-          <h2 class="panel-title">Customer Loyalty (Completed Trips)</h2>
-          <div class="table-container">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+            <h2 class="panel-title" style="margin-bottom: 0;">
+              <i data-lucide="award" style="width: 20px; height: 20px; color: var(--accent-gold);"></i>
+              Customer Loyalty (Completed Trips)
+            </h2>
+            <button class="btn-action" onclick="loadInsightsMetrics()" style="font-size: 12px;">
+              <i data-lucide="refresh-cw" style="width: 13px; height: 13px;"></i> Refresh
+            </button>
+          </div>
+          <p style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 14px;">
+            Total stored Completed journeys per registered customer (including completed cash journeys). Customers with &ge; 3 completed trips earn loyalty rewards.
+          </p>
+          <div class="table-container" style="max-height: 480px; overflow-y: auto;">
             <table>
               <thead>
                 <tr>
-                  <th>Customer Name</th>
-                  <th>Email</th>
-                  <th>Completed Bookings</th>
+                  <th>Customer Account</th>
+                  <th>Email Address</th>
+                  <th>Telephone</th>
+                  <th>Completed Trips</th>
                 </tr>
               </thead>
               <tbody id="loyal-customers-body">
-                <tr><td colspan="3">Loading metrics...</td></tr>
+                <tr><td colspan="4" style="text-align: center; padding: 24px; color: var(--text-muted);">Loading customer loyalty metrics...</td></tr>
               </tbody>
             </table>
           </div>
@@ -1196,6 +1221,11 @@
         if (tt) tt.textContent = tabMeta[tabId].title;
       }
 
+      if (tabId === 'insights') loadInsightsMetrics();
+      if (tabId === 'fleet') loadFleetAndDrivers();
+      if (tabId === 'refunds') loadRefundQueue();
+      if (tabId === 'enquiries') loadEnquiriesQueue();
+      if (tabId === 'dispatch') loadDispatchQueue();
       if (tabId === 'database') loadDatabaseRecords();
       lucide.createIcons();
     }
@@ -1239,6 +1269,21 @@
               </tr>
             `;
           }).join('');
+        }
+      } catch (_) {}
+    }
+
+    async function progressJourney(bookingId, nextStatus) {
+      try {
+        const res = await authenticatedFetch(`${API_BASE}/api/staff/bookings/${bookingId}/status`, {
+          method: 'PATCH',
+          body: JSON.stringify({ status: nextStatus, staffId: 1 })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          triggerToast(`Journey updated to ${nextStatus}!`);
+          loadDispatchQueue();
+          loadInsightsMetrics();
         }
       } catch (_) {}
     }
@@ -1672,27 +1717,80 @@
 
     // Insights Metrics
     async function loadInsightsMetrics() {
+      const vTbody = document.getElementById('popular-vehicles-body');
+      const cTbody = document.getElementById('loyal-customers-body');
       try {
         const res = await authenticatedFetch(`${API_BASE}/api/staff/reports/popularity-loyalty`);
         const data = await res.json();
         if (res.ok && data.success) {
-          document.getElementById('popular-vehicles-body').innerHTML = (data.popularVehicles || []).map(v => `
-            <tr>
-              <td><strong>${v.make} (${v.registration_number})</strong></td>
-              <td>${v.capacity} Pax</td>
-              <td><strong>${v.completed_trips || 0}</strong> trips</td>
-            </tr>
-          `).join('') || '<tr><td colspan="3">No completed trips yet.</td></tr>';
+          const rawVehicles = data.vehiclePopularity || data.popularVehicles || [];
+          const rawCustomers = data.customerLoyalty || data.loyalCustomers || [];
 
-          document.getElementById('loyal-customers-body').innerHTML = (data.loyalCustomers || []).map(c => `
-            <tr>
-              <td><strong>${c.name}</strong></td>
-              <td>${c.email}</td>
-              <td><strong>${c.completed_trips || 0}</strong> trips</td>
-            </tr>
-          `).join('') || '<tr><td colspan="3">No completed trips yet.</td></tr>';
+          // Sort descending by completed trips count
+          const sortedVehicles = [...rawVehicles].sort((a, b) => 
+            parseInt(b.completed_trips_count || b.completed_trips || 0, 10) - 
+            parseInt(a.completed_trips_count || a.completed_trips || 0, 10)
+          );
+
+          // Filter only vehicles with at least 1 completed trip to show popularity
+          // AC4: "Results are ordered by count descending and show an empty state when no results exist."
+          const activeVehicles = sortedVehicles.filter(v => parseInt(v.completed_trips_count || v.completed_trips || 0, 10) > 0);
+
+          if (vTbody) {
+            if (activeVehicles.length === 0) {
+              vTbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 24px;">No completed vehicle trips recorded yet. Complete journeys in Dispatch to view vehicle popularity.</td></tr>';
+            } else {
+              vTbody.innerHTML = activeVehicles.map(v => {
+                const reg = v.reg_number || v.registration_number || '—';
+                const model = v.make_model || (v.make ? `${v.make} ${v.model || ''}` : 'Executive Chauffeur Vehicle');
+                const trips = parseInt(v.completed_trips_count || v.completed_trips || 0, 10);
+                return `
+                  <tr>
+                    <td><strong style="color: var(--primary); font-family: var(--font-mono); font-size: 13.5px;">${reg}</strong></td>
+                    <td>${model}</td>
+                    <td><span class="badge badge-assigned">${v.capacity} Pax</span></td>
+                    <td><span class="badge badge-completed" style="font-size: 12.5px; font-weight: 700;">${trips} ${trips === 1 ? 'trip' : 'trips'}</span></td>
+                  </tr>
+                `;
+              }).join('');
+            }
+          }
+
+          // Filter only customers with at least 1 completed trip
+          const sortedCustomers = [...rawCustomers].sort((a, b) => 
+            parseInt(b.completed_trips_count || b.completed_trips || 0, 10) - 
+            parseInt(a.completed_trips_count || a.completed_trips || 0, 10)
+          );
+          const activeCustomers = sortedCustomers.filter(c => parseInt(c.completed_trips_count || c.completed_trips || 0, 10) > 0);
+
+          if (cTbody) {
+            if (activeCustomers.length === 0) {
+              cTbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 24px;">No completed customer journeys recorded yet.</td></tr>';
+            } else {
+              cTbody.innerHTML = activeCustomers.map(c => {
+                const trips = parseInt(c.completed_trips_count || c.completed_trips || 0, 10);
+                const isLoyaltyAwarded = trips >= 3;
+                return `
+                  <tr>
+                    <td>
+                      <strong style="color: var(--text-main); font-size: 13.5px;">${c.name}</strong>
+                      <div style="font-size: 11px; color: var(--text-dim); font-family: var(--font-mono);">${c.account_code || ''}</div>
+                    </td>
+                    <td>${c.email}</td>
+                    <td>${c.telephone || '—'}</td>
+                    <td>
+                      <span class="badge badge-completed" style="font-size: 12.5px; font-weight: 700;">${trips} ${trips === 1 ? 'trip' : 'trips'}</span>
+                      ${isLoyaltyAwarded ? '<span class="badge" style="background:#FFF8E1; color:#F57F17; border:1px solid #FFE082; font-size:10.5px; margin-left:6px; font-weight:700;">🏆 Loyalty Promo Active</span>' : ''}
+                    </td>
+                  </tr>
+                `;
+              }).join('');
+            }
+          }
         }
-      } catch (_) {}
+      } catch (err) {
+        console.error("Error loading insights metrics:", err);
+      }
     }
 
     // Live Database Records Table

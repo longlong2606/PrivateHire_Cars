@@ -133,7 +133,13 @@ class StaffController {
         if (!driverId) {
           return res.status(400).json({ success: false, message: 'Driver must be selected to move booking to ASSIGNED' });
         }
-        const resolvedVehicle = vehicleId || booking.vehicle_id;
+        let resolvedVehicle = vehicleId || booking.vehicle_id;
+        if (!resolvedVehicle) {
+          const avail = await VehicleModel.getAvailableVehicles({ capacity: booking.vehicle_capacity || 4 });
+          if (avail.length > 0) {
+            resolvedVehicle = avail[0].id;
+          }
+        }
         await BookingModel.assignDriverAndVehicle(bookingId, driverId, resolvedVehicle);
       } else {
         await BookingModel.updateStatus(bookingId, status);
@@ -313,7 +319,9 @@ class StaffController {
       res.json({
         success: true,
         vehiclePopularity,
+        popularVehicles: vehiclePopularity,
         customerLoyalty,
+        loyalCustomers: customerLoyalty,
       });
     } catch (error) {
       res.status(500).json({ success: false, message: error.message });
