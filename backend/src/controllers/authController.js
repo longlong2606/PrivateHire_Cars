@@ -96,6 +96,7 @@ const login = async (req, res) => {
         telephone: account.telephone,
         address: account.address,
         mockCardRef: account.mock_card_ref,
+        role: account.role || 'CUSTOMER',
         status: account.status,
       },
     });
@@ -184,6 +185,7 @@ const getCustomerProfile = async (req, res) => {
         address: account.address,
         telephone: account.telephone,
         mockCardRef: account.mock_card_ref,
+        role: account.role || 'CUSTOMER',
         status: account.status,
         createdAt: account.created_at,
       },

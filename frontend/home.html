@@ -13,9 +13,7 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   
-  <!-- Leaflet Map CSS & JS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- PRD: Executive London Dispatch System (Leaflet Radar removed: no real-time GPS needed per P04) -->
 
   <style>
     :root {
@@ -1057,243 +1055,42 @@
       }
     }
 
-    /* Map Viewport Box & Real-time Telemetry Dashboard */
-    .map-embed-viewport {
-      height: 480px;
-      width: 100%;
-      position: relative;
-      background: #F8F5EE;
-    }
-
-    #embedded-hcmc-map {
-      width: 100%;
-      height: 100%;
-    }
-
-    /* Live GPS & ETA Telemetry Status Bar */
-    .telemetry-live-bar {
-      padding: 12px 18px;
-      background: #FAF7F2;
-      border-bottom: 1px solid var(--border-subtle);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-
-    .telemetry-metrics-cluster {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-      flex-wrap: wrap;
-    }
-
-    .telemetry-box {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .telemetry-box .t-label {
-      font-size: 10px;
-      font-weight: 700;
-      color: var(--text-dim);
-      font-family: var(--font-mono);
-      letter-spacing: 0.5px;
-    }
-
-    .telemetry-box .t-value {
-      font-size: 15px;
-      font-weight: 800;
-      color: var(--text-main);
-      font-family: var(--font-mono);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .telemetry-box .t-value.highlight-green {
-      color: var(--accent-emerald);
-    }
-
-    .telemetry-box .t-value.highlight-blue {
-      color: var(--primary);
-    }
-
-    .driver-status-live {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 10px;
-      border-radius: 6px;
-      background: rgba(58, 139, 104, 0.12);
-      border: 1px solid rgba(58, 139, 104, 0.3);
-      color: var(--accent-emerald);
+    /* =========================================================================
+       EXECUTIVE LONDON DISPATCH & PASSENGER HUB STYLES (PRD P03, P04, P07, P09)
+       ========================================================================= */
+    .status-badge-pill {
       font-family: var(--font-mono);
       font-size: 11px;
       font-weight: 700;
-    }
-
-    /* GPS Locate & Simulation Buttons */
-    .map-action-ctrls {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .btn-gps-locate {
-      background: var(--primary);
-      color: #fff;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 11.5px;
-      font-weight: 700;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: var(--transition-smooth);
-    }
-
-    .btn-gps-locate:hover {
-      background: var(--primary-hover);
-      box-shadow: 0 0 12px rgba(22, 75, 59, 0.4);
-    }
-
-    .btn-sim-rush {
-      background: #FFFFFF;
-      color: var(--text-muted);
-      border: 1px solid var(--border-medium);
-      padding: 6px 10px;
-      border-radius: 6px;
-      font-size: 11px;
-      font-family: var(--font-mono);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      transition: var(--transition-smooth);
-    }
-
-    .btn-sim-rush:hover {
-      border-color: var(--accent-gold);
-      color: var(--accent-gold);
-    }
-
-    /* Overlay HUD inside Map */
-    .map-hud-overlay {
-      position: absolute;
-      bottom: 16px;
-      left: 16px;
-      right: 16px;
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(14px);
-      border: 1px solid var(--border-medium);
-      border-radius: var(--radius-md);
-      padding: 12px 18px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      z-index: 999;
-      box-shadow: 0 12px 30px rgba(37, 53, 46, 0.15);
-    }
-
-    .map-marker-tooltip {
-      background: #FFFFFF !important;
-      border: 1px solid var(--border-medium) !important;
-      color: var(--text-main) !important;
-      font-size: 11px !important;
-      font-family: var(--font-body) !important;
-      font-weight: 600 !important;
-      border-radius: 6px !important;
-      padding: 3px 8px !important;
-      box-shadow: 0 4px 15px rgba(37, 53, 46, 0.15) !important;
-    }
-    .map-marker-tooltip::before {
-      border-top-color: #FFFFFF !important;
-    }
-    .map-marker-tooltip.pickup {
-      border-color: var(--accent-emerald) !important;
-      color: var(--accent-emerald) !important;
-    }
-    .map-marker-tooltip.dropoff {
-      border-color: var(--border-error) !important;
-      color: var(--border-error) !important;
-    }
-
-    /* Live GPS Radar Pulse Animation for Passenger Pin */
-    .gps-passenger-pulse {
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      background: var(--accent-emerald);
-      border: 3px solid #fff;
-      box-shadow: 0 0 0 0 rgba(58, 139, 104, 0.8);
-      animation: passengerPulse 1.8s infinite;
-      position: relative;
-    }
-
-    @keyframes passengerPulse {
-      0% { box-shadow: 0 0 0 0 rgba(58, 139, 104, 0.8); }
-      70% { box-shadow: 0 0 0 16px rgba(58, 139, 104, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(58, 139, 104, 0); }
-    }
-
-    .chauffeur-car-badge {
-      background: var(--primary);
-      border: 2px solid var(--accent-gold);
-      color: #fff;
       padding: 3px 8px;
       border-radius: 6px;
-      font-size: 11px;
-      font-weight: 700;
-      display: flex;
+      display: inline-flex;
       align-items: center;
-      gap: 5px;
-      box-shadow: 0 6px 18px rgba(37, 53, 46, 0.25);
-      white-space: nowrap;
+      gap: 4px;
     }
+    .status-confirmed { background: rgba(58, 139, 104, 0.12); color: #3A8B68; }
+    .status-assigned { background: rgba(22, 75, 59, 0.12); color: #164B3B; }
+    .status-enroute { background: rgba(198, 156, 84, 0.18); color: #C69C54; }
+    .status-completed { background: rgba(58, 139, 104, 0.18); color: #2D6B50; }
+    .status-cancelled { background: rgba(185, 74, 72, 0.12); color: #B94A48; }
 
-    .hud-trip-stats {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .hud-stat-item {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .hud-stat-label {
-      font-size: 10.5px;
-      color: var(--text-dim);
-      font-weight: 600;
-      text-transform: uppercase;
-      font-family: var(--font-mono);
-    }
-
-    .hud-stat-val {
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--text-main);
-    }
-
-    .hud-driver-chip {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding-left: 14px;
-      border-left: 1px solid var(--border-subtle);
-    }
-
-    .hud-driver-img {
-      width: 34px;
-      height: 34px;
-      border-radius: 50%;
-      border: 1.5px solid var(--primary);
-      object-fit: cover;
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #receipt-printable-content, #receipt-printable-content * {
+        visibility: visible;
+      }
+      #receipt-printable-content {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0;
+        padding: 20px;
+        box-shadow: none;
+        border: none;
+      }
     }
 
     /* -------------------------------------------------------------------------
@@ -1823,8 +1620,26 @@
       </div>
 
       <div class="nav-right-actions">
+        <!-- Staff Operations Portal Shortcut (P06) -->
+        <a href="staff.html" class="btn-wireframe-link" style="background: rgba(198, 156, 84, 0.15); border-color: rgba(198, 156, 84, 0.4); color: #C69C54; font-weight: 700;" title="Open Staff Dispatch Operations Portal">
+          <i data-lucide="shield" style="width: 14px; height: 14px;"></i>
+          <span>Staff Portal</span>
+        </a>
+
+        <!-- Customer Enquiry & Support Button (Epic 1) -->
+        <button type="button" class="btn-wireframe-link" onclick="openCustomerEnquiryModal()" style="background: #FFFFFF; cursor: pointer;" title="Customer Support &amp; Enquiries">
+          <i data-lucide="help-circle" style="width: 14px; height: 14px; color: var(--primary);"></i>
+          <span>Enquiries</span>
+        </button>
+
+        <!-- Web Notifications Bell (P04: Approaching Vehicle Alerts) -->
+        <button type="button" class="btn-wireframe-link" id="btn-top-notif" onclick="openNotificationsModal()" style="background: #FFFFFF; cursor: pointer;" title="Persistent Notifications &amp; Alerts">
+          <i data-lucide="bell" style="width: 14px; height: 14px; color: var(--primary);"></i>
+          <span id="top-notif-count" style="display:none; background:#B94A48; color:#fff; border-radius:10px; font-size:10px; padding:1px 6px; font-weight:700;">0</span>
+        </button>
+
         <!-- Shortcut link to AC Database & Emails -->
-        <button type="button" class="btn-wireframe-link" onclick="openAcDataModal()" style="background: rgba(22, 75, 59, 0.08); border-color: rgba(22, 75, 59, 0.25); color: #164B3B; cursor: pointer;" title="View Database Accounts & Emails (AC4/AC5)">
+        <button type="button" class="btn-wireframe-link" onclick="openAcDataModal()" style="background: rgba(22, 75, 59, 0.08); border-color: rgba(22, 75, 59, 0.25); color: #164B3B; cursor: pointer;" title="View Database Accounts &amp; Emails (AC4/AC5)">
           <i data-lucide="database" style="width: 14px; height: 14px;"></i>
           <span>Database (AC4/AC5)</span>
         </button>
@@ -2012,20 +1827,50 @@
               <option value="Seven-Passenger Executive MPV">Seven-Passenger Executive MPV</option>
             </select>
 
-            <!-- Real-time Fixed Quote Banner -->
-            <div id="booking-quote-banner" style="background: rgba(22, 75, 59, 0.05); border: 1.5px solid rgba(22, 75, 59, 0.15); border-radius: 10px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;">
-              <div>
-                <div style="font-size: 10.5px; text-transform: uppercase; font-family: var(--font-mono); color: var(--text-dim); font-weight: 700;">Guaranteed Fixed Fare</div>
-                <div style="font-size: 20px; font-weight: 800; color: var(--accent-emerald); font-family: var(--font-heading);" id="bk-fare-quote-display">£45.00 GBP</div>
+            <!-- Special Offers & Promo Code Input (P09) -->
+            <div>
+              <label style="font-size: 12px; font-weight: 600; color: var(--text-main); display: block; margin-bottom: 6px;">Special Offer / Loyalty Promo Code</label>
+              <div style="display: flex; gap: 8px;">
+                <input type="text" id="bk-promo-code" class="field-input" placeholder="e.g. LOYALTY10" style="height: 40px; font-size: 12px; font-family: var(--font-mono); text-transform: uppercase;" />
+                <button type="button" class="btn-wireframe-link" onclick="applyPromoCodeInput()" style="height: 40px; white-space: nowrap; font-weight: 700; color: var(--primary); padding: 0 14px; cursor: pointer;">
+                  <i data-lucide="tag" style="width: 13px; height: 13px;"></i> Apply
+                </button>
               </div>
-              <div style="text-align: right;">
-                <div style="font-size: 10.5px; text-transform: uppercase; font-family: var(--font-mono); color: var(--text-dim); font-weight: 700;">Occupied Duration</div>
-                <div style="font-size: 14.5px; font-weight: 700; color: var(--primary);" id="bk-duration-quote-display">90 minutes</div>
+              <div id="bk-promo-feedback" style="font-size: 11px; margin-top: 4px; display: none;"></div>
+            </div>
+
+            <!-- Real-time Fixed Quote Banner with 15% Online Self-Service Discount (P02) -->
+            <div id="booking-quote-banner" style="background: rgba(22, 75, 59, 0.05); border: 1.5px solid rgba(22, 75, 59, 0.15); border-radius: 12px; padding: 14px 16px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 12px; color: var(--text-muted);">
+                <span>Table 8 Demonstration Fare:</span>
+                <span id="bk-base-fare-display" style="font-family: var(--font-mono); font-weight: 600;">£45.00 GBP</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 12px; color: var(--accent-emerald);">
+                <span style="display: flex; align-items: center; gap: 4px;">
+                  <i data-lucide="sparkles" style="width: 12px; height: 12px;"></i>
+                  <strong>15% Online Self-Service Discount (P02):</strong>
+                </span>
+                <span id="bk-discount-display" style="font-family: var(--font-mono); font-weight: 700;">-£6.75 GBP</span>
+              </div>
+              <div id="bk-promo-row" style="display: none; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 12px; color: var(--accent-gold);">
+                <strong>Loyalty Promo Deduction (P09):</strong>
+                <span id="bk-promo-deduct-display" style="font-family: var(--font-mono); font-weight: 700;">-£0.00 GBP</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: baseline; border-top: 1px dashed rgba(22, 75, 59, 0.2); padding-top: 8px; margin-top: 4px;">
+                <div>
+                  <div style="font-size: 10px; text-transform: uppercase; font-family: var(--font-mono); color: var(--text-dim); font-weight: 700;">Guaranteed Net Payable</div>
+                  <div style="font-size: 22px; font-weight: 800; color: var(--primary); font-family: var(--font-heading);" id="bk-fare-quote-display">£38.25 GBP</div>
+                </div>
+                <div style="text-align: right;">
+                  <div style="font-size: 10px; text-transform: uppercase; font-family: var(--font-mono); color: var(--text-dim); font-weight: 700;">Occupied Duration</div>
+                  <div style="font-size: 14.5px; font-weight: 700; color: var(--accent-emerald);" id="bk-duration-quote-display">90 minutes</div>
+                </div>
               </div>
             </div>
+
             <div style="font-size: 11px; color: var(--text-muted); line-height: 1.4; display: flex; align-items: center; gap: 6px;">
               <i data-lucide="info" style="width: 13px; height: 13px; color: var(--primary-light); flex-shrink: 0;"></i>
-              <span>Fare is fixed based on service &amp; vehicle capacity; not calculated from travel distance.</span>
+              <span>Fare is fixed based on service &amp; vehicle capacity (Table 8) with automatic 15% online self-service discount.</span>
             </div>
 
             <button type="button" class="btn-register-solid" id="btn-submit-booking-action" onclick="handleOnlineBookingSubmit()" style="width: 100%; height: 48px; justify-content: center; margin-top: 6px; font-size: 14px;">
@@ -2042,154 +1887,151 @@
       </section>
 
       <!-- ---------------------------------------------------------------
-           2. FULL-WIDTH LIVE CHAUFFEUR GPS TELEMETRY & INTERACTIVE MAP
+           2. EXECUTIVE JOURNEY TRACKING & DISPATCH HUB (PRD P04 & P09)
            --------------------------------------------------------------- -->
-      <section>
+      <section id="dispatch-hub-section">
         <div class="section-header-row">
           <div>
-            <span class="section-eyebrow">REAL-TIME GPS TELEMETRY</span>
-            <h2 class="section-headline">Live Chauffeur Radar &amp; Route Telemetry</h2>
+            <span class="section-eyebrow">PASSENGER JOURNEY &amp; PRIVILEGES</span>
+            <h2 class="section-headline">Active Journey Tracking &amp; Loyalty Hub</h2>
           </div>
-          <span class="section-tag-mono">LEAFLET REAL-TIME RADAR ENGINE</span>
+          <span class="section-tag-mono">LONDON DISPATCH &bull; NO GPS REQUIRED (P04)</span>
         </div>
 
-        <div class="live-map-card-container">
+        <!-- Approaching Vehicle Sticky Alert (P04) -->
+        <div id="approaching-car-alert-banner" style="display:none; background: linear-gradient(135deg, #164B3B, #0E3529); color:#FFFFFF; border: 2px solid #C69C54; border-radius: 14px; padding: 18px 22px; margin-bottom: 24px; box-shadow: 0 12px 30px rgba(22,75,59,0.3); align-items: center; justify-content: space-between; gap: 16px;">
+          <div style="display:flex; align-items:center; gap:16px;">
+            <div style="width: 44px; height: 44px; border-radius: 50%; background: #C69C54; color: #164B3B; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; animation: radarBlink 1.5s infinite;">
+              🚗
+            </div>
+            <div>
+              <div style="font-family: var(--font-heading); font-size: 16px; font-weight: 800; color: #F5E6CC; letter-spacing: 0.5px; text-transform: uppercase;">
+                🚨 Chauffeur Approaching Your Pickup Location!
+              </div>
+              <div style="font-size: 13.5px; color: #E8E2D5; margin-top: 4px;" id="approaching-banner-text">
+                Your driver is en route and nearing your door for booking <strong id="appr-bk-code" style="color:#C69C54;">BK-000000</strong>. Vehicle: <strong id="appr-car-info">LD68 PHC (Mercedes S-Class)</strong>. Please be ready at your pickup entrance.
+              </div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 10px; flex-shrink: 0;">
+            <button type="button" onclick="openPrintableReceiptForActive()" class="btn-wireframe-link" style="background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.3); color: #FFFFFF; font-size: 12px; cursor: pointer;">
+              <i data-lucide="receipt" style="width: 14px; height: 14px;"></i>
+              <span>View Receipt</span>
+            </button>
+            <button type="button" onclick="dismissApproachingAlert()" class="btn-wireframe-link" style="background: #C69C54; border-color: #C69C54; color: #164B3B; font-weight: 700; font-size: 12px; cursor: pointer;">
+              <span>I Am Ready</span>
+            </button>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 24px;">
           
-          <!-- Top Control Header: Map View & Info -->
-          <div class="live-map-header">
-            <div class="live-map-header-title">
-              <span class="live-radar-pulse"></span>
-              <span>Live Chauffeur GPS Telemetry (Ho Chi Minh City Dispatch)</span>
-            </div>
-
-            <!-- Map View Layer Switcher -->
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="font-size: 11px; font-family: var(--font-mono); color: var(--text-dim);">MAP VIEW:</span>
-              <div class="map-route-pills">
-                <button class="route-pill-btn active" id="btn-l-street" onclick="changeMapTileStyle('street')">Street</button>
-                <button class="route-pill-btn" id="btn-l-dark" onclick="changeMapTileStyle('dark')">Night</button>
-                <button class="route-pill-btn" id="btn-l-sat" onclick="changeMapTileStyle('satellite')">Satellite</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- VIP Route Preset Selector (Clear Purpose & Explicit Role) -->
-          <div class="route-preset-selector-bar">
-            <div class="route-preset-label-col">
-              <div style="display:flex; align-items:center; gap:6px;">
-                <i data-lucide="route" style="width: 14px; height: 14px; color: var(--primary-light);"></i>
-                <span>SELECT PRE-BOOKED VIP ROUTE (AUTO-FILLS FORM &amp; MAP):</span>
-              </div>
-              <span style="font-size: 10px; color: var(--accent-emerald);">● FIXED PRICE GUARANTEE</span>
-            </div>
-
-            <div class="route-preset-buttons-row">
-              <button class="route-preset-card-btn active" id="btn-r-d7" onclick="switchRoutePreset('d7-sgn')">
-                <div class="btn-preset-main">
-                  <span>District 7 ➔ SGN</span>
-                  <i data-lucide="check" class="preset-active-check" style="width: 12px; height: 12px; margin-left: auto;"></i>
+          <!-- Card A: Active Trip Tracker Card -->
+          <div style="background: #FFFFFF; border: 1.5px solid var(--border-medium); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-elevated); display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-subtle); padding-bottom: 14px; margin-bottom: 18px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(22,75,59,0.1); color: var(--primary); display: flex; align-items: center; justify-content: center;">
+                    <i data-lucide="navigation" style="width: 18px; height: 18px;"></i>
+                  </div>
+                  <div>
+                    <h3 style="font-family: var(--font-heading); font-size: 17px; font-weight: 700; color: var(--primary); margin: 0;">
+                      Current Journey Dispatch Status
+                    </h3>
+                    <span style="font-size: 11.5px; color: var(--text-dim);">Real-time dispatch lifecycle (P03/P04)</span>
+                  </div>
                 </div>
-                <div class="btn-preset-sub">123 Nguyen Van Linh ➔ Airport VIP (450K)</div>
-              </button>
+                <span id="active-trip-status-pill" style="font-family: var(--font-mono); font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; background: rgba(58,139,104,0.1); color: var(--accent-emerald);">
+                  CHECKING STATUS...
+                </span>
+              </div>
 
-              <button class="route-preset-card-btn" id="btn-r-d1" onclick="switchRoutePreset('d1-sgn')">
-                <div class="btn-preset-main">
-                  <span>District 1 ➔ SGN</span>
-                  <i data-lucide="check" class="preset-active-check" style="width: 12px; height: 12px; margin-left: auto; display:none;"></i>
+              <!-- Journey Status Stepper -->
+              <div style="display: flex; justify-content: space-between; align-items: center; position: relative; margin: 24px 10px 28px 10px;">
+                <div style="position: absolute; top: 14px; left: 10%; right: 10%; height: 3px; background: var(--border-subtle); z-index: 1;"></div>
+                <div id="stepper-progress-bar" style="position: absolute; top: 14px; left: 10%; width: 0%; height: 3px; background: var(--accent-emerald); z-index: 2; transition: width 0.5s ease;"></div>
+                
+                <div style="text-align: center; position: relative; z-index: 3;">
+                  <div id="step-dot-1" style="width: 30px; height: 30px; border-radius: 50%; background: #FAF7F2; border: 2px solid var(--border-medium); color: var(--text-muted); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; margin: 0 auto 6px auto;">1</div>
+                  <span style="font-size: 11px; font-weight: 600; color: var(--text-main);">Confirmed</span>
                 </div>
-                <div class="btn-preset-sub">Park Hyatt D1 ➔ Airport VIP (350K)</div>
-              </button>
-
-              <button class="route-preset-card-btn" id="btn-r-l81" onclick="switchRoutePreset('l81-d7')">
-                <div class="btn-preset-main">
-                  <span>Landmark 81 ➔ D7</span>
-                  <i data-lucide="check" class="preset-active-check" style="width: 12px; height: 12px; margin-left: auto; display:none;"></i>
+                <div style="text-align: center; position: relative; z-index: 3;">
+                  <div id="step-dot-2" style="width: 30px; height: 30px; border-radius: 50%; background: #FAF7F2; border: 2px solid var(--border-medium); color: var(--text-muted); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; margin: 0 auto 6px auto;">2</div>
+                  <span style="font-size: 11px; font-weight: 600; color: var(--text-muted);">Assigned</span>
                 </div>
-                <div class="btn-preset-sub">Landmark 81 ➔ Crescent Mall (420K)</div>
+                <div style="text-align: center; position: relative; z-index: 3;">
+                  <div id="step-dot-3" style="width: 30px; height: 30px; border-radius: 50%; background: #FAF7F2; border: 2px solid var(--border-medium); color: var(--text-muted); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; margin: 0 auto 6px auto;">3</div>
+                  <span style="font-size: 11px; font-weight: 600; color: var(--text-muted);">En Route</span>
+                </div>
+                <div style="text-align: center; position: relative; z-index: 3;">
+                  <div id="step-dot-4" style="width: 30px; height: 30px; border-radius: 50%; background: #FAF7F2; border: 2px solid var(--border-medium); color: var(--text-muted); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; margin: 0 auto 6px auto;">4</div>
+                  <span style="font-size: 11px; font-weight: 600; color: var(--text-muted);">Completed</span>
+                </div>
+              </div>
+
+              <!-- Active Journey Details Box -->
+              <div id="active-trip-box" style="background: #FAF7F2; border: 1px solid var(--border-subtle); border-radius: 12px; padding: 16px; font-size: 13px;">
+                <div style="color: var(--text-dim); text-align: center; padding: 10px;">
+                  Sign in or submit a booking above to track your live London dispatch status.
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-top: 16px; display: flex; gap: 10px; justify-content: flex-end;">
+              <button type="button" class="btn-wireframe-link" onclick="openCustomerProfileModal()" style="font-size: 12px; cursor: pointer;">
+                <i data-lucide="history" style="width: 14px; height: 14px;"></i>
+                <span>All My Bookings</span>
               </button>
-            </div>
-          </div>
-
-          <!-- Active Synced Route Bar showing live pickup & destination synced to registration form -->
-          <div class="route-active-synced-bar">
-            <div class="synced-point-badge">
-              <span class="synced-dot pickup"></span>
-              <span>Pickup: <strong id="synced-pickup-name" style="color:var(--text-main);">123 Nguyen Van Linh, District 7</strong></span>
-            </div>
-            <i data-lucide="arrow-right" style="width: 12px; height: 12px; color: var(--text-dim);"></i>
-            <div class="synced-point-badge">
-              <span class="synced-dot dropoff"></span>
-              <span>Dropoff: <strong id="synced-dropoff-name" style="color:var(--text-main);">Tan Son Nhat Airport (SGN)</strong></span>
-            </div>
-            <span style="margin-left: auto; font-family: var(--font-mono); font-size: 11px; color: var(--primary);" id="synced-sync-tag">⚡ Form Address Synced</span>
-          </div>
-
-          <!-- Real-Time Telemetry Bar: Live Distance in Meters & Countdown ETA -->
-          <div class="telemetry-live-bar">
-            <div class="telemetry-metrics-cluster">
-              <div class="telemetry-box">
-                <span class="t-label">LIVE STATUS</span>
-                <span class="driver-status-live" id="t-live-status">● EN ROUTE TO YOU</span>
-              </div>
-
-              <div class="telemetry-box">
-                <span class="t-label">DISTANCE TO DRIVER</span>
-                <span class="t-value highlight-blue" id="t-live-distance">480 METERS</span>
-              </div>
-
-              <div class="telemetry-box">
-                <span class="t-label">ESTIMATED PICKUP ETA</span>
-                <span class="t-value highlight-green" id="t-live-eta">2 MINS 15 SECS</span>
-              </div>
-
-              <div class="telemetry-box">
-                <span class="t-label">SPEED</span>
-                <span class="t-value" id="t-live-speed">38 km/h</span>
-              </div>
-            </div>
-
-            <div class="map-action-ctrls">
-              <button class="btn-gps-locate" onclick="locateUserGPSPosition()" title="Locate my real-time GPS position">
-                <i data-lucide="crosshair" style="width: 14px; height: 14px;"></i>
-                <span>Locate Me</span>
-              </button>
-              <button class="btn-sim-rush" onclick="rushDriverSimulation()" title="Speed up car simulation to test arrival">
-                <i data-lucide="zap" style="width: 13px; height: 13px;"></i>
-                <span>Rush Driver (3x)</span>
-              </button>
-              <button class="btn-sim-rush" onclick="resetDriverSimulation()" title="Reset car position">
-                <i data-lucide="rotate-ccw" style="width: 13px; height: 13px;"></i>
-                <span>Reset</span>
+              <button type="button" class="btn-wireframe-link" onclick="openCustomerEnquiryModal()" style="font-size: 12px; cursor: pointer;">
+                <i data-lucide="help-circle" style="width: 14px; height: 14px;"></i>
+                <span>Contact Dispatch</span>
               </button>
             </div>
           </div>
 
-          <!-- Embedded Map Canvas -->
-          <div class="map-embed-viewport">
-            <div id="embedded-hcmc-map"></div>
-
-            <!-- Overlay Real-Time HUD -->
-            <div class="map-hud-overlay">
-              <div class="hud-trip-stats">
-                <div class="hud-stat-item">
-                  <span class="hud-stat-label">Route</span>
-                  <span class="hud-stat-val" id="hud-route-label">14.2 km • 28 mins</span>
+          <!-- Card B: Special Offers & Loyalty Privileges (P09) -->
+          <div style="background: #FFFFFF; border: 1.5px solid var(--border-medium); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-elevated); display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-subtle); padding-bottom: 14px; margin-bottom: 18px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(198,156,84,0.15); color: #C69C54; display: flex; align-items: center; justify-content: center;">
+                    <i data-lucide="award" style="width: 18px; height: 18px;"></i>
+                  </div>
+                  <div>
+                    <h3 style="font-family: var(--font-heading); font-size: 17px; font-weight: 700; color: var(--primary); margin: 0;">
+                      Customer Loyalty Rewards (P09)
+                    </h3>
+                    <span style="font-size: 11.5px; color: var(--text-dim);">Earn £10 voucher every 3 completed journeys</span>
+                  </div>
                 </div>
-                <div class="hud-stat-item">
-                  <span class="hud-stat-label">Fixed Quote</span>
-                  <span class="hud-stat-val" style="color: var(--accent-emerald);" id="hud-price-label">450,000 VND</span>
+                <span id="cust-loyalty-trip-count" style="font-family: var(--font-mono); font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; background: rgba(198,156,84,0.15); color: #C69C54;">
+                  0 / 3 RIDES
+                </span>
+              </div>
+
+              <!-- Loyalty Progress Bar -->
+              <div style="margin-bottom: 18px;">
+                <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:6px;">
+                  <span style="color:var(--text-muted);">Next £10 Reward Voucher Progress:</span>
+                  <strong id="loyalty-progress-text" style="color:var(--primary);">0 of 3 completed</strong>
+                </div>
+                <div style="height: 8px; background: #FAF7F2; border-radius: 4px; overflow: hidden; border: 1px solid var(--border-subtle);">
+                  <div id="loyalty-progress-bar" style="height: 100%; width: 0%; background: linear-gradient(90deg, #C69C54, #E2C082); border-radius: 4px; transition: width 0.5s ease;"></div>
                 </div>
               </div>
 
-              <div class="hud-driver-chip">
-                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80" alt="Chauffeur" class="hud-driver-img" />
-                <div>
-                  <div style="font-size: 13px; font-weight: 700; color: #fff;">Tran Hoang Nam (★ 4.99)</div>
-                  <div style="font-size: 11px; font-family: var(--font-mono); color: var(--primary-light);">Mercedes S-Class (51H-998.88)</div>
+              <!-- Available Vouchers List -->
+              <div id="cust-vouchers-container" style="display: flex; flex-direction: column; gap: 10px;">
+                <div style="background: #FAF7F2; border: 1px dashed var(--border-subtle); border-radius: 10px; padding: 14px; font-size: 12.5px; color: var(--text-dim); text-align: center;">
+                  Complete 3 executive journeys to unlock an automatic £10 voucher code!
                 </div>
               </div>
             </div>
 
+            <div style="margin-top: 18px; font-size: 11.5px; color: var(--text-muted); line-height: 1.5; background: rgba(22,75,59,0.04); border-radius: 8px; padding: 10px 14px;">
+              <i data-lucide="info" style="width: 13px; height: 13px; color: var(--primary); display: inline-block; vertical-align: -2px; margin-right: 4px;"></i>
+              <strong>Loyalty Rule (P09):</strong> Vouchers are automatically generated and emailed upon your 3rd, 6th, etc. completed booking. Deductible at checkout after the 15% online discount.
+            </div>
           </div>
 
         </div>
@@ -2512,13 +2354,19 @@
         </div>
         <div style="display:flex; justify-content:space-between;">
           <span style="color:var(--text-dim);">Guaranteed Rate:</span>
-          <span style="color:var(--accent-emerald); font-weight:700;">450,000 VND (All tolls included)</span>
+          <span style="color:var(--accent-emerald); font-weight:700;" id="modal-confirmed-rate">£38.25 GBP (15% Discount Included)</span>
         </div>
       </div>
 
-      <button class="btn-register-solid" onclick="closeBookingConfirmedModal()">
-        <span>TRACK CHAUFFEUR ON LIVE MAP</span>
-      </button>
+      <div style="display: flex; gap: 10px;">
+        <button class="btn-register-solid" style="flex: 1; justify-content: center;" onclick="viewLastBookingReceipt()">
+          <i data-lucide="receipt" style="width: 16px; height: 16px;"></i>
+          <span>Print Receipt</span>
+        </button>
+        <button class="btn-wireframe-link" style="flex: 1; justify-content: center; border-color: rgba(255,255,255,0.3); color: #fff; background: rgba(255,255,255,0.1);" onclick="closeBookingConfirmedModal()">
+          <span>Close</span>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -2641,6 +2489,458 @@
     </div>
   </div>
 
+  
+  <!-- ===================================================================
+       SIMULATED PAYMENT GATEWAY MODAL (PRD P03)
+       Accommodates realistic scenarios: Visa check fail vs Success, Cash unpaid
+       =================================================================== -->
+  <div class="modal-overlay-backdrop" id="simulated-payment-modal" style="display:none; position:fixed; inset:0; background:rgba(37,53,46,0.7); backdrop-filter:blur(6px); z-index:9999; align-items:center; justify-content:center; padding:20px;">
+    <div style="background:#FFFFFF; border:1px solid #E8E2D5; border-radius:18px; max-width:540px; width:100%; max-height:90vh; overflow-y:auto; padding:28px 24px; box-shadow:0 25px 60px rgba(37,53,46,0.3);">
+      
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid #E8E2D5; padding-bottom:14px; margin-bottom:18px;">
+        <div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <i data-lucide="credit-card" style="width:22px; height:22px; color:#164B3B;"></i>
+            <h3 style="font-family:var(--font-heading); font-size:20px; font-weight:700; color:#164B3B; margin:0;">
+              Electronic Payment Gateway
+            </h3>
+          </div>
+          <span style="font-size:11.5px; color:#5E7168;">Simulated Gateway &bull; London Dispatch (PRD P03)</span>
+        </div>
+        <button type="button" onclick="closeSimulatedPaymentModal()" style="background:transparent; border:none; color:#5E7168; font-size:24px; cursor:pointer; line-height:1;">&times;</button>
+      </div>
+
+      <!-- Booking Summary & Itemized Breakdown -->
+      <div style="background:#FAF7F2; border:1px solid #E8E2D5; border-radius:12px; padding:16px; margin-bottom:18px; font-size:13px;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+          <span style="color:#5E7168;">Service &amp; Vehicle:</span>
+          <strong id="pay-modal-service" style="color:#25352E;">Airport transfer (4-pax)</strong>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+          <span style="color:#5E7168;">Pickup &rarr; Dropoff:</span>
+          <span id="pay-modal-route" style="color:#25352E; font-weight:600; max-width:60%; text-align:right;">Heathrow &rarr; The Ritz London</span>
+        </div>
+        <hr style="border:none; border-top:1px dashed #E8E2D5; margin:10px 0;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-size:12.5px; color:#5E7168;">
+          <span>Table 8 Demonstration Fare:</span>
+          <span id="pay-modal-base-fare" style="font-family:var(--font-mono); font-weight:600;">£45.00 GBP</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:4px; font-size:12.5px; color:#3A8B68;">
+          <span>15% Online Self-Service Discount (P02):</span>
+          <span id="pay-modal-online-disc" style="font-family:var(--font-mono); font-weight:700;">-£6.75 GBP</span>
+        </div>
+        <div id="pay-modal-promo-row" style="display:none; justify-content:space-between; margin-bottom:4px; font-size:12.5px; color:#C69C54;">
+          <span>Loyalty Promo Deduction (P09):</span>
+          <span id="pay-modal-promo-disc" style="font-family:var(--font-mono); font-weight:700;">-£0.00 GBP</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:11.5px; color:#84988F;">
+          <span>Estimated 20% VAT included:</span>
+          <span id="pay-modal-vat" style="font-family:var(--font-mono);">£7.65 GBP</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:baseline; border-top:1px solid #E8E2D5; padding-top:8px; margin-top:6px;">
+          <span style="font-weight:700; color:#164B3B; font-size:14px;">Total Payable:</span>
+          <strong id="pay-modal-net-fare" style="font-size:22px; font-weight:800; color:#164B3B; font-family:var(--font-mono);">£38.25 GBP</strong>
+        </div>
+      </div>
+
+      <!-- Payment Method Selection -->
+      <div style="margin-bottom:18px;">
+        <label style="font-size:12px; font-weight:700; color:#164B3B; display:block; margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px;">Select Payment Method</label>
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <label style="display:flex; align-items:center; gap:10px; background:#FAF7F2; border:1px solid #E8E2D5; border-radius:8px; padding:10px 14px; cursor:pointer;">
+            <input type="radio" name="pay-method" value="VISA" checked />
+            <span style="font-weight:600; color:#25352E; font-size:13px;">💳 Visa (Default Linked Card **** 4242)</span>
+          </label>
+          <label style="display:flex; align-items:center; gap:10px; background:#FAF7F2; border:1px solid #E8E2D5; border-radius:8px; padding:10px 14px; cursor:pointer;">
+            <input type="radio" name="pay-method" value="MASTERCARD" />
+            <span style="font-weight:600; color:#25352E; font-size:13px;">💳 Mastercard (Executive Card **** 8821)</span>
+          </label>
+          <label style="display:flex; align-items:center; gap:10px; background:#FAF7F2; border:1px solid #E8E2D5; border-radius:8px; padding:10px 14px; cursor:pointer;">
+            <input type="radio" name="pay-method" value="AMEX" />
+            <span style="font-weight:600; color:#25352E; font-size:13px;">💳 American Express (Corporate Centurion **** 3005)</span>
+          </label>
+          <label style="display:flex; align-items:center; gap:10px; background:#FAF7F2; border:1px solid #E8E2D5; border-radius:8px; padding:10px 14px; cursor:pointer;">
+            <input type="radio" name="pay-method" value="PAYPAL" />
+            <span style="font-weight:600; color:#25352E; font-size:13px;">🅿️ PayPal Express Checkout</span>
+          </label>
+          <label style="display:flex; align-items:center; gap:10px; background:#FAF7F2; border:1px solid #E8E2D5; border-radius:8px; padding:10px 14px; cursor:pointer;">
+            <input type="radio" name="pay-method" value="CASH" />
+            <span style="font-weight:600; color:#25352E; font-size:13px;">💵 Cash to Chauffeur (Confirmed as Unpaid &bull; Pay Driver)</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Simulated Gateway Decline Alert Box (P03) -->
+      <div id="pay-decline-box" style="display:none; background:rgba(185,74,72,0.08); border:1.5px solid #B94A48; border-radius:8px; padding:12px 14px; margin-bottom:16px; font-size:12.5px; color:#B94A48;">
+        <div style="font-weight:700; display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+          <i data-lucide="alert-triangle" style="width:16px; height:16px;"></i>
+          <span>PAYMENT SIMULATION: CARD AUTHORIZATION DECLINED</span>
+        </div>
+        <div id="pay-decline-msg">Simulated Visa check failure (Code 400: Card declined by issuer). You may retry or select Cash to Chauffeur.</div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <button type="button" class="btn-register-solid" id="btn-pay-success" onclick="executeSimulatedPayment('SUCCESS')" style="justify-content:center; padding:12px; font-size:13.5px; font-weight:700;">
+          <i data-lucide="check-circle-2" style="width:17px; height:17px;"></i>
+          <span>AUTHORIZE &amp; CONFIRM BOOKING (SIMULATE SUCCESS)</span>
+        </button>
+        <button type="button" class="btn-wireframe-link" onclick="executeSimulatedPayment('FAIL')" style="justify-content:center; padding:10px; font-size:12px; color:#B94A48; border-color:rgba(185,74,72,0.3); background:rgba(185,74,72,0.05); cursor:pointer;">
+          <i data-lucide="x-circle" style="width:15px; height:15px;"></i>
+          <span>Simulate Visa / Card Check Failure (P03 Requirement)</span>
+        </button>
+        <button type="button" class="btn-wireframe-link" onclick="closeSimulatedPaymentModal()" style="justify-content:center; padding:8px; font-size:12px; color:#5E7168; cursor:pointer;">
+          <span>Cancel &amp; Review Form</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===================================================================
+       OFFICIAL PRINTABLE VAT RECEIPT MODAL (PRD P03)
+       =================================================================== -->
+  <div class="modal-overlay-backdrop" id="printable-receipt-modal" style="display:none; position:fixed; inset:0; background:rgba(37,53,46,0.7); backdrop-filter:blur(6px); z-index:10000; align-items:center; justify-content:center; padding:20px;">
+    <div style="background:#FFFFFF; border:1px solid #E8E2D5; border-radius:18px; max-width:620px; width:100%; max-height:92vh; overflow-y:auto; padding:32px 28px; box-shadow:0 25px 60px rgba(37,53,46,0.3);" id="receipt-printable-content">
+      
+      <!-- Receipt Header -->
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:2px solid #164B3B; padding-bottom:16px; margin-bottom:20px;">
+        <div>
+          <div style="font-family:var(--font-heading); font-size:22px; font-weight:800; color:#164B3B; letter-spacing:-0.5px;">
+            PRIVATE HIRE CARS
+          </div>
+          <div style="font-size:11px; font-family:var(--font-mono); color:#5E7168; margin-top:2px;">
+            LONDON DISPATCH OPERATIONS LTD &bull; TfL LICENSED OPERATOR
+          </div>
+          <div style="font-size:10.5px; color:#84988F;">
+            100 New Bridge Street, London, EC4V 6JA &bull; VAT Reg GB 992 481 023
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <span style="background:rgba(58,139,104,0.12); color:#3A8B68; border:1px solid rgba(58,139,104,0.3); padding:3px 10px; border-radius:12px; font-family:var(--font-mono); font-size:11px; font-weight:700;">
+            OFFICIAL TAX RECEIPT
+          </span>
+          <div style="font-family:var(--font-mono); font-size:13px; font-weight:700; color:#164B3B; margin-top:6px;" id="rec-number">
+            REC-BK-000000
+          </div>
+          <div style="font-size:11px; color:#5E7168;" id="rec-date">
+            08/11/2026 12:00
+          </div>
+        </div>
+      </div>
+
+      <!-- Passenger & Journey Meta -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; background:#FAF7F2; border:1px solid #E8E2D5; border-radius:10px; padding:14px; margin-bottom:20px; font-size:12.5px;">
+        <div>
+          <span style="font-size:10.5px; text-transform:uppercase; color:#84988F; font-weight:700; display:block; margin-bottom:2px;">Passenger Details</span>
+          <strong id="rec-passenger-name" style="color:#25352E;">David Sterling</strong>
+          <div id="rec-passenger-phone" style="color:#5E7168; font-size:11.5px;">+44 7700 900123</div>
+        </div>
+        <div>
+          <span style="font-size:10.5px; text-transform:uppercase; color:#84988F; font-weight:700; display:block; margin-bottom:2px;">Allocated Fleet &amp; Chauffeur</span>
+          <div id="rec-vehicle-info" style="color:#164B3B; font-weight:600;">LN21 XEC (Mercedes S-Class)</div>
+          <div id="rec-driver-info" style="color:#5E7168; font-size:11.5px;">Chauffeur: James Stewart (DRV-001)</div>
+        </div>
+      </div>
+
+      <!-- Journey Route -->
+      <div style="margin-bottom:20px; font-size:13px;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+          <span style="color:#5E7168;">Executive Service:</span>
+          <strong id="rec-service-name" style="color:#164B3B;">Airport transfer</strong>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+          <span style="color:#5E7168;">Pickup Address:</span>
+          <span id="rec-pickup" style="color:#25352E; font-weight:600; text-align:right;">Heathrow Terminal 5</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+          <span style="color:#5E7168;">Dropoff Destination:</span>
+          <span id="rec-dropoff" style="color:#25352E; font-weight:600; text-align:right;">The Savoy, Strand, London</span>
+        </div>
+      </div>
+
+      <!-- Itemized Price Breakdown -->
+      <table style="width:100%; border-collapse:collapse; margin-bottom:20px; font-size:12.5px;">
+        <thead>
+          <tr style="border-bottom:1.5px solid #164B3B; text-align:left; color:#164B3B;">
+            <th style="padding:6px 0;">Description</th>
+            <th style="padding:6px 0; text-align:right;">Amount (GBP)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid #E8E2D5;">
+            <td style="padding:8px 0; color:#25352E;">Table 8 Demonstration Base Fare</td>
+            <td style="padding:8px 0; text-align:right; font-family:var(--font-mono);" id="rec-base-fare">£45.00</td>
+          </tr>
+          <tr style="border-bottom:1px solid #E8E2D5; color:#3A8B68;">
+            <td style="padding:8px 0;">15% Automatic Online Self-Service Discount (P02)</td>
+            <td style="padding:8px 0; text-align:right; font-family:var(--font-mono); font-weight:700;" id="rec-disc-amount">-£6.75</td>
+          </tr>
+          <tr id="rec-promo-row" style="border-bottom:1px solid #E8E2D5; color:#C69C54; display:none;">
+            <td style="padding:8px 0;">Loyalty Promo Voucher Deduction (P09)</td>
+            <td style="padding:8px 0; text-align:right; font-family:var(--font-mono); font-weight:700;" id="rec-promo-amount">-£0.00</td>
+          </tr>
+          <tr style="border-bottom:1px solid #E8E2D5; color:#5E7168; font-size:12px;">
+            <td style="padding:6px 0;">Subtotal (Net of 20% VAT)</td>
+            <td style="padding:6px 0; text-align:right; font-family:var(--font-mono);" id="rec-net-subtotal">£31.88</td>
+          </tr>
+          <tr style="border-bottom:2px solid #164B3B; color:#5E7168; font-size:12px;">
+            <td style="padding:6px 0;">VAT @ 20.0% (Included)</td>
+            <td style="padding:6px 0; text-align:right; font-family:var(--font-mono);" id="rec-vat-amount">£6.37</td>
+          </tr>
+          <tr>
+            <td style="padding:12px 0; font-size:15px; font-weight:800; color:#164B3B;">TOTAL PAID (GBP)</td>
+            <td style="padding:12px 0; text-align:right; font-size:18px; font-weight:800; color:#164B3B; font-family:var(--font-mono);" id="rec-total-paid">£38.25</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Payment Confirmation Stamp -->
+      <div style="background:#FAF7F2; border:1px solid #E8E2D5; border-radius:8px; padding:10px 14px; margin-bottom:24px; font-size:12px; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <span style="color:#5E7168;">Payment Status:</span>
+          <strong style="color:#3A8B68; margin-left:6px;" id="rec-pay-status">PAID IN FULL</strong>
+        </div>
+        <div>
+          <span style="color:#5E7168;">Method:</span>
+          <strong style="color:#164B3B; margin-left:6px;" id="rec-pay-method">VISA (Electronic)</strong>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div style="display:flex; gap:12px; justify-content:flex-end;">
+        <button type="button" class="btn-register-solid" onclick="window.print()" style="padding:10px 18px; font-size:13px; font-weight:700;">
+          <i data-lucide="printer" style="width:16px; height:16px;"></i>
+          <span>PRINT OFFICIAL RECEIPT</span>
+        </button>
+        <button type="button" class="btn-wireframe-link" onclick="closePrintableReceiptModal()" style="padding:10px 18px; font-size:13px; cursor:pointer;">
+          <span>Close</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===================================================================
+       CUSTOMER REVIEWS & RATINGS MODAL (PRD P07)
+       1-5 scale for Journey, Vehicle, Driver + text feedback on Completed
+       =================================================================== -->
+  <div class="modal-overlay-backdrop" id="trip-review-modal" style="display:none; position:fixed; inset:0; background:rgba(37,53,46,0.7); backdrop-filter:blur(6px); z-index:10000; align-items:center; justify-content:center; padding:20px;">
+    <div style="background:#FFFFFF; border:1px solid #E8E2D5; border-radius:18px; max-width:520px; width:100%; padding:28px 24px; box-shadow:0 25px 60px rgba(37,53,46,0.3);">
+      
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid #E8E2D5; padding-bottom:14px; margin-bottom:18px;">
+        <div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <i data-lucide="star" style="width:22px; height:22px; color:#C69C54;"></i>
+            <h3 style="font-family:var(--font-heading); font-size:20px; font-weight:700; color:#164B3B; margin:0;">
+              Rate Your Completed Journey
+            </h3>
+          </div>
+          <span style="font-size:11.5px; color:#5E7168;">Customer Feedback &bull; PRD P07 Compliance</span>
+        </div>
+        <button type="button" onclick="closeTripReviewModal()" style="background:transparent; border:none; color:#5E7168; font-size:24px; cursor:pointer; line-height:1;">&times;</button>
+      </div>
+
+      <input type="hidden" id="rev-booking-id" />
+      <div style="background:#FAF7F2; border:1px solid #E8E2D5; border-radius:8px; padding:10px 14px; margin-bottom:18px; font-size:12.5px;">
+        <span style="color:#5E7168;">Journey:</span>
+        <strong id="rev-booking-title" style="color:#164B3B; margin-left:6px;">BK-000000 (Airport transfer)</strong>
+      </div>
+
+      <!-- Rating Categories -->
+      <div style="display:flex; flex-direction:column; gap:16px; margin-bottom:20px;">
+        <div>
+          <label style="font-size:13px; font-weight:700; color:#164B3B; display:flex; justify-content:space-between;">
+            <span>1. Overall Journey Experience</span>
+            <span id="rev-journey-score" style="color:#C69C54; font-family:var(--font-mono);">5 / 5 ★</span>
+          </label>
+          <input type="range" id="rev-journey-slider" min="1" max="5" value="5" style="width:100%; accent-color:#C69C54; cursor:pointer;" oninput="document.getElementById('rev-journey-score').innerText = this.value + ' / 5 ★'" />
+        </div>
+
+        <div>
+          <label style="font-size:13px; font-weight:700; color:#164B3B; display:flex; justify-content:space-between;">
+            <span>2. Luxury Vehicle Comfort &amp; Cleanliness</span>
+            <span id="rev-vehicle-score" style="color:#C69C54; font-family:var(--font-mono);">5 / 5 ★</span>
+          </label>
+          <input type="range" id="rev-vehicle-slider" min="1" max="5" value="5" style="width:100%; accent-color:#C69C54; cursor:pointer;" oninput="document.getElementById('rev-vehicle-score').innerText = this.value + ' / 5 ★'" />
+        </div>
+
+        <div>
+          <label style="font-size:13px; font-weight:700; color:#164B3B; display:flex; justify-content:space-between;">
+            <span>3. Executive Chauffeur Professionalism</span>
+            <span id="rev-driver-score" style="color:#C69C54; font-family:var(--font-mono);">5 / 5 ★</span>
+          </label>
+          <input type="range" id="rev-driver-slider" min="1" max="5" value="5" style="width:100%; accent-color:#C69C54; cursor:pointer;" oninput="document.getElementById('rev-driver-score').innerText = this.value + ' / 5 ★'" />
+        </div>
+
+        <div>
+          <label style="font-size:12.5px; font-weight:600; color:#164B3B; display:block; margin-bottom:6px;">Comments &amp; Testimonial (Optional)</label>
+          <textarea id="rev-comments" class="field-input" rows="3" placeholder="Share your experience with our chauffeur and dispatch service..." style="font-size:12.5px; padding:10px;"></textarea>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:10px;">
+        <button type="button" class="btn-register-solid" onclick="submitTripReview()" style="flex:1; justify-content:center; padding:12px; font-weight:700;">
+          <i data-lucide="check" style="width:16px; height:16px;"></i>
+          <span>SUBMIT REVIEW</span>
+        </button>
+        <button type="button" class="btn-wireframe-link" onclick="closeTripReviewModal()" style="padding:12px 18px; cursor:pointer;">
+          <span>Cancel</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===================================================================
+       CUSTOMER SUPPORT & ENQUIRY MODAL (EPIC 1)
+       =================================================================== -->
+  <div class="modal-overlay-backdrop" id="customer-enquiry-modal" style="display:none; position:fixed; inset:0; background:rgba(37,53,46,0.7); backdrop-filter:blur(6px); z-index:10000; align-items:center; justify-content:center; padding:20px;">
+    <div style="background:#FFFFFF; border:1px solid #E8E2D5; border-radius:18px; max-width:520px; width:100%; padding:28px 24px; box-shadow:0 25px 60px rgba(37,53,46,0.3);">
+      
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid #E8E2D5; padding-bottom:14px; margin-bottom:18px;">
+        <div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <i data-lucide="help-circle" style="width:22px; height:22px; color:#164B3B;"></i>
+            <h3 style="font-family:var(--font-heading); font-size:20px; font-weight:700; color:#164B3B; margin:0;">
+              Customer Support &amp; Enquiries
+            </h3>
+          </div>
+          <span style="font-size:11.5px; color:#5E7168;">London Dispatch Customer Concierge &bull; Epic 1</span>
+        </div>
+        <button type="button" onclick="closeCustomerEnquiryModal()" style="background:transparent; border:none; color:#5E7168; font-size:24px; cursor:pointer; line-height:1;">&times;</button>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:20px;">
+        <div>
+          <label style="font-size:12px; font-weight:600; color:#164B3B; display:block; margin-bottom:4px;">Full Name</label>
+          <input type="text" id="enq-name" class="field-input" placeholder="Your name" style="height:38px; font-size:12.5px;" />
+        </div>
+        <div>
+          <label style="font-size:12px; font-weight:600; color:#164B3B; display:block; margin-bottom:4px;">Email Address</label>
+          <input type="email" id="enq-email" class="field-input" placeholder="name@example.com" style="height:38px; font-size:12.5px;" />
+        </div>
+        <div>
+          <label style="font-size:12px; font-weight:600; color:#164B3B; display:block; margin-bottom:4px;">Telephone</label>
+          <input type="tel" id="enq-phone" class="field-input" placeholder="+44 7700 900123" style="height:38px; font-size:12.5px;" />
+        </div>
+        <div>
+          <label style="font-size:12px; font-weight:600; color:#164B3B; display:block; margin-bottom:4px;">Booking Reference (Optional)</label>
+          <input type="text" id="enq-booking-code" class="field-input" placeholder="e.g. BK-123456" style="height:38px; font-size:12.5px; font-family:var(--font-mono); text-transform:uppercase;" />
+        </div>
+        <div>
+          <label style="font-size:12px; font-weight:600; color:#164B3B; display:block; margin-bottom:4px;">Message / Inquiry Details</label>
+          <textarea id="enq-message" class="field-input" rows="3" placeholder="Tell us how London Dispatch can assist you..." style="font-size:12.5px; padding:10px;"></textarea>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:10px;">
+        <button type="button" class="btn-register-solid" onclick="submitCustomerEnquiry()" style="flex:1; justify-content:center; padding:12px; font-weight:700;">
+          <i data-lucide="send" style="width:16px; height:16px;"></i>
+          <span>DISPATCH ENQUIRY</span>
+        </button>
+        <button type="button" class="btn-wireframe-link" onclick="closeCustomerEnquiryModal()" style="padding:12px 18px; cursor:pointer;">
+          <span>Cancel</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===================================================================
+       NOTIFICATIONS & ALERTS MODAL (PRD P04)
+       =================================================================== -->
+  <div class="modal-overlay-backdrop" id="notifications-modal" style="display:none; position:fixed; inset:0; background:rgba(37,53,46,0.7); backdrop-filter:blur(6px); z-index:10000; align-items:center; justify-content:center; padding:20px;">
+    <div style="background:#FFFFFF; border:1px solid #E8E2D5; border-radius:18px; max-width:540px; width:100%; max-height:88vh; overflow-y:auto; padding:28px 24px; box-shadow:0 25px 60px rgba(37,53,46,0.3);">
+      
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid #E8E2D5; padding-bottom:14px; margin-bottom:18px;">
+        <div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <i data-lucide="bell" style="width:22px; height:22px; color:#164B3B;"></i>
+            <h3 style="font-family:var(--font-heading); font-size:20px; font-weight:700; color:#164B3B; margin:0;">
+              Account Alerts &amp; Notifications
+            </h3>
+          </div>
+          <span style="font-size:11.5px; color:#5E7168;">Persistent in-account alerts (PRD P04)</span>
+        </div>
+        <button type="button" onclick="closeNotificationsModal()" style="background:transparent; border:none; color:#5E7168; font-size:24px; cursor:pointer; line-height:1;">&times;</button>
+      </div>
+
+      <div id="notifications-list" style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
+        <div style="padding:16px; text-align:center; color:#5E7168; font-size:13px;">Loading notifications...</div>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end;">
+        <button type="button" class="btn-wireframe-link" onclick="closeNotificationsModal()" style="padding:8px 18px; cursor:pointer;">
+          <span>Close</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===================================================================
+       AMEND BOOKING MODAL (PRD P05: >= 24h Notice)
+       =================================================================== -->
+  <div class="modal-overlay-backdrop" id="amend-booking-modal" style="display:none; position:fixed; inset:0; background:rgba(37,53,46,0.7); backdrop-filter:blur(6px); z-index:10000; align-items:center; justify-content:center; padding:20px;">
+    <div style="background:#FFFFFF; border:1px solid #E8E2D5; border-radius:18px; max-width:520px; width:100%; padding:28px 24px; box-shadow:0 25px 60px rgba(37,53,46,0.3);">
+      
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid #E8E2D5; padding-bottom:14px; margin-bottom:18px;">
+        <div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <i data-lucide="edit-3" style="width:22px; height:22px; color:#164B3B;"></i>
+            <h3 style="font-family:var(--font-heading); font-size:20px; font-weight:700; color:#164B3B; margin:0;">
+              Amend Journey Details
+            </h3>
+          </div>
+          <span style="font-size:11.5px; color:#5E7168;">Eligibility: &ge; 24h notice required (PRD P05)</span>
+        </div>
+        <button type="button" onclick="closeAmendBookingModal()" style="background:transparent; border:none; color:#5E7168; font-size:24px; cursor:pointer; line-height:1;">&times;</button>
+      </div>
+
+      <input type="hidden" id="amend-booking-id" />
+      <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:20px;">
+        <div>
+          <label style="font-size:12px; font-weight:600; color:#164B3B; display:block; margin-bottom:4px;">Pickup Location</label>
+          <input type="text" id="amend-pickup" class="field-input" style="height:38px; font-size:12.5px;" />
+        </div>
+        <div>
+          <label style="font-size:12px; font-weight:600; color:#164B3B; display:block; margin-bottom:4px;">Dropoff Destination</label>
+          <input type="text" id="amend-dropoff" class="field-input" style="height:38px; font-size:12.5px;" />
+        </div>
+        <div>
+          <label style="font-size:12px; font-weight:600; color:#164B3B; display:block; margin-bottom:4px;">Service Type</label>
+          <select id="amend-service" class="field-input" style="height:38px; font-size:12.5px;">
+            <option value="Local journey">Local journey (60m)</option>
+            <option value="Long-distance journey">Long-distance journey (180m)</option>
+            <option value="Airport transfer">Airport transfer (90m)</option>
+            <option value="Hotel transfer">Hotel transfer (60m)</option>
+            <option value="Airport meet-and-greet">Airport meet-and-greet (120m)</option>
+            <option value="Driver and car daily hire">Driver and car daily hire (480m)</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:12px; font-weight:600; color:#164B3B; display:block; margin-bottom:4px;">Vehicle Capacity</label>
+          <select id="amend-capacity" class="field-input" style="height:38px; font-size:12.5px;">
+            <option value="4">Four-passenger vehicle</option>
+            <option value="7">Seven-passenger vehicle</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:10px;">
+        <button type="button" class="btn-register-solid" onclick="submitAmendBooking()" style="flex:1; justify-content:center; padding:12px; font-weight:700;">
+          <i data-lucide="check" style="width:16px; height:16px;"></i>
+          <span>SAVE AMENDMENTS</span>
+        </button>
+        <button type="button" class="btn-wireframe-link" onclick="closeAmendBookingModal()" style="padding:12px 18px; cursor:pointer;">
+          <span>Cancel</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
   <!-- Notifications Rack -->
   <div class="toast-notifications-rack" id="toast-rack"></div>
 
@@ -2659,600 +2959,6 @@
     let activeCardBrand = "VISA";
     let isTermsChecked = true;
     let authModeCurrent = "register";
-    let leafletEmbeddedMap = null;
-    let mapRouteLine = null;
-    let mapPickupMarker = null;
-    let mapDropoffMarker = null;
-    let mapCarMarker = null;
-    let currentTileLayer = null;
-    let activeMapStyle = 'street';
-
-    // Telemetry & Driver Simulation State
-    let liveDriverPosition = null;
-    let livePassengerPosition = [10.7296, 106.7218]; // 123 Nguyen Van Linh, D7
-    let currentDestinationPosition = [10.8185, 106.6588]; // Tan Son Nhat Airport SGN
-    let driverSimulationTimer = null;
-    let simulationSpeedMultiplier = 1;
-    let currentRouteWaypoints = [];
-    let driverProgressFraction = 0;
-
-    // Free, high-resolution tile layers with ZERO watermarks & NO API key required
-    const tileProviders = {
-      street: {
-        layer: () => L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
-          maxZoom: 19,
-          attribution: '&copy; Esri World Street Map'
-        })
-      },
-      dark: {
-        layer: () => L.layerGroup([
-          L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', { maxZoom: 16 }),
-          L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', { maxZoom: 16 })
-        ])
-      },
-      satellite: {
-        layer: () => L.layerGroup([
-          L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19 }),
-          L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19 })
-        ])
-      }
-    };
-
-    // Calculate exact spherical distance in meters
-    function computeDistanceMeters(lat1, lon1, lat2, lon2) {
-      const R = 6371e3; // Earth radius in metres
-      const rad = Math.PI / 180;
-      const phi1 = lat1 * rad;
-      const phi2 = lat2 * rad;
-      const deltaPhi = (lat2 - lat1) * rad;
-      const deltaLambda = (lon2 - lon1) * rad;
-
-      const a = Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) +
-                Math.cos(phi1) * Math.cos(phi2) *
-                Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      return Math.round(R * c);
-    }
-
-    function initEmbeddedMap() {
-      const mapContainer = document.getElementById('embedded-hcmc-map');
-      if (!mapContainer) return;
-
-      const defaultCenter = [10.7769, 106.7009];
-      leafletEmbeddedMap = L.map('embedded-hcmc-map', {
-        zoomControl: true,
-        attributionControl: false
-      }).setView(defaultCenter, 12);
-
-      // Default: World Street Map (shows streets, bridges, airport, rivers clearly)
-      currentTileLayer = tileProviders.street.layer();
-      currentTileLayer.addTo(leafletEmbeddedMap);
-
-      // Allow clicking on map to reposition pickup point
-      leafletEmbeddedMap.on('click', (e) => {
-        setNewPassengerPickupLocation(e.latlng.lat, e.latlng.lng, "Selected Pickup Spot");
-      });
-
-      // Render initial route on map: D7 -> SGN (without filling blank input fields)
-      switchRoutePreset('d7-sgn', true);
-    }
-
-    function changeMapTileStyle(styleKey) {
-      if (!leafletEmbeddedMap || !tileProviders[styleKey]) return;
-
-      document.querySelectorAll('#btn-l-street, #btn-l-dark, #btn-l-sat').forEach(b => b.classList.remove('active'));
-      if (styleKey === 'street') document.getElementById('btn-l-street').classList.add('active');
-      if (styleKey === 'dark') document.getElementById('btn-l-dark').classList.add('active');
-      if (styleKey === 'satellite') document.getElementById('btn-l-sat').classList.add('active');
-
-      if (currentTileLayer) {
-        leafletEmbeddedMap.removeLayer(currentTileLayer);
-      }
-
-      currentTileLayer = tileProviders[styleKey].layer();
-      currentTileLayer.addTo(leafletEmbeddedMap);
-      activeMapStyle = styleKey;
-
-      triggerToast(`Switched map style to: ${styleKey.toUpperCase()}`);
-    }
-
-    // Real-time GPS Geolocation API
-    function locateUserGPSPosition() {
-      if (!navigator.geolocation) {
-        triggerToast("Geolocation is not supported by your browser.");
-        return;
-      }
-
-      triggerToast("Accessing device GPS coordinates...");
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const lat = position.coords.latitude;
-          const lon = position.coords.longitude;
-          setNewPassengerPickupLocation(lat, lon, "Your Live GPS Location (Precision: High)");
-          triggerToast("Successfully pinpointed your real-time GPS location!");
-        },
-        (error) => {
-          triggerToast("GPS access permission denied. Using 123 Nguyen Van Linh, D7.");
-          setNewPassengerPickupLocation(10.7296, 106.7218, "123 Nguyen Van Linh, D7 (Default GPS)");
-        },
-        { enableHighAccuracy: true, timeout: 8000 }
-      );
-    }
-
-    // Set new pickup location
-    function setNewPassengerPickupLocation(lat, lon, label) {
-      livePassengerPosition = [lat, lon];
-
-      if (mapPickupMarker && leafletEmbeddedMap) {
-        mapPickupMarker.setLatLng(livePassengerPosition);
-        mapPickupMarker.setTooltipContent(label);
-      }
-
-      // Re-initialize driver route to approach this pickup location
-      setupRouteAndDriverTrajectory(livePassengerPosition, currentDestinationPosition, label);
-    }
-
-    function switchRoutePreset(presetKey, isInitialLoad = false) {
-      document.querySelectorAll('#btn-r-d7, #btn-r-d1, #btn-r-l81').forEach(btn => {
-        btn.classList.remove('active');
-        const check = btn.querySelector('.preset-active-check');
-        if (check) check.style.display = 'none';
-      });
-      
-      let pCoord, dCoord, statsText, priceText, pLabel, dLabel, formAddressVal;
-
-      if (presetKey === 'd7-sgn') {
-        const b = document.getElementById('btn-r-d7');
-        if (b) {
-          b.classList.add('active');
-          const check = b.querySelector('.preset-active-check');
-          if (check) check.style.display = 'block';
-        }
-        pCoord = hcmLocations.d7;
-        dCoord = hcmLocations.sgn;
-        pLabel = "Pickup: 123 Nguyen Van Linh, D7";
-        dLabel = "Dropoff: Tan Son Nhat Airport SGN";
-        statsText = "14.2 km • 28 mins (Traffic: Light)";
-        priceText = "450,000 VND";
-        formAddressVal = "123 Nguyen Van Linh, District 7, HCMC";
-      } else if (presetKey === 'd1-sgn') {
-        const b = document.getElementById('btn-r-d1');
-        if (b) {
-          b.classList.add('active');
-          const check = b.querySelector('.preset-active-check');
-          if (check) check.style.display = 'block';
-        }
-        pCoord = hcmLocations.d1;
-        dCoord = hcmLocations.sgn;
-        pLabel = "Pickup: Park Hyatt Saigon, D1";
-        dLabel = "Dropoff: Tan Son Nhat Airport SGN";
-        statsText = "8.6 km • 18 mins (Direct Highway)";
-        priceText = "350,000 VND";
-        formAddressVal = "Park Hyatt Saigon, 2 Lam Son Square, District 1, HCMC";
-      } else {
-        const b = document.getElementById('btn-r-l81');
-        if (b) {
-          b.classList.add('active');
-          const check = b.querySelector('.preset-active-check');
-          if (check) check.style.display = 'block';
-        }
-        pCoord = hcmLocations.l81;
-        dCoord = hcmLocations.d7;
-        pLabel = "Pickup: Landmark 81 Tower";
-        dLabel = "Dropoff: Crescent Mall, D7";
-        statsText = "11.4 km • 22 mins (Via Thu Thiem)";
-        priceText = "420,000 VND";
-        formAddressVal = "Landmark 81 Tower, 720A Dien Bien Phu, Binh Thanh, HCMC";
-      }
-
-      // Update HUD and Synced Bar
-      document.getElementById('hud-route-label').innerText = statsText;
-      document.getElementById('hud-price-label').innerText = priceText;
-      document.getElementById('synced-pickup-name').innerText = pLabel.replace("Pickup: ", "");
-      document.getElementById('synced-dropoff-name').innerText = dLabel.replace("Dropoff: ", "");
-
-      // Synchronize Form Address field & add visual pulse
-      const addrInput = document.getElementById('f-address');
-      if (addrInput) {
-        addrInput.value = formAddressVal;
-        clearFieldError('address');
-        addrInput.style.borderColor = "#164B3B";
-        addrInput.style.boxShadow = "0 0 0 3px rgba(22, 75, 59, 0.25)";
-        setTimeout(() => {
-          addrInput.style.borderColor = "";
-          addrInput.style.boxShadow = "";
-        }, 1200);
-      }
-
-      // Synchronize Online Chauffeur Booking Inputs only when explicitly selected by user (not initial load)
-      if (!isInitialLoad) {
-        const bkPickup = document.getElementById('bk-pickup-input');
-        const bkDropoff = document.getElementById('bk-dropoff-input');
-        if (bkPickup) bkPickup.value = pLabel.replace("Pickup: ", "");
-        if (bkDropoff) bkDropoff.value = dLabel.replace("Dropoff: ", "");
-        if (bkPickup && bkDropoff) {
-          bkPickup.style.borderColor = "#164B3B";
-          bkDropoff.style.borderColor = "#164B3B";
-          setTimeout(() => {
-            bkPickup.style.borderColor = "";
-            bkDropoff.style.borderColor = "";
-          }, 1000);
-          if (typeof saveBookingFormState === 'function') {
-            saveBookingFormState(true);
-          }
-        }
-      }
-
-      livePassengerPosition = pCoord;
-      currentDestinationPosition = dCoord;
-
-      setupRouteAndDriverTrajectory(pCoord, dCoord, pLabel, dLabel);
-      if (!isInitialLoad) {
-        triggerToast(`Selected: ${pLabel} ➔ ${dLabel}. Route updated!`);
-      }
-      lucide.createIcons();
-    }
-
-    function setupRouteAndDriverTrajectory(pCoord, dCoord, pLabel, dLabel) {
-      if (!leafletEmbeddedMap) return;
-
-      if (mapRouteLine) leafletEmbeddedMap.removeLayer(mapRouteLine);
-      if (mapPickupMarker) leafletEmbeddedMap.removeLayer(mapPickupMarker);
-      if (mapDropoffMarker) leafletEmbeddedMap.removeLayer(mapDropoffMarker);
-      if (mapCarMarker) leafletEmbeddedMap.removeLayer(mapCarMarker);
-
-      // Route line from Pickup to Dropoff
-      const midPoint = [(pCoord[0]+dCoord[0])/2 + 0.012, (pCoord[1]+dCoord[1])/2 - 0.008];
-      currentRouteWaypoints = [pCoord, midPoint, dCoord];
-
-      mapRouteLine = L.polyline(currentRouteWaypoints, {
-        color: '#164B3B',
-        weight: 6,
-        opacity: 0.95,
-        dashArray: '8, 8'
-      }).addTo(leafletEmbeddedMap);
-
-      // Draggable Pickup Pin with pulse ring
-      const pIcon = L.divIcon({
-        className: 'custom-map-pin',
-        html: `<div class="gps-passenger-pulse"></div>`
-      });
-      mapPickupMarker = L.marker(pCoord, { icon: pIcon, draggable: true }).addTo(leafletEmbeddedMap);
-      mapPickupMarker.bindTooltip(pLabel || "Pickup Location (Drag to change)", { permanent: true, direction: 'top', className: 'map-marker-tooltip pickup' });
-      
-      mapPickupMarker.on('dragend', (e) => {
-        const pos = e.target.getLatLng();
-        setNewPassengerPickupLocation(pos.lat, pos.lng, "Adjusted Pickup Spot");
-      });
-
-      // Dropoff Pin
-      const dIcon = L.divIcon({
-        className: 'custom-map-pin',
-        html: `<div style="width:18px;height:18px;background:#B94A48;border:3px solid #fff;border-radius:50%;box-shadow:0 0 14px rgba(185,74,72,0.6);"></div>`
-      });
-      mapDropoffMarker = L.marker(dCoord, { icon: dIcon }).addTo(leafletEmbeddedMap);
-      mapDropoffMarker.bindTooltip(dLabel || "Destination", { permanent: true, direction: 'top', className: 'map-marker-tooltip dropoff' });
-
-      // Chauffeur Car starts approaching from ~650m away on adjacent street
-      const carStartOffset = [pCoord[0] + 0.0045, pCoord[1] - 0.0048];
-      liveDriverPosition = [...carStartOffset];
-
-      const carIcon = L.divIcon({
-        className: 'car-map-pin',
-        html: `<div class="chauffeur-car-badge"><span style="width:7px;height:7px;background:#C69C54;border-radius:50%;display:inline-block;"></span> Mercedes S450 (51H-998.88)</div>`
-      });
-      mapCarMarker = L.marker(liveDriverPosition, { icon: carIcon }).addTo(leafletEmbeddedMap);
-
-      leafletEmbeddedMap.fitBounds(L.latLngBounds([pCoord, liveDriverPosition, dCoord]), { padding: [60, 60] });
-
-      // Start / restart live driver telemetry & animation loop
-      startDriverAnimationLoop(carStartOffset, pCoord);
-    }
-
-    function startDriverAnimationLoop(startCoord, targetCoord) {
-      if (driverSimulationTimer) clearInterval(driverSimulationTimer);
-      driverProgressFraction = 0;
-      simulationSpeedMultiplier = 1;
-
-      updateTelemetryMetrics(startCoord, targetCoord);
-
-      driverSimulationTimer = setInterval(() => {
-        // Step driver closer to passenger
-        const stepRate = 0.015 * simulationSpeedMultiplier;
-        driverProgressFraction += stepRate;
-
-        if (driverProgressFraction >= 1) {
-          driverProgressFraction = 1;
-          liveDriverPosition = [targetCoord[0], targetCoord[1]];
-          mapCarMarker.setLatLng(liveDriverPosition);
-
-          // Arrived state
-          const statusElem = document.getElementById('t-live-status');
-          if (statusElem) {
-            statusElem.innerHTML = "● ARRIVED AT PICKUP SPOT!";
-            statusElem.style.color = "#10b981";
-          }
-          const distElem = document.getElementById('t-live-distance');
-          if (distElem) {
-            distElem.innerText = "0 METERS (HERE)";
-            distElem.classList.remove('highlight-blue');
-            distElem.classList.add('highlight-green');
-          }
-          const etaElem = document.getElementById('t-live-eta');
-          if (etaElem) etaElem.innerText = "ARRIVED (0 SECS)";
-          const speedElem = document.getElementById('t-live-speed');
-          if (speedElem) speedElem.innerText = "0 km/h (Parked)";
-
-          clearInterval(driverSimulationTimer);
-          triggerToast("Chauffeur Tran Hoang Nam has arrived at your pickup location!");
-          return;
-        }
-
-        // Interpolate position along line to target
-        const currentLat = startCoord[0] + (targetCoord[0] - startCoord[0]) * driverProgressFraction;
-        const currentLon = startCoord[1] + (targetCoord[1] - startCoord[1]) * driverProgressFraction;
-        liveDriverPosition = [currentLat, currentLon];
-
-        mapCarMarker.setLatLng(liveDriverPosition);
-        updateTelemetryMetrics(liveDriverPosition, targetCoord);
-      }, 1000);
-    }
-
-    function updateTelemetryMetrics(driverCoord, passengerCoord) {
-      const distMeters = computeDistanceMeters(driverCoord[0], driverCoord[1], passengerCoord[0], passengerCoord[1]);
-      
-      // Calculate realistic ETA based on ~38 km/h (10.5 m/s)
-      const speedMPS = 10.5;
-      const etaSeconds = Math.round(distMeters / speedMPS);
-      const etaMins = Math.floor(etaSeconds / 60);
-      const etaSecs = etaSeconds % 60;
-
-      // Update distance display in METERS
-      const distElem = document.getElementById('t-live-distance');
-      if (distElem) {
-        if (distMeters < 1000) {
-          distElem.innerText = `${distMeters} METERS`;
-        } else {
-          distElem.innerText = `${distMeters} m (${(distMeters/1000).toFixed(1)} km)`;
-        }
-      }
-
-      // Update ETA display
-      const etaElem = document.getElementById('t-live-eta');
-      if (etaElem) {
-        if (etaMins > 0) {
-          etaElem.innerText = `${etaMins} MINS ${etaSecs} SECS`;
-        } else {
-          etaElem.innerText = `${etaSecs} SECS (ARRIVING)`;
-        }
-      }
-
-      // Update speed display
-      const speedElem = document.getElementById('t-live-speed');
-      if (speedElem) {
-        speedElem.innerText = `${Math.round(36 + Math.random() * 6)} km/h`;
-      }
-      const statusElem = document.getElementById('t-live-status');
-      if (statusElem) {
-        statusElem.innerHTML = "● EN ROUTE TO YOU";
-      }
-    }
-
-    // Rush driver simulation (3.5x speed)
-    function rushDriverSimulation() {
-      simulationSpeedMultiplier = 3.5;
-      triggerToast("Rushing driver simulation (3.5x speed) — arriving shortly!");
-    }
-
-    // Reset driver simulation
-    function resetDriverSimulation() {
-      if (livePassengerPosition) {
-        setupRouteAndDriverTrajectory(livePassengerPosition, currentDestinationPosition);
-        triggerToast("Driver simulation reset to starting point.");
-      }
-    }
-    function toggleCardDropdownMenu() {
-      const menu = document.getElementById('dropdown-card-options');
-      const arrow = document.getElementById('card-dropdown-arrow');
-      menu.classList.toggle('open');
-      if (menu.classList.contains('open')) {
-        arrow.style.transform = 'rotate(180deg)';
-      } else {
-        arrow.style.transform = 'rotate(0deg)';
-      }
-    }
-
-    // Pick card option from dropdown
-    function pickCardOption(cardName, brand) {
-      activeCardSelected = cardName;
-      activeCardBrand = brand;
-
-      document.getElementById('badge-card-number').innerText = cardName;
-      document.getElementById('badge-card-type').innerText = brand;
-      document.getElementById('trigger-card-title').innerText = cardName;
-
-      document.querySelectorAll('.select-card-option').forEach(opt => {
-        if (opt.innerText.includes(cardName)) {
-          opt.classList.add('selected');
-        } else {
-          opt.classList.remove('selected');
-        }
-      });
-
-      triggerToast(`Payment card selected: ${cardName}`);
-    }
-
-    // Password visibility toggle
-    function togglePasswordVisibility(fieldId) {
-      const input = document.getElementById(fieldId);
-      input.type = input.type === 'password' ? 'text' : 'password';
-    }
-
-    // Terms agreement checkbox
-    function toggleAgreement() {
-      isTermsChecked = !isTermsChecked;
-      const box = document.getElementById('sq-terms-box');
-      if (isTermsChecked) {
-        box.classList.add('checked');
-      } else {
-        box.classList.remove('checked');
-      }
-    }
-
-    // Clear input validation error
-    function clearFieldError(fieldKey) {
-      const group = document.getElementById(`grp-${fieldKey}`);
-      if (group) group.classList.remove('has-error');
-    }
-
-    // Flag input validation error
-    function flagFieldError(fieldKey) {
-      const group = document.getElementById(`grp-${fieldKey}`);
-      if (group) group.classList.add('has-error');
-    }
-
-    // Simulate Prompt-exact validation errors
-    function applyStrictPromptErrors() {
-      const fn = document.getElementById('f-fullname');
-      if (fn) fn.value = "";
-      const mb = document.getElementById('f-mobile');
-      if (mb) mb.value = "+84 901 234 567";
-      const em = document.getElementById('f-email');
-      if (em) em.value = "user@invalid";
-      const ad = document.getElementById('f-address');
-      if (ad) ad.value = "123 Nguyen Van Linh, District 7, HCMC";
-      const pw = document.getElementById('f-password');
-      if (pw) pw.value = "12345678";
-      const cpw = document.getElementById('f-confirmpassword');
-      if (cpw) cpw.value = "1234567";
-
-      flagFieldError('fullname');
-      flagFieldError('email');
-      flagFieldError('confirmpassword');
-
-      triggerToast("Simulated validation error states from prompt specifications!");
-    }
-
-    // Pre-fill valid VIP profile
-    function applyValidDemoProfile() {
-      const fn = document.getElementById('f-fullname');
-      if (fn) fn.value = "Nguyen Van An";
-      const mb = document.getElementById('f-mobile');
-      if (mb) mb.value = "+84 901 234 567";
-      const em = document.getElementById('f-email');
-      if (em) em.value = "an.nguyen@enterprise.vn";
-      const ad = document.getElementById('f-address');
-      if (ad) ad.value = "123 Nguyen Van Linh, District 7, HCMC";
-      const pw = document.getElementById('f-password');
-      if (pw) pw.value = "ChauffeurVIP2026!";
-      const cpw = document.getElementById('f-confirmpassword');
-      if (cpw) cpw.value = "ChauffeurVIP2026!";
-
-      clearFieldError('fullname');
-      clearFieldError('mobile');
-      clearFieldError('email');
-      clearFieldError('address');
-      clearFieldError('password');
-      clearFieldError('confirmpassword');
-
-      evalPasswordStrength();
-      triggerToast("Pre-filled valid VIP passenger details!");
-    }
-
-    // Password strength check
-    function evalPasswordStrength() {
-      clearFieldError('password');
-      const pwInput = document.getElementById('f-password');
-      if (!pwInput) return;
-      const val = pwInput.value;
-      const s1 = document.getElementById('st-seg-1');
-      const s2 = document.getElementById('st-seg-2');
-      const s3 = document.getElementById('st-seg-3');
-      if (!s1 || !s2 || !s3) return;
-
-      s1.className = 'strength-segment';
-      s2.className = 'strength-segment';
-      s3.className = 'strength-segment';
-
-      if (val.length > 0 && val.length < 6) {
-        s1.classList.add('active-weak');
-      } else if (val.length >= 6 && val.length < 10) {
-        s1.classList.add('active-med');
-        s2.classList.add('active-med');
-      } else if (val.length >= 10) {
-        s1.classList.add('active-strong');
-        s2.classList.add('active-strong');
-        s3.classList.add('active-strong');
-      }
-    }
-
-    // Check logged in user on startup & update session UI
-    function checkSessionState() {
-      const sessionToken = localStorage.getItem('sessionToken');
-      const savedUser = localStorage.getItem('currentUser');
-      const visitorNav = document.getElementById('nav-visitor-actions');
-      const authNav = document.getElementById('nav-authenticated-actions');
-      const bookingBadge = document.getElementById('booking-auth-badge');
-      const bookingBtnLabel = document.getElementById('btn-booking-label');
-      const paymentCardInput = document.getElementById('bk-payment-card');
-
-      if (sessionToken && savedUser) {
-        try {
-          const u = JSON.parse(savedUser);
-          if (visitorNav) visitorNav.style.display = 'none';
-          if (authNav) authNav.style.display = 'flex';
-
-          if (document.getElementById('top-nav-username')) {
-            document.getElementById('top-nav-username').innerText = u.name ? u.name.split(' ')[0] : 'Customer';
-          }
-          if (document.getElementById('top-nav-avatar')) {
-            const initials = u.name ? u.name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase() : 'CU';
-            document.getElementById('top-nav-avatar').innerText = initials;
-          }
-
-          if (bookingBadge) {
-            bookingBadge.textContent = `AUTHENTICATED: ${u.accountCode || u.account_code || 'CUSTOMER'}`;
-            bookingBadge.style.background = 'rgba(58,139,104,0.15)';
-            bookingBadge.style.color = '#3A8B68';
-            bookingBadge.style.borderColor = 'rgba(58,139,104,0.3)';
-          }
-
-          if (bookingBtnLabel) {
-            bookingBtnLabel.textContent = 'SUBMIT ONLINE BOOKING (CONFIRM RIDE)';
-          }
-
-          if (paymentCardInput && (u.mockCardRef || u.mock_card_ref)) {
-            paymentCardInput.value = u.mockCardRef || u.mock_card_ref;
-          }
-          return;
-        } catch (e) {
-          console.warn('Session parse error:', e);
-        }
-      }
-
-      // Visitor State (Unauthenticated)
-      if (visitorNav) visitorNav.style.display = 'flex';
-      if (authNav) authNav.style.display = 'none';
-      if (document.getElementById('top-nav-username')) {
-        document.getElementById('top-nav-username').innerText = 'Visitor';
-      }
-      if (document.getElementById('top-nav-avatar')) {
-        document.getElementById('top-nav-avatar').innerText = 'VG';
-      }
-      if (bookingBadge) {
-        bookingBadge.textContent = 'VISITOR (AUTH REQUIRED)';
-        bookingBadge.style.background = 'rgba(185,74,72,0.1)';
-        bookingBadge.style.color = '#B94A48';
-        bookingBadge.style.borderColor = 'rgba(185,74,72,0.25)';
-      }
-      if (bookingBtnLabel) {
-        bookingBtnLabel.textContent = 'SUBMIT ONLINE BOOKING (AC)';
-      }
-      if (paymentCardInput) {
-        paymentCardInput.value = 'Sign in required to link card';
-      }
-    }
-
     // Sign out (AC: Sign-out and session handling)
     async function handleSignOut() {
       const sessionToken = localStorage.getItem('sessionToken');
@@ -3291,11 +2997,30 @@
       const sevenFare = parseFloat(opt.getAttribute('data-seven') || '65');
       const duration = opt.getAttribute('data-dur') || '90';
 
-      const fixedFare = cap === 7 ? sevenFare : fourFare;
+      const baseFare = cap === 7 ? sevenFare : fourFare;
+      const onlineDiscount = Math.round(baseFare * 0.15 * 100) / 100;
+      const promoDiscount = appliedPromoDiscountAmount || 0.00;
+      const netFare = Math.max(0, Math.round((baseFare - onlineDiscount - promoDiscount) * 100) / 100);
+
+      const baseDisplay = document.getElementById('bk-base-fare-display');
+      const discDisplay = document.getElementById('bk-discount-display');
+      const promoRow = document.getElementById('bk-promo-row');
+      const promoDisplay = document.getElementById('bk-promo-deduct-display');
       const fareDisplay = document.getElementById('bk-fare-quote-display');
       const durationDisplay = document.getElementById('bk-duration-quote-display');
 
-      if (fareDisplay) fareDisplay.innerText = `£${fixedFare.toFixed(2)} GBP`;
+      if (baseDisplay) baseDisplay.innerText = `£${baseFare.toFixed(2)} GBP`;
+      if (discDisplay) discDisplay.innerText = `-£${onlineDiscount.toFixed(2)} GBP`;
+      if (promoRow && promoDisplay) {
+        if (promoDiscount > 0) {
+          promoRow.style.display = 'flex';
+          promoDisplay.innerText = `-£${promoDiscount.toFixed(2)} GBP`;
+        } else {
+          promoRow.style.display = 'none';
+        }
+      }
+
+      if (fareDisplay) fareDisplay.innerText = `£${netFare.toFixed(2)} GBP`;
       if (durationDisplay) durationDisplay.innerText = `${duration} minutes`;
 
       const carTypeSelect = document.getElementById('bk-car-type');
@@ -3743,18 +3468,58 @@
           document.getElementById('cust-booking-count').textContent = bRes.count || bRes.bookings.length;
           const tbody = document.getElementById('cust-booking-table');
           if (!bRes.bookings || bRes.bookings.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="6" style="padding:16px; text-align:center; color:#5E7168;">No bookings submitted yet. Try the Online Booking form on the home page!</td></tr>`;
+            tbody.innerHTML = '<tr><td colspan="6" style="padding:16px; text-align:center; color:#5E7168;">No bookings found. Book your first ride above!</td></tr>';
           } else {
-            tbody.innerHTML = bRes.bookings.map(bk => `
+            tbody.innerHTML = bRes.bookings.map(bk => {
+              const fare = Number(bk.final_fare || bk.fare_amount || 0).toFixed(2);
+              const pickupTime = new Date(bk.pickup_time || bk.created_at);
+              const now = new Date();
+              const hoursDiff = (pickupTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+              const canAmendOrCancel = ['PENDING', 'CONFIRMED', 'ASSIGNED'].includes(bk.status) && hoursDiff >= 24;
+              const isCompleted = bk.status === 'COMPLETED';
+              const isPaid = bk.payment_status === 'PAID';
+
+              return `
               <tr style="border-bottom:1px solid #E8E2D5;">
-                <td style="padding:8px 10px; font-weight:bold; color:#164B3B; font-family:var(--font-mono);">${bk.booking_code}</td>
-                <td style="padding:8px 10px;">${bk.pickup_address}</td>
-                <td style="padding:8px 10px;">${bk.dropoff_address}</td>
-                <td style="padding:8px 10px; font-size:12px;">${bk.car_type}</td>
-                <td style="padding:8px 10px; font-weight:600; color:#3A8B68;">${Number(bk.fare_amount).toLocaleString()} VND</td>
-                <td style="padding:8px 10px;"><span style="background:rgba(58,139,104,0.12); color:#3A8B68; padding:2px 6px; border-radius:4px; font-size:11px; font-weight:600;">${bk.status}</span></td>
+                <td style="padding:10px 8px; font-weight:bold; color:#164B3B; font-family:var(--font-mono);">${bk.booking_code}</td>
+                <td style="padding:10px 8px;">
+                  <div style="font-weight:600; color:#25352E;">${bk.service_name || bk.car_type || 'Executive Service'}</div>
+                  <div style="font-size:11px; color:#5E7168;">${bk.pickup_address} &rarr; ${bk.dropoff_address}</div>
+                </td>
+                <td style="padding:10px 8px; font-weight:700; color:#164B3B; font-family:var(--font-mono);">£${fare}</td>
+                <td style="padding:10px 8px;">
+                  <span class="status-badge-pill status-${(bk.status || '').toLowerCase()}">${bk.status}</span>
+                  <div style="font-size:10px; color:${isPaid ? '#3A8B68' : '#B8860B'}; font-family:var(--font-mono); margin-top:2px;">
+                    ${bk.payment_status || 'UNPAID'}
+                  </div>
+                </td>
+                <td style="padding:10px 8px; text-align:right;">
+                  <div style="display:flex; gap:6px; justify-content:flex-end; flex-wrap:wrap;">
+                    ${isPaid ? `
+                      <button type="button" onclick="openPrintableReceipt('${bk.id}')" style="background:#FAF7F2; border:1px solid #E8E2D5; color:#164B3B; border-radius:4px; padding:3px 8px; font-size:11px; font-weight:600; cursor:pointer;" title="View Official Tax Receipt">
+                        📄 Receipt
+                      </button>
+                    ` : ''}
+                    ${canAmendOrCancel ? `
+                      <button type="button" onclick="openAmendBookingModal('${bk.id}', '${escapeAttr(bk.pickup_address)}', '${escapeAttr(bk.dropoff_address)}', '${escapeAttr(bk.service_name)}', ${bk.vehicle_capacity || 4})" style="background:#FAF7F2; border:1px solid #E8E2D5; color:#164B3B; border-radius:4px; padding:3px 8px; font-size:11px; font-weight:600; cursor:pointer;" title="Amend Journey Details (>=24h notice)">
+                        ✏️ Amend
+                      </button>
+                      <button type="button" onclick="cancelCustomerBooking('${bk.id}', '${bk.booking_code}')" style="background:rgba(185,74,72,0.08); border:1px solid rgba(185,74,72,0.3); color:#B94A48; border-radius:4px; padding:3px 8px; font-size:11px; font-weight:600; cursor:pointer;" title="Cancel Booking (>=24h notice with refund)">
+                        ✕ Cancel
+                      </button>
+                    ` : (['PENDING', 'CONFIRMED', 'ASSIGNED'].includes(bk.status) ? `
+                      <span style="font-size:10px; color:#84988F; font-style:italic;" title="Amendments and cancellations require at least 24 hours notice prior to pickup (< 24h remaining)">&lt;24h Locked</span>
+                    ` : '')}
+                    ${isCompleted ? `
+                      <button type="button" onclick="openTripReviewModal('${bk.id}', '${bk.booking_code}', '${escapeAttr(bk.service_name)}')" style="background:rgba(198,156,84,0.15); border:1px solid rgba(198,156,84,0.4); color:#C69C54; border-radius:4px; padding:3px 8px; font-size:11px; font-weight:700; cursor:pointer;" title="Rate Journey, Vehicle & Chauffeur">
+                        ⭐ Review
+                      </button>
+                    ` : ''}
+                  </div>
+                </td>
               </tr>
-            `).join('');
+              `;
+            }).join('');
           }
         }
       } catch (err) {
@@ -3798,6 +3563,11 @@
     window.addEventListener("DOMContentLoaded", () => {
       checkSessionState();
       initBookingFormPersistence();
+      checkActiveJourneyStatus();
+      checkCustomerOffers();
+      pollNotifications();
+      setInterval(checkActiveJourneyStatus, 15000);
+      setInterval(pollNotifications, 20000);
     });
 
     // Handle Registration Submit with Backend API (AC1 - AC5)
@@ -3908,6 +3678,748 @@
       }
     }
 
+    
+    // =========================================================================
+    // PRD BUSINESS RULES & EPICS FRONTEND INTEGRATION
+    // P02, P03, P04, P05, P06, P07, P08, P09, Epic 1
+    // =========================================================================
+
+    let pendingBookingPayload = null;
+    let lastConfirmedBookingId = null;
+    let activeCustomerBooking = null;
+    let appliedPromoDiscountAmount = 0.00;
+    let appliedPromoCodeValue = null;
+
+    // Helper: Escape string for HTML attribute
+    function escapeAttr(str) {
+      if (!str) return '';
+      return String(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    // [P09]: Validate Promo Code & Apply to Form Quote
+    async function applyPromoCodeInput() {
+      const codeInput = document.getElementById('bk-promo-code');
+      const feedback = document.getElementById('bk-promo-feedback');
+      if (!codeInput) return;
+
+      const code = codeInput.value.trim().toUpperCase();
+      if (!code) {
+        appliedPromoDiscountAmount = 0;
+        appliedPromoCodeValue = null;
+        updateCalculatedFareAndDuration();
+        if (feedback) feedback.style.display = 'none';
+        return;
+      }
+
+      const sessionToken = localStorage.getItem('sessionToken');
+      if (!sessionToken) {
+        triggerToast('Please sign in to validate promo vouchers.', 'info');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/bookings/validate-promo?code=${encodeURIComponent(code)}`, {
+          headers: { 'Authorization': `Bearer ${sessionToken}` }
+        }).then(r => r.json());
+
+        if (res.success && res.offer) {
+          appliedPromoDiscountAmount = parseFloat(res.offer.discount_amount || 10.00);
+          appliedPromoCodeValue = res.offer.code;
+          if (feedback) {
+            feedback.style.display = 'block';
+            feedback.style.color = '#3A8B68';
+            feedback.innerHTML = `✓ Valid promo! <strong>£${appliedPromoDiscountAmount.toFixed(2)} GBP</strong> discount will be deducted.`;
+          }
+          triggerToast(`Promo ${res.offer.code} applied: £${appliedPromoDiscountAmount.toFixed(2)} OFF!`, 'success');
+        } else {
+          appliedPromoDiscountAmount = 0;
+          appliedPromoCodeValue = null;
+          if (feedback) {
+            feedback.style.display = 'block';
+            feedback.style.color = '#B94A48';
+            feedback.textContent = res.message || 'Invalid or expired promo code.';
+          }
+          triggerToast(res.message || 'Invalid promo code', 'error');
+        }
+        updateCalculatedFareAndDuration();
+      } catch (err) {
+        console.error('Error validating promo code:', err);
+      }
+    }
+
+    // Apply loyalty voucher directly from loyalty card click
+    function applyLoyaltyVoucher(code) {
+      const input = document.getElementById('bk-promo-code');
+      if (input) {
+        input.value = code;
+        applyPromoCodeInput();
+        const card = document.getElementById('booking-card-anchor');
+        if (card) {
+          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+    }
+
+    // [P03]: Open Simulated Payment Gateway Modal when Online Booking is clicked
+    async function handleOnlineBookingSubmit() {
+      const sessionToken = localStorage.getItem('sessionToken');
+      const savedUser = localStorage.getItem('currentUser');
+
+      // 1. Visitor protection (401 check)
+      if (!sessionToken || !savedUser) {
+        saveBookingFormState(true);
+        openVisitorProtectionModal();
+        triggerToast('Visitors cannot submit online bookings. Authentication required!', 'error');
+        return;
+      }
+
+      const pickup = document.getElementById('bk-pickup-input').value.trim();
+      const dropoff = document.getElementById('bk-dropoff-input').value.trim();
+      const serviceSelect = document.getElementById('bk-service-select');
+      const capacitySelect = document.getElementById('bk-capacity-select');
+
+      if (!pickup || !dropoff) {
+        triggerToast('Please provide both pickup and dropoff addresses.', 'error');
+        return;
+      }
+
+      const service = serviceSelect ? serviceSelect.value : 'Airport transfer';
+      const capacity = capacitySelect ? parseInt(capacitySelect.value, 10) : 4;
+      const opt = serviceSelect ? serviceSelect.options[serviceSelect.selectedIndex] : null;
+      const baseFare = opt ? (capacity === 7 ? parseFloat(opt.getAttribute('data-seven') || '65') : parseFloat(opt.getAttribute('data-four') || '45')) : 45.00;
+      const onlineDiscount = Math.round(baseFare * 0.15 * 100) / 100;
+      const promoDiscount = appliedPromoDiscountAmount || 0.00;
+      const netFare = Math.max(0, Math.round((baseFare - onlineDiscount - promoDiscount) * 100) / 100);
+      const estVat = Math.round(netFare * 0.20 * 100) / 100;
+
+      // Store in pending booking payload
+      pendingBookingPayload = {
+        pickupAddress: pickup,
+        dropoffAddress: dropoff,
+        service,
+        vehicleCapacity: capacity,
+        carType: capacity === 7 ? 'Seven-Passenger Executive MPV' : 'Four-Passenger Executive Saloon',
+        promoCode: appliedPromoCodeValue,
+        baseFare,
+        onlineDiscount,
+        promoDiscount,
+        netFare,
+        estVat,
+      };
+
+      // Populate Simulated Payment Gateway Modal
+      document.getElementById('pay-modal-service').textContent = `${service} (${capacity}-passenger vehicle)`;
+      document.getElementById('pay-modal-route').textContent = `${pickup} → ${dropoff}`;
+      document.getElementById('pay-modal-base-fare').textContent = `£${baseFare.toFixed(2)} GBP`;
+      document.getElementById('pay-modal-online-disc').textContent = `-£${onlineDiscount.toFixed(2)} GBP`;
+
+      const promoRow = document.getElementById('pay-modal-promo-row');
+      if (promoDiscount > 0) {
+        promoRow.style.display = 'flex';
+        document.getElementById('pay-modal-promo-disc').textContent = `-£${promoDiscount.toFixed(2)} GBP`;
+      } else {
+        promoRow.style.display = 'none';
+      }
+
+      document.getElementById('pay-modal-vat').textContent = `£${estVat.toFixed(2)} GBP`;
+      document.getElementById('pay-modal-net-fare').textContent = `£${netFare.toFixed(2)} GBP`;
+      document.getElementById('pay-decline-box').style.display = 'none';
+
+      // Open Modal
+      document.getElementById('simulated-payment-modal').style.display = 'flex';
+      lucide.createIcons();
+    }
+
+    function closeSimulatedPaymentModal() {
+      document.getElementById('simulated-payment-modal').style.display = 'none';
+    }
+
+    // [P03]: Execute Simulated Electronic Payment (Success vs Fail) or Cash Unpaid
+    async function executeSimulatedPayment(simulationResult = 'SUCCESS') {
+      if (!pendingBookingPayload) return;
+
+      const sessionToken = localStorage.getItem('sessionToken');
+      const selectedMethodEl = document.querySelector('input[name="pay-method"]:checked');
+      const paymentMethod = selectedMethodEl ? selectedMethodEl.value : 'VISA';
+
+      // Simulation Failure Path (P03 Requirement: e.g. Visa card check failure)
+      if (simulationResult === 'FAIL') {
+        const declineBox = document.getElementById('pay-decline-box');
+        const declineMsg = document.getElementById('pay-decline-msg');
+        declineBox.style.display = 'block';
+        declineMsg.textContent = `Simulated ${paymentMethod} card authorization declined by issuer (400: Card Check Failure / Insufficient Funds). Per PRD P03, customer may retry with another card or select Cash to Chauffeur.`;
+        triggerToast('Payment simulation declined by bank gateway!', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('btn-pay-success');
+      const origText = btn.innerHTML;
+      btn.innerHTML = '<span>PROCESSING PAYMENT GATEWAY...</span>';
+      btn.disabled = true;
+
+      try {
+        const isCash = paymentMethod === 'CASH';
+        const res = await fetch(`${API_BASE}/api/bookings`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${sessionToken}`,
+          },
+          body: JSON.stringify({
+            draftToken: getOrCreateBookingDraftToken(),
+            pickupAddress: pendingBookingPayload.pickupAddress,
+            dropoffAddress: pendingBookingPayload.dropoffAddress,
+            service: pendingBookingPayload.service,
+            vehicleCapacity: pendingBookingPayload.vehicleCapacity,
+            carType: pendingBookingPayload.carType,
+            promoCode: pendingBookingPayload.promoCode,
+            paymentMethod,
+            paymentStatus: isCash ? 'UNPAID' : 'PAID',
+            status: 'CONFIRMED',
+          }),
+        });
+
+        const data = await res.json();
+        btn.innerHTML = origText;
+        btn.disabled = false;
+
+        if (!res.ok || !data.success) {
+          triggerToast(data.message || 'Payment simulation failed', 'error');
+          return;
+        }
+
+        const b = data.booking;
+        lastConfirmedBookingId = b.id;
+
+        // Form draft cleared upon booking confirmation
+        localStorage.removeItem('booking_form_draft');
+        const bkBadge = document.getElementById('bk-persistence-badge');
+        if (bkBadge) bkBadge.style.display = 'none';
+        const pInput = document.getElementById('bk-pickup-input');
+        const dInput = document.getElementById('bk-dropoff-input');
+        if (pInput) pInput.value = '';
+        if (dInput) dInput.value = '';
+
+        closeSimulatedPaymentModal();
+
+        // Update Confirmed Modal
+        document.getElementById('modal-client-name').innerText = `${b.passengerName} (${b.bookingCode})`;
+        document.getElementById('modal-card-label').innerText = `${paymentMethod} • ${b.carType}`;
+        document.getElementById('modal-confirmed-rate').innerText = `£${parseFloat(b.finalFare || b.fareAmount).toFixed(2)} GBP (${isCash ? 'Cash Unpaid' : 'Paid in Full'})`;
+        document.getElementById('booking-confirmed-modal').classList.add('open');
+
+        triggerToast(`🎉 Booking confirmed (${b.bookingCode})! ${isCash ? 'Cash confirmed as unpaid to driver.' : 'Simulated electronic payment successful.'}`, 'success');
+
+        // Refresh live status and loyalty counters
+        checkActiveJourneyStatus();
+        checkCustomerOffers();
+        pollNotifications();
+
+      } catch (err) {
+        btn.innerHTML = origText;
+        btn.disabled = false;
+        triggerToast(`Connection error: ${err.message}`, 'error');
+      }
+    }
+
+    // [P03]: View Official Printable Tax Receipt Modal
+    async function openPrintableReceipt(bookingId) {
+      const sessionToken = localStorage.getItem('sessionToken');
+      if (!sessionToken) return;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/bookings/${bookingId}/receipt`, {
+          headers: { 'Authorization': `Bearer ${sessionToken}` }
+        }).then(r => r.json());
+
+        if (!res.ok || !res.success) {
+          triggerToast(res.message || 'Receipt available only after payment has been confirmed.', 'error');
+          return;
+        }
+
+        const r = res.receipt;
+        document.getElementById('rec-number').textContent = r.receiptNumber;
+        document.getElementById('rec-date').textContent = new Date(r.issuedAt).toLocaleString();
+        document.getElementById('rec-passenger-name').textContent = r.customer.name || 'Valued Passenger';
+        document.getElementById('rec-passenger-phone').textContent = r.customer.phone || '—';
+        document.getElementById('rec-vehicle-info').textContent = r.journey.vehicleReg;
+        document.getElementById('rec-driver-info').textContent = `Chauffeur: ${r.journey.driverName}`;
+        document.getElementById('rec-service-name').textContent = `${r.journey.service} (${r.journey.vehicleCapacity}-passenger vehicle)`;
+        document.getElementById('rec-pickup').textContent = r.journey.pickupAddress;
+        document.getElementById('rec-dropoff').textContent = r.journey.dropoffAddress;
+        document.getElementById('rec-base-fare').textContent = `£${r.pricing.baseFare.toFixed(2)}`;
+        document.getElementById('rec-disc-amount').textContent = `-£${r.pricing.onlineDiscount.toFixed(2)}`;
+
+        const pRow = document.getElementById('rec-promo-row');
+        if (r.pricing.promoDiscount > 0) {
+          pRow.style.display = 'table-row';
+          document.getElementById('rec-promo-amount').textContent = `-£${r.pricing.promoDiscount.toFixed(2)}`;
+        } else {
+          pRow.style.display = 'none';
+        }
+
+        const net = r.pricing.netPaid;
+        const vat = r.pricing.vatIncluded;
+        const subtotal = Math.max(0, net - vat);
+        document.getElementById('rec-net-subtotal').textContent = `£${subtotal.toFixed(2)}`;
+        document.getElementById('rec-vat-amount').textContent = `£${vat.toFixed(2)}`;
+        document.getElementById('rec-total-paid').textContent = `£${net.toFixed(2)} GBP`;
+        document.getElementById('rec-pay-status').textContent = 'PAID IN FULL';
+        document.getElementById('rec-pay-method').textContent = `${r.pricing.paymentMethod || 'ELECTRONIC'} (${r.pricing.cardRefUsed || 'Card'})`;
+
+        document.getElementById('printable-receipt-modal').style.display = 'flex';
+        lucide.createIcons();
+      } catch (err) {
+        triggerToast(`Error fetching receipt: ${err.message}`, 'error');
+      }
+    }
+
+    function viewLastBookingReceipt() {
+      if (lastConfirmedBookingId) {
+        openPrintableReceipt(lastConfirmedBookingId);
+      } else {
+        openCustomerProfileModal();
+      }
+    }
+
+    function openPrintableReceiptForActive() {
+      if (activeCustomerBooking) {
+        openPrintableReceipt(activeCustomerBooking.id);
+      }
+    }
+
+    function closePrintableReceiptModal() {
+      document.getElementById('printable-receipt-modal').style.display = 'none';
+    }
+
+    // [P04]: Check Active Journey Dispatch Status & Approaching Vehicle Alert
+    async function checkActiveJourneyStatus() {
+      const sessionToken = localStorage.getItem('sessionToken');
+      if (!sessionToken) return;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/bookings/my-bookings`, {
+          headers: { 'Authorization': `Bearer ${sessionToken}` }
+        }).then(r => r.json());
+
+        if (!res.success || !res.bookings || res.bookings.length === 0) {
+          return;
+        }
+
+        // Find active booking: PENDING, CONFIRMED, ASSIGNED, or ENROUTE
+        const active = res.bookings.find(b => ['CONFIRMED', 'ASSIGNED', 'ENROUTE'].includes(b.status)) || res.bookings[0];
+        activeCustomerBooking = active;
+
+        const pill = document.getElementById('active-trip-status-pill');
+        const bar = document.getElementById('stepper-progress-bar');
+        const box = document.getElementById('active-trip-box');
+        const banner = document.getElementById('approaching-car-alert-banner');
+
+        const d1 = document.getElementById('step-dot-1');
+        const d2 = document.getElementById('step-dot-2');
+        const d3 = document.getElementById('step-dot-3');
+        const d4 = document.getElementById('step-dot-4');
+
+        if (!active) return;
+
+        pill.textContent = active.status;
+        pill.className = `status-badge-pill status-${active.status.toLowerCase()}`;
+
+        // Update Stepper
+        if (active.status === 'CONFIRMED') {
+          bar.style.width = '20%';
+          d1.style.background = '#3A8B68'; d1.style.color = '#fff';
+          d2.style.background = '#FAF7F2'; d2.style.color = '#5E7168';
+          d3.style.background = '#FAF7F2'; d3.style.color = '#5E7168';
+          d4.style.background = '#FAF7F2'; d4.style.color = '#5E7168';
+        } else if (active.status === 'ASSIGNED') {
+          bar.style.width = '50%';
+          d1.style.background = '#3A8B68'; d1.style.color = '#fff';
+          d2.style.background = '#164B3B'; d2.style.color = '#fff';
+          d3.style.background = '#FAF7F2'; d3.style.color = '#5E7168';
+          d4.style.background = '#FAF7F2'; d4.style.color = '#5E7168';
+        } else if (active.status === 'ENROUTE') {
+          bar.style.width = '80%';
+          d1.style.background = '#3A8B68'; d1.style.color = '#fff';
+          d2.style.background = '#164B3B'; d2.style.color = '#fff';
+          d3.style.background = '#C69C54'; d3.style.color = '#fff';
+          d4.style.background = '#FAF7F2'; d4.style.color = '#5E7168';
+        } else if (active.status === 'COMPLETED') {
+          bar.style.width = '100%';
+          d1.style.background = '#3A8B68'; d1.style.color = '#fff';
+          d2.style.background = '#164B3B'; d2.style.color = '#fff';
+          d3.style.background = '#C69C54'; d3.style.color = '#fff';
+          d4.style.background = '#2D6B50'; d4.style.color = '#fff';
+        }
+
+        // Active Trip Details Card
+        box.innerHTML = `
+          <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+            <span style="font-weight:700; color:#164B3B; font-family:var(--font-mono); font-size:14px;">${active.booking_code}</span>
+            <span style="font-size:12px; font-weight:700; color:#3A8B68;">£${parseFloat(active.final_fare || active.fare_amount).toFixed(2)} GBP (${active.payment_status || 'UNPAID'})</span>
+          </div>
+          <div style="font-size:12.5px; color:#25352E; margin-bottom:4px;">
+            <strong>${active.service_name || 'Executive Chauffeur Service'}</strong> &bull; ${active.vehicle_capacity || 4}-Passenger Saloon
+          </div>
+          <div style="font-size:12px; color:#5E7168; margin-bottom:10px;">
+            <i data-lucide="map-pin" style="width:12px; height:12px; display:inline-block; vertical-align:-2px; color:#3A8B68;"></i> ${active.pickup_address} &rarr; ${active.dropoff_address}
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; background:#fff; border:1px solid #E8E2D5; border-radius:8px; padding:10px; font-size:11.5px;">
+            <div>
+              <span style="color:#84988F; display:block;">Vehicle Allocated:</span>
+              <strong style="color:#164B3B;">${active.vehicle_reg || 'Executive Saloon'}</strong>
+            </div>
+            <div>
+              <span style="color:#84988F; display:block;">Licensed Chauffeur:</span>
+              <strong style="color:#164B3B;">${active.driver_name || 'London Operations'}</strong>
+            </div>
+          </div>
+        `;
+
+        // [P04]: Approaching Vehicle Alert Banner
+        if (active.approaching_alert || active.status === 'ENROUTE') {
+          banner.style.display = 'flex';
+          document.getElementById('appr-bk-code').textContent = active.booking_code;
+          document.getElementById('appr-car-info').textContent = `${active.vehicle_reg || 'LN21 XEC'} (${active.driver_name || 'James Stewart'})`;
+        } else {
+          banner.style.display = 'none';
+        }
+
+        lucide.createIcons();
+      } catch (err) {
+        console.warn('Error checking active journey:', err);
+      }
+    }
+
+    function dismissApproachingAlert() {
+      const banner = document.getElementById('approaching-car-alert-banner');
+      if (banner) banner.style.display = 'none';
+      triggerToast('Approaching vehicle acknowledged. Chauffeur is waiting at your door.', 'info');
+    }
+
+    // [P09]: Check Customer Loyalty Offers & Vouchers
+    async function checkCustomerOffers() {
+      const sessionToken = localStorage.getItem('sessionToken');
+      if (!sessionToken) return;
+
+      try {
+        const [offersRes, bookingsRes] = await Promise.all([
+          fetch(`${API_BASE}/api/offers/my`, { headers: { 'Authorization': `Bearer ${sessionToken}` } }).then(r => r.json()).catch(() => ({ success: false })),
+          fetch(`${API_BASE}/api/bookings/my-bookings`, { headers: { 'Authorization': `Bearer ${sessionToken}` } }).then(r => r.json()).catch(() => ({ success: false })),
+        ]);
+
+        let completedCount = 0;
+        if (bookingsRes.success && bookingsRes.bookings) {
+          completedCount = bookingsRes.bookings.filter(b => b.status === 'COMPLETED').length;
+        }
+
+        const pill = document.getElementById('cust-loyalty-trip-count');
+        const text = document.getElementById('loyalty-progress-text');
+        const bar = document.getElementById('loyalty-progress-bar');
+        const cont = document.getElementById('cust-vouchers-container');
+
+        const cycle = completedCount % 3;
+        if (pill) pill.textContent = `${completedCount} COMPLETED`;
+        if (text) text.textContent = `${cycle} of 3 completed for next voucher`;
+        if (bar) bar.style.width = `${(cycle / 3) * 100}%`;
+
+        if (offersRes.success && offersRes.offers && offersRes.offers.length > 0) {
+          cont.innerHTML = offersRes.offers.map(o => `
+            <div style="background:#FAF7F2; border:1px solid #C69C54; border-radius:10px; padding:12px; display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <span style="font-family:var(--font-mono); font-weight:800; color:#164B3B; font-size:13px;">${o.code}</span>
+                  <span style="background:rgba(198,156,84,0.2); color:#C69C54; font-size:10.5px; font-weight:700; padding:1px 6px; border-radius:4px;">£${parseFloat(o.discount_amount).toFixed(2)} OFF</span>
+                </div>
+                <div style="font-size:11px; color:#5E7168; margin-top:2px;">Awarded for loyalty milestone (${o.is_used ? 'Already Used' : 'Ready to Redeem'})</div>
+              </div>
+              ${!o.is_used ? `
+                <button type="button" class="btn-wireframe-link" onclick="applyLoyaltyVoucher('${o.code}')" style="background:#C69C54; border-color:#C69C54; color:#164B3B; font-weight:700; font-size:11px; padding:4px 10px; cursor:pointer;">
+                  Apply Code
+                </button>
+              ` : `
+                <span style="font-size:11px; color:#84988F;">Redeemed</span>
+              `}
+            </div>
+          `).join('');
+        }
+      } catch (err) {
+        console.warn('Error loading customer loyalty offers:', err);
+      }
+    }
+
+    // [P07]: Customer Reviews Modal
+    function openTripReviewModal(bookingId, bookingCode, serviceName) {
+      document.getElementById('rev-booking-id').value = bookingId;
+      document.getElementById('rev-booking-title').textContent = `${bookingCode} (${serviceName || 'Executive Chauffeur'})`;
+      document.getElementById('rev-journey-slider').value = 5;
+      document.getElementById('rev-journey-score').textContent = '5 / 5 ★';
+      document.getElementById('rev-vehicle-slider').value = 5;
+      document.getElementById('rev-vehicle-score').textContent = '5 / 5 ★';
+      document.getElementById('rev-driver-slider').value = 5;
+      document.getElementById('rev-driver-score').textContent = '5 / 5 ★';
+      document.getElementById('rev-comments').value = '';
+      document.getElementById('trip-review-modal').style.display = 'flex';
+    }
+
+    function closeTripReviewModal() {
+      document.getElementById('trip-review-modal').style.display = 'none';
+    }
+
+    async function submitTripReview() {
+      const sessionToken = localStorage.getItem('sessionToken');
+      const bookingId = document.getElementById('rev-booking-id').value;
+      const journeyRating = parseInt(document.getElementById('rev-journey-slider').value, 10);
+      const vehicleRating = parseInt(document.getElementById('rev-vehicle-slider').value, 10);
+      const driverRating = parseInt(document.getElementById('rev-driver-slider').value, 10);
+      const comments = document.getElementById('rev-comments').value.trim();
+
+      try {
+        const res = await fetch(`${API_BASE}/api/reviews`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${sessionToken}`,
+          },
+          body: JSON.stringify({
+            bookingId,
+            journeyRating,
+            vehicleRating,
+            driverRating,
+            comments,
+          }),
+        });
+
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          triggerToast(data.message || 'Could not submit review', 'error');
+          return;
+        }
+
+        closeTripReviewModal();
+        triggerToast('⭐ Thank you! Your executive trip review has been recorded.', 'success');
+      } catch (err) {
+        triggerToast(`Error submitting review: ${err.message}`, 'error');
+      }
+    }
+
+    // [Epic 1]: Customer Support Enquiry Modal
+    function openCustomerEnquiryModal() {
+      const savedUser = localStorage.getItem('currentUser');
+      if (savedUser) {
+        try {
+          const u = JSON.parse(savedUser);
+          if (u.name) document.getElementById('enq-name').value = u.name;
+          if (u.email) document.getElementById('enq-email').value = u.email;
+          if (u.telephone) document.getElementById('enq-phone').value = u.telephone;
+        } catch (_) {}
+      }
+      document.getElementById('customer-enquiry-modal').style.display = 'flex';
+    }
+
+    function closeCustomerEnquiryModal() {
+      document.getElementById('customer-enquiry-modal').style.display = 'none';
+    }
+
+    async function submitCustomerEnquiry() {
+      const name = document.getElementById('enq-name').value.trim();
+      const email = document.getElementById('enq-email').value.trim();
+      const telephone = document.getElementById('enq-phone').value.trim();
+      const bookingCode = document.getElementById('enq-booking-code').value.trim();
+      const message = document.getElementById('enq-message').value.trim();
+
+      if (!name || !email || !message) {
+        triggerToast('Please provide your name, email, and message.', 'error');
+        return;
+      }
+
+      const sessionToken = localStorage.getItem('sessionToken');
+      const headers = { 'Content-Type': 'application/json' };
+      if (sessionToken) headers['Authorization'] = `Bearer ${sessionToken}`;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/enquiries`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ name, email, telephone, bookingCode, message }),
+        });
+
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          triggerToast(data.message || 'Could not submit enquiry', 'error');
+          return;
+        }
+
+        closeCustomerEnquiryModal();
+        triggerToast('📬 Enquiry received! London Dispatch team will respond via email shortly.', 'success');
+      } catch (err) {
+        triggerToast(`Error submitting enquiry: ${err.message}`, 'error');
+      }
+    }
+
+    // [P04]: Web Notifications Modal & Polling
+    async function pollNotifications() {
+      const sessionToken = localStorage.getItem('sessionToken');
+      if (!sessionToken) return;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/notifications`, {
+          headers: { 'Authorization': `Bearer ${sessionToken}` }
+        }).then(r => r.json());
+
+        if (res.success && res.notifications) {
+          const unread = res.notifications.filter(n => !n.is_read).length;
+          const badge = document.getElementById('top-notif-count');
+          if (badge) {
+            if (unread > 0) {
+              badge.textContent = unread;
+              badge.style.display = 'inline-block';
+            } else {
+              badge.style.display = 'none';
+            }
+          }
+        }
+      } catch (_) {}
+    }
+
+    async function openNotificationsModal() {
+      const sessionToken = localStorage.getItem('sessionToken');
+      if (!sessionToken) {
+        triggerToast('Please sign in to view persistent account alerts.', 'info');
+        return;
+      }
+
+      document.getElementById('notifications-modal').style.display = 'flex';
+      const listEl = document.getElementById('notifications-list');
+      listEl.innerHTML = '<div style="padding:16px; text-align:center; color:#5E7168;">Loading notifications...</div>';
+
+      try {
+        const res = await fetch(`${API_BASE}/api/notifications`, {
+          headers: { 'Authorization': `Bearer ${sessionToken}` }
+        }).then(r => r.json());
+
+        if (res.success && res.notifications && res.notifications.length > 0) {
+          listEl.innerHTML = res.notifications.map(n => `
+            <div style="background:${n.is_read ? '#FFFFFF' : '#FAF7F2'}; border:1px solid ${n.is_read ? '#E8E2D5' : '#164B3B'}; border-radius:10px; padding:12px; display:flex; justify-content:space-between; align-items:flex-start;">
+              <div>
+                <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+                  <strong style="color:#164B3B; font-size:13px;">${n.title}</strong>
+                  ${!n.is_read ? '<span style="background:#B94A48; color:#fff; font-size:9.5px; font-weight:700; padding:1px 5px; border-radius:4px;">NEW</span>' : ''}
+                </div>
+                <div style="font-size:12px; color:#25352E; margin-bottom:4px;">${n.message}</div>
+                <div style="font-size:10.5px; color:#84988F;">${new Date(n.created_at).toLocaleString()}</div>
+              </div>
+              ${!n.is_read ? `
+                <button type="button" onclick="markNotificationRead('${n.id}')" style="background:#fff; border:1px solid #E8E2D5; border-radius:4px; padding:4px 8px; font-size:11px; color:#164B3B; cursor:pointer;">
+                  Mark Read
+                </button>
+              ` : ''}
+            </div>
+          `).join('');
+        } else {
+          listEl.innerHTML = '<div style="padding:24px; text-align:center; color:#5E7168; font-style:italic;">No notifications at this time.</div>';
+        }
+      } catch (err) {
+        listEl.innerHTML = `<div style="color:#B94A48; padding:12px;">Error: ${err.message}</div>`;
+      }
+      lucide.createIcons();
+    }
+
+    function closeNotificationsModal() {
+      document.getElementById('notifications-modal').style.display = 'none';
+    }
+
+    async function markNotificationRead(notifId) {
+      const sessionToken = localStorage.getItem('sessionToken');
+      try {
+        await fetch(`${API_BASE}/api/notifications/${notifId}/read`, {
+          method: 'PATCH',
+          headers: { 'Authorization': `Bearer ${sessionToken}` }
+        });
+        openNotificationsModal();
+        pollNotifications();
+      } catch (_) {}
+    }
+
+    // [P05]: Amend Booking Modal
+    function openAmendBookingModal(bookingId, pickup, dropoff, service, cap) {
+      document.getElementById('amend-booking-id').value = bookingId;
+      document.getElementById('amend-pickup').value = pickup || '';
+      document.getElementById('amend-dropoff').value = dropoff || '';
+      if (service) document.getElementById('amend-service').value = service;
+      if (cap) document.getElementById('amend-capacity').value = String(cap);
+      document.getElementById('amend-booking-modal').style.display = 'flex';
+    }
+
+    function closeAmendBookingModal() {
+      document.getElementById('amend-booking-modal').style.display = 'none';
+    }
+
+    async function submitAmendBooking() {
+      const sessionToken = localStorage.getItem('sessionToken');
+      const bookingId = document.getElementById('amend-booking-id').value;
+      const pickupAddress = document.getElementById('amend-pickup').value.trim();
+      const dropoffAddress = document.getElementById('amend-dropoff').value.trim();
+      const service = document.getElementById('amend-service').value;
+      const vehicleCapacity = parseInt(document.getElementById('amend-capacity').value, 10);
+
+      try {
+        const res = await fetch(`${API_BASE}/api/bookings/${bookingId}/amend`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${sessionToken}`,
+          },
+          body: JSON.stringify({ pickupAddress, dropoffAddress, service, vehicleCapacity }),
+        });
+
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          triggerToast(data.message || 'Could not amend booking', 'error');
+          return;
+        }
+
+        closeAmendBookingModal();
+        triggerToast('✓ Booking amended successfully with updated Table 8 quote and 15% discount!', 'success');
+        loadCustomerBookingsAndProfile();
+        checkActiveJourneyStatus();
+      } catch (err) {
+        triggerToast(`Error amending booking: ${err.message}`, 'error');
+      }
+    }
+
+    // [P05]: Cancel Customer Booking (>= 24h notice with automatic refund request)
+    async function cancelCustomerBooking(bookingId, bookingCode) {
+      if (!confirm(`Are you sure you want to cancel booking ${bookingCode}? Cancellations made at least 24 hours prior to pickup are eligible for a full refund.`)) {
+        return;
+      }
+
+      const sessionToken = localStorage.getItem('sessionToken');
+      try {
+        const res = await fetch(`${API_BASE}/api/bookings/${bookingId}/cancel`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${sessionToken}`,
+          },
+          body: JSON.stringify({ reason: 'Customer cancelled online' }),
+        });
+
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          triggerToast(data.message || 'Cancellation rejected: >= 24h notice required', 'error');
+          return;
+        }
+
+        triggerToast(data.refundCreated ? '✓ Booking cancelled. Full refund request submitted to London Dispatch accounting.' : '✓ Booking cancelled successfully.', 'success');
+        loadCustomerBookingsAndProfile();
+        checkActiveJourneyStatus();
+      } catch (err) {
+        triggerToast(`Error cancelling booking: ${err.message}`, 'error');
+      }
+    }
+
+
     // Switch between Register and Login
     function toggleFormAuthMode() {
       const heading = document.getElementById('form-auth-heading');
@@ -3949,15 +4461,13 @@
 
     // Window load & auto init
     window.addEventListener('DOMContentLoaded', () => {
-      initEmbeddedMap();
-      setTimeout(() => {
-        if (leafletEmbeddedMap) leafletEmbeddedMap.invalidateSize();
-      }, 300);
+      // PRD: Map removed, dispatch status initialized
+      checkActiveJourneyStatus();
+      checkCustomerOffers();
+      pollNotifications();
     });
 
-    window.addEventListener('resize', () => {
-      if (leafletEmbeddedMap) leafletEmbeddedMap.invalidateSize();
-    });
+    
   </script>
   <!-- AC Live Data & Emails Modal -->
   <div id="ac-modal" style="display:none; position:fixed; inset:0; background:rgba(37,53,46,0.55); backdrop-filter:blur(8px); z-index:9999; align-items:center; justify-content:center; padding:20px;">

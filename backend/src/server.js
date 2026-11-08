@@ -9,6 +9,8 @@ const authRoutes = require('./routes/authRoutes');
 const customerRoutes = require('./routes/customerRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
 const serviceRoutes = require('./routes/serviceRoutes');
+const staffRoutes = require('./routes/staffRoutes');
+const customerFeatureRoutes = require('./routes/customerFeatureRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -34,6 +36,9 @@ app.use('/api/auth', authRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/services', serviceRoutes);
+app.use('/api/staff', staffRoutes);
+app.use('/api', customerFeatureRoutes);
+app.use('/api/customer-features', customerFeatureRoutes);
 
 const path = require('path');
 const fs = require('fs');
@@ -71,6 +76,22 @@ app.get('/api', (req, res) => {
         list: 'GET /api/services (6 Seeded Services with Fixed Sample Fares and Durations)',
         details: 'GET /api/services/:id',
         quote: 'POST /api/services/quote (Calculates fixed fare by service & vehicle capacity: 4 or 7 passengers)',
+      },
+      staff: {
+        bookings: 'GET /api/staff/bookings (Staff live dispatch queue)',
+        assistedBooking: 'POST /api/staff/bookings (No 15% discount for phone bookings)',
+        updateStatus: 'PATCH /api/staff/bookings/:id/status (Assigned, EnRoute, Completed)',
+        approachingAlert: 'POST /api/staff/bookings/:id/approaching-alert (Approaching vehicle persistent alert)',
+        collectCash: 'POST /api/staff/bookings/:id/collect-cash (Confirm cash received -> Paid)',
+        refunds: 'GET/POST /api/staff/refunds',
+        fleet: 'GET /api/staff/fleet (Vehicles and Drivers)',
+        reports: 'GET /api/staff/reports/popularity-loyalty (P08 Metrics)',
+      },
+      features: {
+        reviews: 'POST /api/reviews (1-5 star ratings on Completed journeys)',
+        enquiries: 'POST /api/enquiries (Customer support ticket)',
+        notifications: 'GET /api/notifications (Approaching vehicle alerts)',
+        offers: 'GET /api/offers/my (Loyalty vouchers for >= 3 completed trips)',
       },
     },
   });

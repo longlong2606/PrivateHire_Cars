@@ -248,12 +248,94 @@ const sendConfirmationEmail = async ({ toEmail, name, accountCode, mockCardRef }
   return emailRecord;
 };
 
+const sendBookingConfirmationEmail = async ({
+  toEmail,
+  name,
+  bookingCode,
+  pickupAddress,
+  dropoffAddress,
+  pickupTime,
+  serviceName,
+  vehicleCapacity,
+  fareAmount,
+  paymentMethod,
+  paymentStatus,
+}) => {
+  const subject = `[PrivateHire Cars] Booking Confirmed — ${bookingCode}`;
+  const textContent = `Hello ${name},\n\nYour booking ${bookingCode} has been confirmed.\n\nJourney Details:\n- Service: ${serviceName}\n- Pickup: ${pickupAddress}\n- Destination: ${dropoffAddress}\n- Pickup Time: ${new Date(pickupTime).toLocaleString('en-GB')}\n- Capacity: ${vehicleCapacity} passengers\n- Total Fare: £${Number(fareAmount).toFixed(2)} GBP\n- Payment: ${paymentMethod} (${paymentStatus})\n\nThank you for choosing PrivateHire Cars London!`;
+  
+  const htmlContent = `
+    <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #25352e; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
+      <div style="background-color: #164B3B; color: #fff; padding: 20px; text-align: center;">
+        <h2 style="margin: 0;">🚖 Booking Confirmed: ${bookingCode}</h2>
+      </div>
+      <div style="padding: 24px;">
+        <p>Hello <strong>${name}</strong>,</p>
+        <p>Your executive chauffeur booking has been confirmed with PrivateHire Cars London.</p>
+        <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+          <tr><td style="padding: 8px 10px; border-bottom: 1px solid #ddd; color: #666;">Booking Code:</td><td style="padding: 8px 10px; border-bottom: 1px solid #ddd; font-weight: bold; color: #164B3B;">${bookingCode}</td></tr>
+          <tr><td style="padding: 8px 10px; border-bottom: 1px solid #ddd; color: #666;">Service:</td><td style="padding: 8px 10px; border-bottom: 1px solid #ddd; font-weight: bold;">${serviceName}</td></tr>
+          <tr><td style="padding: 8px 10px; border-bottom: 1px solid #ddd; color: #666;">Pickup:</td><td style="padding: 8px 10px; border-bottom: 1px solid #ddd;">${pickupAddress}</td></tr>
+          <tr><td style="padding: 8px 10px; border-bottom: 1px solid #ddd; color: #666;">Destination:</td><td style="padding: 8px 10px; border-bottom: 1px solid #ddd;">${dropoffAddress}</td></tr>
+          <tr><td style="padding: 8px 10px; border-bottom: 1px solid #ddd; color: #666;">Pickup Time:</td><td style="padding: 8px 10px; border-bottom: 1px solid #ddd;">${new Date(pickupTime).toLocaleString('en-GB')}</td></tr>
+          <tr><td style="padding: 8px 10px; border-bottom: 1px solid #ddd; color: #666;">Vehicle Capacity:</td><td style="padding: 8px 10px; border-bottom: 1px solid #ddd;">${vehicleCapacity} Passengers</td></tr>
+          <tr><td style="padding: 8px 10px; border-bottom: 1px solid #ddd; color: #666;">Total Fare:</td><td style="padding: 8px 10px; border-bottom: 1px solid #ddd; font-weight: bold; color: #3A8B68;">£${Number(fareAmount).toFixed(2)} GBP</td></tr>
+          <tr><td style="padding: 8px 10px; border-bottom: 1px solid #ddd; color: #666;">Payment:</td><td style="padding: 8px 10px; border-bottom: 1px solid #ddd;">${paymentMethod} (${paymentStatus})</td></tr>
+        </table>
+        <p style="font-size: 13px; color: #555;">Note: Cancellations and amendments must be requested at least 24 hours prior to scheduled pickup time.</p>
+      </div>
+      <div style="background-color: #f8fafc; padding: 14px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #e2e8f0;">
+        PrivateHire Cars London &bull; Automated notification under PRD P04
+      </div>
+    </div>
+  `;
+
+  try {
+    const creds = getCleanCredentials();
+    const senderName = process.env.EMAIL_FROM_NAME || 'PrivateHire Cars';
+    const transporter = createSmtpTransporter();
+    if (transporter && creds) {
+      await transporter.sendMail({
+        from: `"${senderName}" <${creds.user}>`,
+        to: toEmail,
+        subject,
+        text: textContent,
+        html: htmlContent,
+      });
+      console.log(`✅ [P04 Booking Confirmation Email] Sent to ${toEmail} for booking ${bookingCode}`);
+    }
+  } catch (err) {
+    console.warn(`⚠️ [P04 Email Warning] Booking confirmation email notice: ${err.message}`);
+  }
+};
+
+const sendSpecialOfferEmail = async ({ toEmail, name, promoCode, discountAmount }) => {
+  const subject = `[PrivateHire Cars] Special Loyalty Reward — £${discountAmount} Off Your Next Journey!`;
+  const textContent = `Hello ${name},\n\nCongratulations! Because you have completed 3 or more journeys with PrivateHire Cars, we are pleased to award you a special loyalty voucher:\n\nPromo Code: ${promoCode}\nDiscount: £${discountAmount} GBP\n\nYou can apply this voucher at checkout on your next online booking!\n\nPrivateHire Cars London`;
+  
+  try {
+    const creds = getCleanCredentials();
+    const senderName = process.env.EMAIL_FROM_NAME || 'PrivateHire Cars';
+    const transporter = createSmtpTransporter();
+    if (transporter && creds) {
+      await transporter.sendMail({
+        from: `"${senderName}" <${creds.user}>`,
+        to: toEmail,
+        subject,
+        text: textContent,
+      });
+    }
+  } catch (_) {}
+};
+
 const getEmailHistory = () => {
   return [...emailLog];
 };
 
 module.exports = {
   sendConfirmationEmail,
+  sendBookingConfirmationEmail,
+  sendSpecialOfferEmail,
   getEmailHistory,
 };
 

@@ -159,5 +159,166 @@ CREATE TABLE IF NOT EXISTS booking_drafts (
 CREATE INDEX IF NOT EXISTS idx_booking_drafts_account ON booking_drafts(account_id);
 CREATE INDEX IF NOT EXISTS idx_booking_drafts_token ON booking_drafts(draft_token);
 
+-- ===================================================================
+-- 7. ROLES & FLEET MANAGEMENT (P01, P06)
+-- Staff accounts & fleet resources
+-- ===================================================================
+ALTER TABLE accounts ADD COLUMN IF NOT EXISTS role VARCHAR(20) DEFAULT 'CUSTOMER';
+
+-- Seed default staff account (Staff123! hashed with bcrypt)
+INSERT INTO accounts (account_code, name, email, address, telephone, password_hash, mock_card_ref, role, status)
+VALUES (
+    'STAFF-001', 
+    'London Operations Dispatcher', 
+    'staff@privatehirecars.com', 
+    'PrivateHire Cars Heathrow Control Centre, London TW6 1AP', 
+    '+44 20 7946 0991', 
+    '$2b$10$XltJeJwW/Oz71H7M.m5n5uVKyNFtJ4jwe8usfhKeB7zmhedCWabdS', 
+    '•••• •••• •••• 4242 (Visa Test Card)', 
+    'STAFF', 
+    'ACTIVE'
+)
+ON CONFLICT (email) DO UPDATE SET role = 'STAFF';
+
+-- Fleet Vehicles Table (P06)
+CREATE TABLE IF NOT EXISTS vehicles (
+    id SERIAL PRIMARY KEY,
+    reg_number VARCHAR(20) UNIQUE NOT NULL,
+    make_model VARCHAR(100) NOT NULL,
+    colour VARCHAR(50) NOT NULL,
+    capacity INTEGER NOT NULL DEFAULT 4,
+    status VARCHAR(20) DEFAULT 'ACTIVE', -- ACTIVE, UNAVAILABLE
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO vehicles (reg_number, make_model, colour, capacity, status)
+VALUES
+    ('LD68 PHC', 'Mercedes-Benz E-Class Saloon', 'Obsidian Black', 4, 'ACTIVE'),
+    ('LN21 XEC', 'BMW 5-Series Executive', 'Imperial Blue', 4, 'ACTIVE'),
+    ('LJ23 MPV', 'Mercedes-Benz V-Class Luxury MPV', 'Metallic Silver', 7, 'ACTIVE'),
+    ('LA20 PHV', 'Volkswagen Caravelle Executive', 'Deep Black', 7, 'ACTIVE')
+ON CONFLICT (reg_number) DO NOTHING;
+
+-- Chauffeur Drivers Table (P06)
+CREATE TABLE IF NOT EXISTS drivers (
+    id SERIAL PRIMARY KEY,
+    driver_code VARCHAR(50) UNIQUE NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    telephone VARCHAR(30) NOT NULL,
+    reference_number VARCHAR(50) UNIQUE NOT NULL,
+    status VARCHAR(20) DEFAULT 'ACTIVE', -- ACTIVE, UNAVAILABLE
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO drivers (driver_code, name, telephone, reference_number, status)
+VALUES
+    ('DRV-001', 'Arthur Pendelton', '+44 7700 900123', 'TFL-PHD-48291', 'ACTIVE'),
+    ('DRV-002', 'Marcus Sterling', '+44 7700 900456', 'TFL-PHD-59382', 'ACTIVE'),
+    ('DRV-003', 'Elizabeth Clark', '+44 7700 900789', 'TFL-PHD-61029', 'ACTIVE')
+ON CONFLICT (driver_code) DO NOTHING;
+
+-- Extend Bookings Table for Lifecycle, Pricing & Resources (P02, P03)
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS payment_status VARCHAR(50) DEFAULT 'UNPAID';
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS vehicle_id INTEGER REFERENCES vehicles(id);
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS driver_id INTEGER REFERENCES drivers(id);
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS booking_channel VARCHAR(20) DEFAULT 'ONLINE';
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS base_fare NUMERIC(10, 2) DEFAULT 0.00;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS discount_amount NUMERIC(10, 2) DEFAULT 0.00;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS promo_code VARCHAR(50);
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS promo_discount NUMERIC(10, 2) DEFAULT 0.00;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS final_fare NUMERIC(10, 2) DEFAULT 0.00;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS approaching_alert BOOLEAN DEFAULT FALSE;
+
+-- ===================================================================
+-- 8. SPECIAL OFFERS & LOYALTY (P09)
+-- Automatic promo codes for >= 3 completed bookings
+-- ===================================================================
+CREATE TABLE IF NOT EXISTS special_offers (
+    id SERIAL PRIMARY KEY,
+    code VARCHAR(50) UNIQUE NOT NULL,
+    account_id INTEGER REFERENCES accounts(id) ON DELETE CASCADE,
+    discount_amount NUMERIC(10, 2) NOT NULL DEFAULT 10.00,
+    is_used BOOLEAN DEFAULT FALSE,
+    used_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_special_offers_code ON special_offers(code);
+CREATE INDEX IF NOT EXISTS idx_special_offers_account ON special_offers(account_id);
+
+-- ===================================================================
+-- 9. REVIEWS & RATINGS (P07)
+-- Ratings 1-5 for journey, vehicle, driver on completed bookings
+-- ===================================================================
+CREATE TABLE IF NOT EXISTS reviews (
+    id SERIAL PRIMARY KEY,
+    booking_id INTEGER UNIQUE NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
+    account_id INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    journey_rating INTEGER NOT NULL CHECK (journey_rating BETWEEN 1 AND 5),
+    vehicle_rating INTEGER NOT NULL CHECK (vehicle_rating BETWEEN 1 AND 5),
+    driver_rating INTEGER NOT NULL CHECK (driver_rating BETWEEN 1 AND 5),
+    review_text TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_reviews_booking ON reviews(booking_id);
+CREATE INDEX IF NOT EXISTS idx_reviews_account ON reviews(account_id);
+
+-- ===================================================================
+-- 10. REFUND REQUESTS & CANCELLATIONS (P05)
+-- Pending refund queue for staff manual processing
+-- ===================================================================
+CREATE TABLE IF NOT EXISTS refund_requests (
+    id SERIAL PRIMARY KEY,
+    booking_id INTEGER NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
+    account_id INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    amount NUMERIC(10, 2) NOT NULL,
+    reason TEXT NOT NULL,
+    status VARCHAR(30) DEFAULT 'PENDING',
+    processed_by_staff_id INTEGER REFERENCES accounts(id),
+    processed_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_refund_status ON refund_requests(status);
+
+-- ===================================================================
+-- 11. CUSTOMER ENQUIRIES & SUPPORT (Epic 1)
+-- General & Trip-specific questions with staff reply
+-- ===================================================================
+CREATE TABLE IF NOT EXISTS enquiries (
+    id SERIAL PRIMARY KEY,
+    account_id INTEGER REFERENCES accounts(id) ON DELETE SET NULL,
+    booking_id INTEGER REFERENCES bookings(id) ON DELETE SET NULL,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(150) NOT NULL,
+    subject VARCHAR(200) NOT NULL,
+    message TEXT NOT NULL,
+    staff_reply TEXT,
+    replied_by_staff_id INTEGER REFERENCES accounts(id),
+    status VARCHAR(20) DEFAULT 'OPEN',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    replied_at TIMESTAMP WITH TIME ZONE
+);
+
+CREATE INDEX IF NOT EXISTS idx_enquiries_status ON enquiries(status);
+
+-- ===================================================================
+-- 12. WEB NOTIFICATIONS (P04)
+-- Persistent in-account alerts (e.g. Approaching Vehicle)
+-- ===================================================================
+CREATE TABLE IF NOT EXISTS notifications (
+    id SERIAL PRIMARY KEY,
+    account_id INTEGER NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    booking_id INTEGER REFERENCES bookings(id) ON DELETE CASCADE,
+    title VARCHAR(150) NOT NULL,
+    message TEXT NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_notifications_account ON notifications(account_id);
+
 
 

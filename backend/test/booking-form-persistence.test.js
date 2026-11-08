@@ -293,3 +293,4 @@ test('Sprint Feature: Form State Persistence for Chauffeur Booking Data', async 
     assert.equal(draftAfter, null, 'Active draft must be automatically deleted once booking is confirmed');
   });
 });
+

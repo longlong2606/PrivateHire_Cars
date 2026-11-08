@@ -32,6 +32,7 @@ class SessionModel {
         a.address,
         a.telephone,
         a.mock_card_ref,
+        a.role,
         a.status
       FROM sessions s
       JOIN accounts a ON s.account_id = a.id

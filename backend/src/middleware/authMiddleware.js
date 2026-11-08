@@ -53,6 +53,7 @@ const requireAuth = async (req, res, next) => {
       address: session.address,
       telephone: session.telephone,
       mockCardRef: session.mock_card_ref,
+      role: session.role || 'CUSTOMER',
       status: session.status,
     };
     req.sessionToken = token;
@@ -133,6 +134,7 @@ const optionalAuth = async (req, res, next) => {
           address: session.address,
           telephone: session.telephone,
           mockCardRef: session.mock_card_ref,
+          role: session.role || 'CUSTOMER',
           status: session.status,
         };
         req.sessionToken = token;
@@ -142,9 +144,32 @@ const optionalAuth = async (req, res, next) => {
   next();
 };
 
+/**
+ * Middleware: requireStaff (P01, P06)
+ * Yêu cầu quyền nhân viên (Role: STAFF)
+ */
+const requireStaff = async (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({
+      success: false,
+      code: 'AUTH_REQUIRED',
+      message: 'Staff authentication required.',
+    });
+  }
+  if (req.user.role !== 'STAFF') {
+    return res.status(403).json({
+      success: false,
+      code: 'FORBIDDEN_STAFF_ONLY',
+      message: 'Access denied: Staff functions require an authorized staff account.',
+    });
+  }
+  next();
+};
+
 module.exports = {
   requireAuth,
   optionalAuth,
   authorizeCustomerAccess,
+  requireStaff,
 };
 

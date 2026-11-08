@@ -1,11 +1,16 @@
 const BookingModel = require('../models/bookingModel');
 const ServiceModel = require('../models/serviceModel');
 const BookingDraftModel = require('../models/bookingDraftModel');
+const VehicleModel = require('../models/vehicleModel');
+const DriverModel = require('../models/driverModel');
+const SpecialOfferModel = require('../models/specialOfferModel');
+const RefundModel = require('../models/refundModel');
+const NotificationModel = require('../models/notificationModel');
+const { sendBookingConfirmationEmail, sendSpecialOfferEmail } = require('../services/emailService');
 
 /**
- * [BOOKING]: Tạo cuốc xe trực tuyến mới
- * Yêu cầu đặc tả: "Protect customer endpoints so visitors cannot submit online bookings"
- * -> Khách vãng lai (chưa đăng nhập) bị chặn hoàn toàn!
+ * [BOOKING]: Tạo cuốc xe trực tuyến mới (P02, P03)
+ * Hỗ trợ 15% giảm giá Online tự động và mã ưu đãi đặc biệt
  */
 const createBooking = async (req, res) => {
   try {
@@ -31,9 +36,11 @@ const createBooking = async (req, res) => {
       vehicleCapacity,
       notes,
       paymentMethod,
+      promoCode,
+      status = 'CONFIRMED',
+      paymentStatus,
     } = req.body;
 
-    // Kiểm tra các trường bắt buộc
     if (!pickupAddress || !pickupAddress.trim()) {
       return res.status(400).json({
         success: false,
@@ -48,13 +55,13 @@ const createBooking = async (req, res) => {
       });
     }
 
-    // Xác định dịch vụ và giá vé cố định theo Table 8
-    let resolvedFare = fareAmount;
+    // 1. Tính giá gốc theo Table 8
     let resolvedServiceId = serviceId || null;
     let resolvedServiceName = serviceName || null;
     let resolvedCapacity = vehicleCapacity ? parseInt(vehicleCapacity, 10) : 4;
     let resolvedCurrency = 'GBP';
     let resolvedDuration = 60;
+    let baseFare = fareAmount;
 
     const serviceKey = service || serviceId || serviceCode || serviceName;
     if (serviceKey) {
@@ -66,42 +73,105 @@ const createBooking = async (req, res) => {
           resolvedCapacity = quote.vehicleCapacity;
           resolvedDuration = quote.occupiedDurationMinutes;
           resolvedCurrency = quote.currency;
-          if (resolvedFare === undefined || resolvedFare === null) {
-            resolvedFare = quote.fixedFare;
+          if (baseFare === undefined || baseFare === null) {
+            baseFare = quote.fixedFare;
           }
         }
-      } catch (_) {
-        // Fallback gracefully
+      } catch (_) {}
+    }
+
+    if (baseFare === undefined || baseFare === null) {
+      baseFare = 45.00;
+    }
+
+    // 2. [P02]: 15% Automatic Online Discount
+    const onlineDiscount = Math.round(baseFare * 0.15 * 100) / 100;
+
+    // 3. [P09]: Special Offer Promo Code Deduction (applied after 15% discount)
+    let promoDiscount = 0.00;
+    let validPromoCode = null;
+    if (promoCode) {
+      const offer = await SpecialOfferModel.findByCode(promoCode);
+      if (offer && offer.account_id === customer.id && !offer.is_used) {
+        promoDiscount = parseFloat(offer.discount_amount);
+        validPromoCode = offer.code;
       }
     }
 
-    if (resolvedFare === undefined || resolvedFare === null) {
-      resolvedFare = 45.00;
+    // Total cannot be negative (P02)
+    const finalFare = Math.max(0, Math.round((baseFare - onlineDiscount - promoDiscount) * 100) / 100);
+
+    // 4. [P02]: Check vehicle availability
+    const pickupDate = pickupTime ? new Date(pickupTime) : new Date();
+    const availableVehicles = await VehicleModel.getAvailableVehicles({
+      capacity: resolvedCapacity,
+      pickupTime: pickupDate,
+      durationMinutes: resolvedDuration,
+    });
+
+    let assignedVehicleId = null;
+    if (availableVehicles.length > 0) {
+      assignedVehicleId = availableVehicles[0].id;
     }
 
-    // Tạo mã cuốc xe duy nhất (ví dụ: BK-841920)
+    // 5. Booking Code (e.g. BK-841920)
     const bookingCode = 'BK-' + Math.floor(100000 + Math.random() * 900000);
 
-    // Lưu cuốc xe gắn liền với ID tài khoản khách hàng
+    // Default payment status based on method & request
+    const resolvedPaymentMethod = paymentMethod || 'MOCK_CARD';
+    const resolvedPaymentStatus = paymentStatus || (resolvedPaymentMethod === 'CASH' ? 'UNPAID' : 'PAID');
+
+    // 6. Lưu cuốc xe
     const booking = await BookingModel.create({
       bookingCode,
       accountId: customer.id,
       pickupAddress: pickupAddress.trim(),
       dropoffAddress: dropoffAddress.trim(),
-      pickupTime: pickupTime ? new Date(pickupTime) : new Date(),
+      pickupTime: pickupDate,
       passengerName: customer.name,
       passengerPhone: customer.telephone,
       carType: carType || (resolvedCapacity === 7 ? 'Seven-Passenger Executive MPV' : 'Four-Passenger Executive Saloon'),
-      fareAmount: resolvedFare,
-      paymentMethod: paymentMethod || 'MOCK_CARD',
+      fareAmount: baseFare,
+      paymentMethod: resolvedPaymentMethod,
       cardRefUsed: customer.mockCardRef || '•••• •••• •••• 4242 (Visa Test Card)',
+      status: status,
+      paymentStatus: resolvedPaymentStatus,
       notes: notes || null,
       serviceId: resolvedServiceId,
       serviceName: resolvedServiceName,
       vehicleCapacity: resolvedCapacity,
       fareCurrency: resolvedCurrency,
       occupiedDurationMinutes: resolvedDuration,
+      bookingChannel: 'ONLINE',
+      baseFare: baseFare,
+      discountAmount: onlineDiscount,
+      promoCode: validPromoCode,
+      promoDiscount: promoDiscount,
+      finalFare: finalFare,
+      vehicleId: assignedVehicleId,
     });
+
+    // Mark promo offer as used if booking is confirmed
+    if (validPromoCode && status === 'CONFIRMED') {
+      await SpecialOfferModel.markUsed(validPromoCode).catch(() => {});
+    }
+
+    // [P04]: Send real booking confirmation email if status is Confirmed
+    if (status === 'CONFIRMED') {
+      sendBookingConfirmationEmail({
+        toEmail: customer.email,
+        name: customer.name,
+        bookingCode: booking.booking_code,
+        pickupAddress: booking.pickup_address,
+        dropoffAddress: booking.dropoff_address,
+        pickupTime: booking.pickup_time,
+        serviceName: booking.service_name || 'Executive Journey',
+        vehicleCapacity: booking.vehicle_capacity || 4,
+        fareAmount: booking.final_fare || booking.fare_amount,
+        paymentMethod: booking.payment_method,
+        paymentStatus: booking.payment_status,
+      }).catch(() => {});
+    }
 
     res.status(201).json({
       success: true,
@@ -119,12 +189,18 @@ const createBooking = async (req, res) => {
         serviceName: booking.service_name,
         vehicleCapacity: booking.vehicle_capacity,
         carType: booking.car_type,
+        baseFare: booking.base_fare,
+        onlineDiscount: booking.discount_amount,
+        promoDiscount: booking.promo_discount,
         fareAmount: booking.fare_amount,
+        finalFare: booking.final_fare,
         fareCurrency: booking.fare_currency || 'GBP',
         occupiedDurationMinutes: booking.occupied_duration_minutes,
         paymentMethod: booking.payment_method,
+        paymentStatus: booking.payment_status,
         cardRefUsed: booking.card_ref_used,
         status: booking.status,
+        vehicleId: booking.vehicle_id,
         createdAt: booking.created_at,
       },
     });
@@ -143,14 +219,345 @@ const createBooking = async (req, res) => {
 };
 
 /**
- * [BOOKING]: Lấy danh sách cuốc xe của riêng khách hàng đăng nhập
- * Yêu cầu đặc tả: "customers can access only their own protected information"
+ * [P03]: Mô phỏng thanh toán (Simulated Electronic Payment & Cash Confirmation)
+ * Hỗ trợ Visa, Mastercard, Amex, PayPal và Cash với 2 nhánh: Success và Fail (Visa check fail)
  */
+const simulatePayment = async (req, res) => {
+  try {
+    const bookingId = req.params.id;
+    const { paymentMethod = 'CARD', simulationResult = 'SUCCESS' } = req.body;
+    const customer = req.user;
+
+    const booking = await BookingModel.findById(bookingId);
+    if (!booking) {
+      return res.status(404).json({ success: false, message: 'Booking not found' });
+    }
+
+    if (booking.account_id !== customer.id) {
+      return res.status(403).json({ success: false, message: 'Forbidden access' });
+    }
+
+    // Branch 1: Simulated Payment Failure (e.g. Visa Check / Card Declined)
+    if (simulationResult === 'FAIL') {
+      return res.status(400).json({
+        success: false,
+        code: 'PAYMENT_DECLINED',
+        message: 'Simulated payment declined by card issuer / bank gateway. Please try another card or payment method.',
+      });
+    }
+
+    // Branch 2: Simulated Payment Success
+    const isCash = paymentMethod === 'CASH';
+    const newPaymentStatus = isCash ? 'UNPAID' : 'PAID';
+    const newStatus = 'CONFIRMED';
+
+    // Reserve vehicle if not yet assigned
+    let vehicleId = booking.vehicle_id;
+    if (!vehicleId) {
+      const avail = await VehicleModel.getAvailableVehicles({
+        capacity: booking.vehicle_capacity || 4,
+        pickupTime: booking.pickup_time,
+        durationMinutes: booking.occupied_duration_minutes || 60,
+      });
+      if (avail.length > 0) vehicleId = avail[0].id;
+    }
+
+    await BookingModel.updateStatus(bookingId, newStatus);
+    await BookingModel.updatePaymentStatus(bookingId, newPaymentStatus);
+
+    if (vehicleId) {
+      const db = require('../config/db');
+      await db.query('UPDATE bookings SET vehicle_id = $1 WHERE id = $2', [vehicleId, bookingId]);
+    }
+
+    // If promo code was used, mark it used
+    if (booking.promo_code) {
+      await SpecialOfferModel.markUsed(booking.promo_code).catch(() => {});
+    }
+
+    // Send real confirmation email
+    sendBookingConfirmationEmail({
+      toEmail: customer.email,
+      name: customer.name,
+      bookingCode: booking.booking_code,
+      pickupAddress: booking.pickup_address,
+      dropoffAddress: booking.dropoff_address,
+      pickupTime: booking.pickup_time,
+      serviceName: booking.service_name || 'Executive Journey',
+      vehicleCapacity: booking.vehicle_capacity || 4,
+      fareAmount: booking.final_fare || booking.fare_amount,
+      paymentMethod: paymentMethod,
+      paymentStatus: newPaymentStatus,
+    }).catch(() => {});
+
+    const updated = await BookingModel.findById(bookingId);
+
+    res.json({
+      success: true,
+      message: isCash 
+        ? 'Cash payment chosen. Booking is Confirmed and reserved. Please pay driver upon journey completion.' 
+        : 'Payment successfully simulated and accepted! Booking Confirmed.',
+      booking: updated,
+    });
+  } catch (error) {
+    console.error('Error in simulatePayment:', error);
+    res.status(500).json({ success: false, message: 'Server error simulating payment', error: error.message });
+  }
+};
+
+/**
+ * [P05]: Chỉnh sửa cuốc xe (Amend Booking)
+ * Điều kiện: Trước giờ đón ít nhất 24 giờ. Trạng thái chỉ được là Pending, Confirmed hoặc Assigned.
+ */
+const amendBooking = async (req, res) => {
+  try {
+    const bookingId = req.params.id;
+    const customer = req.user;
+    const { pickupAddress, dropoffAddress, pickupTime, service, vehicleCapacity } = req.body;
+
+    const booking = await BookingModel.findById(bookingId);
+    if (!booking) return res.status(404).json({ success: false, message: 'Booking not found' });
+    if (booking.account_id !== customer.id) return res.status(403).json({ success: false, message: 'Forbidden' });
+
+    // Status check
+    const allowedStatuses = ['PENDING', 'CONFIRMED', 'ASSIGNED'];
+    if (!allowedStatuses.includes(booking.status)) {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot amend booking with status "${booking.status}". Only Pending, Confirmed, or Assigned bookings can be amended.`,
+      });
+    }
+
+    // 24-hour notice check
+    const now = new Date();
+    const currentPickup = new Date(booking.pickup_time);
+    const hoursDiff = (currentPickup.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+    if (hoursDiff < 24) {
+      return res.status(400).json({
+        success: false,
+        message: 'Amendments must be made at least 24 hours prior to scheduled pickup time.',
+      });
+    }
+
+    // Recalculate fare
+    const resolvedCapacity = vehicleCapacity ? parseInt(vehicleCapacity, 10) : booking.vehicle_capacity;
+    let baseFare = booking.base_fare;
+    let resolvedService = service || booking.service_name;
+    let duration = booking.occupied_duration_minutes;
+    let serviceId = booking.service_id;
+
+    if (service || vehicleCapacity) {
+      const quote = await ServiceModel.calculateFareAndDuration(resolvedService, resolvedCapacity);
+      if (quote) {
+        baseFare = quote.fixedFare;
+        duration = quote.occupiedDurationMinutes;
+        serviceId = quote.serviceId;
+        resolvedService = quote.serviceName;
+      }
+    }
+
+    const discountAmount = Math.round(baseFare * 0.15 * 100) / 100;
+    const finalFare = Math.max(0, Math.round((baseFare - discountAmount - (booking.promo_discount || 0)) * 100) / 100);
+
+    // If new fare is lower than old fare and customer has paid, create a refund request for the difference
+    if (booking.payment_status === 'PAID' && finalFare < parseFloat(booking.final_fare || booking.fare_amount)) {
+      const diff = parseFloat(booking.final_fare || booking.fare_amount) - finalFare;
+      await RefundModel.create({
+        bookingId: booking.id,
+        accountId: customer.id,
+        amount: diff,
+        reason: `Amendment fare reduction for ${booking.booking_code}`,
+      });
+    }
+
+    const updated = await BookingModel.amendBooking(bookingId, {
+      pickupAddress: pickupAddress || booking.pickup_address,
+      dropoffAddress: dropoffAddress || booking.dropoff_address,
+      pickupTime: pickupTime ? new Date(pickupTime) : booking.pickup_time,
+      serviceId,
+      serviceName: resolvedService,
+      vehicleCapacity: resolvedCapacity,
+      baseFare,
+      discountAmount,
+      finalFare,
+      occupiedDurationMinutes: duration,
+    });
+
+    res.json({
+      success: true,
+      message: 'Booking amended successfully with recalculated Table 8 fare and 15% online discount.',
+      booking: updated,
+    });
+  } catch (error) {
+    console.error('Error in amendBooking:', error);
+    res.status(500).json({ success: false, message: 'Server error amending booking', error: error.message });
+  }
+};
+
+/**
+ * [P05]: Hủy cuốc xe (Cancel Booking)
+ * Điều kiện: Trước giờ đón ít nhất 24 giờ. Trạng thái chỉ được là Pending, Confirmed hoặc Assigned.
+ */
+const cancelBooking = async (req, res) => {
+  try {
+    const bookingId = req.params.id;
+    const customer = req.user;
+    const { reason = 'Customer requested cancellation' } = req.body;
+
+    const booking = await BookingModel.findById(bookingId);
+    if (!booking) return res.status(404).json({ success: false, message: 'Booking not found' });
+    if (booking.account_id !== customer.id) return res.status(403).json({ success: false, message: 'Forbidden' });
+
+    const allowedStatuses = ['PENDING', 'CONFIRMED', 'ASSIGNED'];
+    if (!allowedStatuses.includes(booking.status)) {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot cancel booking with status "${booking.status}". Only Pending, Confirmed, or Assigned bookings can be cancelled.`,
+      });
+    }
+
+    const now = new Date();
+    const currentPickup = new Date(booking.pickup_time);
+    const hoursDiff = (currentPickup.getTime() - now.getTime()) / (1000 * 60 * 60);
+
+    if (hoursDiff < 24) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cancellations must be made at least 24 hours prior to scheduled pickup time.',
+      });
+    }
+
+    // Cancel booking and free vehicle & driver
+    const cancelled = await BookingModel.cancelBooking(bookingId);
+
+    // If customer paid, create a pending refund request for net paid amount
+    let refundCreated = false;
+    if (booking.payment_status === 'PAID') {
+      const netAmount = parseFloat(booking.final_fare || booking.fare_amount);
+      await RefundModel.create({
+        bookingId: booking.id,
+        accountId: customer.id,
+        amount: netAmount,
+        reason: `Cancellation refund: ${reason}`,
+      });
+      refundCreated = true;
+    }
+
+    res.json({
+      success: true,
+      message: 'Booking cancelled successfully. Resources freed.',
+      booking: cancelled,
+      refundCreated,
+    });
+  } catch (error) {
+    console.error('Error in cancelBooking:', error);
+    res.status(500).json({ success: false, message: 'Server error cancelling booking', error: error.message });
+  }
+};
+
+/**
+ * [P03]: Lấy biên lai thanh toán (Printable Receipt)
+ * Chỉ hiển thị sau khi đã thanh toán (Electronic Success hoặc Staff Cash Collection)
+ */
+const getPrintableReceipt = async (req, res) => {
+  try {
+    const bookingId = req.params.id;
+    const customer = req.user;
+
+    const booking = await BookingModel.findById(bookingId);
+    if (!booking) return res.status(404).json({ success: false, message: 'Booking not found' });
+    if (booking.account_id !== customer.id && customer.role !== 'STAFF') {
+      return res.status(403).json({ success: false, message: 'Forbidden' });
+    }
+
+    if (booking.payment_status !== 'PAID') {
+      return res.status(400).json({
+        success: false,
+        message: 'Receipt is available only after payment has been completed.',
+      });
+    }
+
+    const netAmount = parseFloat(booking.final_fare || booking.fare_amount);
+    const vat = Math.round(netAmount * 0.20 * 100) / 100;
+    const totalWithVat = netAmount;
+
+    res.json({
+      success: true,
+      receipt: {
+        receiptNumber: `REC-${booking.booking_code}`,
+        issuedAt: new Date().toISOString(),
+        customer: {
+          name: booking.passenger_name,
+          phone: booking.passenger_phone,
+        },
+        journey: {
+          bookingCode: booking.booking_code,
+          service: booking.service_name,
+          pickupAddress: booking.pickup_address,
+          dropoffAddress: booking.dropoff_address,
+          pickupTime: booking.pickup_time,
+          vehicleCapacity: booking.vehicle_capacity,
+          vehicleReg: booking.vehicle_reg || 'PrivateHire Chauffeur Saloon',
+          driverName: booking.driver_name || 'Assigned Executive Chauffeur',
+        },
+        pricing: {
+          baseFare: parseFloat(booking.base_fare || booking.fare_amount),
+          onlineDiscount: parseFloat(booking.discount_amount || 0.00),
+          promoDiscount: parseFloat(booking.promo_discount || 0.00),
+          netPaid: netAmount,
+          currency: booking.fare_currency || 'GBP',
+          vatIncluded: vat,
+          paymentMethod: booking.payment_method,
+          cardRefUsed: booking.card_ref_used,
+        },
+      },
+    });
+  } catch (error) {
+    console.error('Error generating receipt:', error);
+    res.status(500).json({ success: false, message: 'Server error generating receipt', error: error.message });
+  }
+};
+
+/**
+ * [P09]: Kiểm tra mã giảm giá (Validate Promo Code)
+ */
+const validatePromoCode = async (req, res) => {
+  try {
+    const { code } = req.query;
+    const customer = req.user;
+
+    if (!code) return res.status(400).json({ success: false, message: 'Code is required' });
+
+    const offer = await SpecialOfferModel.findByCode(code);
+    if (!offer) {
+      return res.status(404).json({ success: false, valid: false, message: 'Promo code does not exist or has expired.' });
+    }
+
+    if (offer.account_id !== customer.id) {
+      return res.status(403).json({ success: false, valid: false, message: 'This promo code was issued to another customer.' });
+    }
+
+    if (offer.is_used) {
+      return res.status(400).json({ success: false, valid: false, message: 'Promo code has already been used.' });
+    }
+
+    res.json({
+      success: true,
+      valid: true,
+      code: offer.code,
+      discountAmount: parseFloat(offer.discount_amount),
+      message: `Code applied! £${parseFloat(offer.discount_amount).toFixed(2)} discount will be deducted from your total.`,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 const getMyBookings = async (req, res) => {
   try {
     const customer = req.user;
     const bookings = await BookingModel.findByAccountId(customer.id);
-
     res.json({
       success: true,
       count: bookings.length,
@@ -158,32 +565,18 @@ const getMyBookings = async (req, res) => {
     });
   } catch (error) {
     console.error('Error in getMyBookings:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error retrieving bookings',
-      error: error.message,
-    });
+    res.status(500).json({ success: false, message: 'Server error retrieving bookings', error: error.message });
   }
 };
 
-/**
- * [BOOKING]: Xem chi tiết 1 cuốc xe
- * Bảo vệ: Nếu cuốc xe thuộc tài khoản khác -> Báo 403 Forbidden
- */
 const getBookingById = async (req, res) => {
   try {
     const bookingId = req.params.id;
     const booking = await BookingModel.findById(bookingId);
 
-    if (!booking) {
-      return res.status(404).json({
-        success: false,
-        message: 'Booking not found',
-      });
-    }
+    if (!booking) return res.status(404).json({ success: false, message: 'Booking not found' });
 
-    // Kiểm tra quyền sở hữu dữ liệu (Customer Data Isolation)
-    if (booking.account_id !== req.user.id) {
+    if (booking.account_id !== req.user.id && req.user.role !== 'STAFF') {
       return res.status(403).json({
         success: false,
         code: 'FORBIDDEN_ACCESS',
@@ -191,23 +584,13 @@ const getBookingById = async (req, res) => {
       });
     }
 
-    res.json({
-      success: true,
-      booking,
-    });
+    res.json({ success: true, booking });
   } catch (error) {
     console.error('Error in getBookingById:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error retrieving booking',
-      error: error.message,
-    });
+    res.status(500).json({ success: false, message: 'Server error retrieving booking', error: error.message });
   }
 };
 
-/**
- * [FORM STATE PERSISTENCE]: Lưu/cập nhật trạng thái nháp của form đặt xe
- */
 const saveBookingDraft = async (req, res) => {
   try {
     const customer = req.user || null;
@@ -289,17 +672,10 @@ const saveBookingDraft = async (req, res) => {
     });
   } catch (error) {
     console.error('Error in saveBookingDraft:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error saving booking form state',
-      error: error.message,
-    });
+    res.status(500).json({ success: false, message: 'Server error saving booking form state', error: error.message });
   }
 };
 
-/**
- * [FORM STATE PERSISTENCE]: Lấy trạng thái nháp của form đặt xe
- */
 const getBookingDraft = async (req, res) => {
   try {
     const customer = req.user || null;
@@ -331,17 +707,10 @@ const getBookingDraft = async (req, res) => {
     });
   } catch (error) {
     console.error('Error in getBookingDraft:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error retrieving booking form state',
-      error: error.message,
-    });
+    res.status(500).json({ success: false, message: 'Server error retrieving booking form state', error: error.message });
   }
 };
 
-/**
- * [FORM STATE PERSISTENCE]: Xóa trạng thái nháp
- */
 const clearBookingDraft = async (req, res) => {
   try {
     const customer = req.user || null;
@@ -358,20 +727,20 @@ const clearBookingDraft = async (req, res) => {
     });
   } catch (error) {
     console.error('Error in clearBookingDraft:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Server error clearing booking draft',
-      error: error.message,
-    });
+    res.status(500).json({ success: false, message: 'Server error clearing booking draft', error: error.message });
   }
 };
 
 module.exports = {
   createBooking,
+  simulatePayment,
+  amendBooking,
+  cancelBooking,
+  getPrintableReceipt,
+  validatePromoCode,
   getMyBookings,
   getBookingById,
   saveBookingDraft,
   getBookingDraft,
   clearBookingDraft,
 };
-

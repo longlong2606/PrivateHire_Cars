@@ -135,3 +135,4 @@ class BookingDraftModel {
 }
 
 module.exports = BookingDraftModel;
+

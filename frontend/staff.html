@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Staff Operations &amp; Dispatch Portal - PrivateHire Cars London</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    :root {
+      --bg-body: #F4F1EA;
+      --bg-card: #FFFFFF;
+      --border: #E2DCD0;
+      --primary: #164B3B;
+      --primary-dark: #0E3429;
+      --accent-gold: #C69C54;
+      --accent-emerald: #3A8B68;
+      --text-main: #25352E;
+      --text-muted: #5E7168;
+      --text-dim: #84988F;
+      --danger: #B94A48;
+      --font-heading: 'Outfit', sans-serif;
+      --font-body: 'Plus Jakarta Sans', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-body);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    .staff-header {
+      background: var(--primary-dark);
+      color: #fff;
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid var(--accent-gold);
+    }
+    .brand-title {
+      font-family: var(--font-heading);
+      font-size: 20px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #fff;
+      text-decoration: none;
+    }
+    .staff-badge {
+      background: rgba(198, 156, 84, 0.2);
+      border: 1px solid var(--accent-gold);
+      color: var(--accent-gold);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: 700;
+    }
+
+    /* Container */
+    .staff-container {
+      max-width: 1380px;
+      width: 100%;
+      margin: 24px auto;
+      padding: 0 24px;
+      flex: 1;
+    }
+
+    /* Navigation Tabs */
+    .staff-nav-tabs {
+      display: flex;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+      margin-bottom: 24px;
+      overflow-x: auto;
+    }
+    .nav-tab-btn {
+      background: #fff;
+      border: 1px solid var(--border);
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .nav-tab-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    .nav-tab-btn.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    /* Card Panels */
+    .card-panel {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+      margin-bottom: 24px;
+    }
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .panel-title {
+      font-family: var(--font-heading);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Tables */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .data-table th {
+      background: #FAF7F2;
+      color: var(--primary);
+      font-weight: 700;
+      text-align: left;
+      padding: 12px 14px;
+      border-bottom: 2px solid var(--border);
+      font-family: var(--font-heading);
+    }
+    .data-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    .data-table tr:hover td {
+      background: rgba(22, 75, 59, 0.02);
+    }
+
+    /* Status Pills */
+    .badge-status {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+    }
+    .badge-PENDING { background: rgba(224, 168, 56, 0.15); color: #B8860B; border: 1px solid rgba(224, 168, 56, 0.3); }
+    .badge-CONFIRMED { background: rgba(58, 139, 104, 0.15); color: #2E7D32; border: 1px solid rgba(58, 139, 104, 0.3); }
+    .badge-ASSIGNED { background: rgba(33, 150, 243, 0.15); color: #1565C0; border: 1px solid rgba(33, 150, 243, 0.3); }
+    .badge-ENROUTE { background: rgba(156, 39, 176, 0.15); color: #7B1FA2; border: 1px solid rgba(156, 39, 176, 0.3); }
+    .badge-COMPLETED { background: rgba(76, 175, 80, 0.15); color: #2E7D32; border: 1px solid rgba(76, 175, 80, 0.3); }
+    .badge-CANCELLED { background: rgba(185, 74, 72, 0.15); color: #B94A48; border: 1px solid rgba(185, 74, 72, 0.3); }
+
+    .badge-PAID { background: rgba(58, 139, 104, 0.15); color: #2E7D32; font-weight: 700; font-family: var(--font-mono); padding: 2px 8px; border-radius: 4px; font-size: 11px; }
+    .badge-UNPAID { background: rgba(224, 168, 56, 0.15); color: #B8860B; font-weight: 700; font-family: var(--font-mono); padding: 2px 8px; border-radius: 4px; font-size: 11px; }
+    .badge-REFUNDED { background: rgba(185, 74, 72, 0.15); color: #B94A48; font-weight: 700; font-family: var(--font-mono); padding: 2px 8px; border-radius: 4px; font-size: 11px; }
+
+    /* Action buttons */
+    .btn-action-sm {
+      background: #fff;
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--primary);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .btn-action-sm:hover {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+    .btn-primary-solid {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-primary-solid:hover { background: var(--primary-dark); }
+
+    /* Form Controls */
+    .form-input {
+      width: 100%;
+      height: 40px;
+      padding: 0 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 13px;
+      font-family: inherit;
+    }
+    .form-input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    /* Modal */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(14, 52, 41, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 28px;
+      max-width: 650px;
+      width: 100%;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.25);
+      border: 1px solid var(--border);
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--primary-dark);
+      color: #fff;
+      padding: 14px 20px;
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-weight: 600;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      display: none;
+      z-index: 10000;
+      border-left: 4px solid var(--accent-gold);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="staff-header">
+    <div style="display: flex; align-items: center; gap: 18px;">
+      <a href="home.html" class="brand-title">
+        <i data-lucide="shield" style="width: 22px; height: 22px; color: var(--accent-gold);"></i>
+        <span>PrivateHire Cars</span>
+      </a>
+      <span class="staff-badge">LONDON DISPATCH OPERATIONS PORTAL</span>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 14px;">
+      <div id="staff-user-info" style="font-size: 13px; color: #E8E2D5; text-align: right;">
+        <strong id="staff-name-display" style="display: block; color: #fff;">Staff Officer</strong>
+        <span id="staff-role-display" style="font-size: 11px; font-family: var(--font-mono); color: var(--accent-gold);">STAFF ROLE</span>
+      </div>
+      <a href="home.html" class="btn-action-sm" style="background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); color: #fff;">
+        <i data-lucide="home" style="width: 14px; height: 14px;"></i> Customer View
+      </a>
+      <button class="btn-action-sm" onclick="handleStaffSignOut()" style="background: rgba(185,74,72,0.2); border-color: rgba(185,74,72,0.4); color: #ffb4b4;">
+        <i data-lucide="log-out" style="width: 14px; height: 14px;"></i> Sign Out
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="staff-container">
+    
+    <!-- Navigation Tabs -->
+    <nav class="staff-nav-tabs">
+      <button class="nav-tab-btn active" onclick="switchStaffTab('tab-dispatch')">
+        <i data-lucide="car-taxi-front" style="width: 16px; height: 16px;"></i>
+        <span>Live Dispatch Queue</span>
+      </button>
+      <button class="nav-tab-btn" onclick="switchStaffTab('tab-phone-booking')">
+        <i data-lucide="phone-call" style="width: 16px; height: 16px;"></i>
+        <span>Staff-Assisted Booking Desk (P02/P06)</span>
+      </button>
+      <button class="nav-tab-btn" onclick="switchStaffTab('tab-refunds')">
+        <i data-lucide="rotate-ccw" style="width: 16px; height: 16px;"></i>
+        <span>Refunds Queue (P05)</span>
+      </button>
+      <button class="nav-tab-btn" onclick="switchStaffTab('tab-fleet')">
+        <i data-lucide="truck" style="width: 16px; height: 16px;"></i>
+        <span>Fleet &amp; Chauffeurs (P06)</span>
+      </button>
+      <button class="nav-tab-btn" onclick="switchStaffTab('tab-reports')">
+        <i data-lucide="bar-chart-3" style="width: 16px; height: 16px;"></i>
+        <span>Popularity &amp; Loyalty Analytics (P08)</span>
+      </button>
+      <button class="nav-tab-btn" onclick="switchStaffTab('tab-enquiries')">
+        <i data-lucide="help-circle" style="width: 16px; height: 16px;"></i>
+        <span>Customer Enquiries (Epic 1)</span>
+      </button>
+    </nav>
+
+    <!-- Tab 1: Live Dispatch Queue -->
+    <section id="tab-dispatch" class="staff-tab-content">
+      <div class="card-panel">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">
+              <i data-lucide="clock" style="width: 20px; height: 20px;"></i>
+              Active Journey Dispatch &amp; State Simulation (P03)
+            </h2>
+            <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
+              Manage state transitions: <strong>Confirmed</strong> &rarr; <strong>Assigned</strong> (select active chauffeur) &rarr; <strong>EnRoute</strong> (trigger approaching alert) &rarr; <strong>Completed</strong>.
+            </p>
+          </div>
+          <button class="btn-action-sm" onclick="loadStaffBookings()">
+            <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i> Refresh Queue
+          </button>
+        </div>
+
+        <div style="overflow-x: auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Booking Code</th>
+                <th>Passenger / Caller</th>
+                <th>Service &amp; Pax</th>
+                <th>Pickup &rarr; Destination</th>
+                <th>Pickup Time</th>
+                <th>Fare &amp; Payment</th>
+                <th>Chauffeur &amp; Vehicle</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="staff-bookings-tbody">
+              <tr><td colspan="9" style="text-align:center; padding:30px; color:var(--text-dim);">Loading dispatch queue...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 2: Staff-Assisted Phone Booking Desk -->
+    <section id="tab-phone-booking" class="staff-tab-content" style="display: none;">
+      <div class="card-panel">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">
+              <i data-lucide="phone-forwarded" style="width: 20px; height: 20px;"></i>
+              Call Centre Assisted Booking Desk (P02, P06)
+            </h2>
+            <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
+              Verify caller identity by telephone or email. <strong>Important (P02):</strong> Telephone bookings charge standard Table 8 demonstration rates without the 15% online self-service discount.
+            </p>
+          </div>
+        </div>
+
+        <!-- Caller Search & Verification Box -->
+        <div style="background: #FAF7F2; border: 1px solid var(--border); border-radius: 10px; padding: 18px; margin-bottom: 24px;">
+          <label style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--primary); display: block; margin-bottom: 8px;">
+            Step 1: Search &amp; Verify Caller Record (Email or Telephone)
+          </label>
+          <div style="display: flex; gap: 10px;">
+            <input type="text" id="caller-search-input" class="form-input" placeholder="Enter caller telephone (e.g. 07700900123) or email..." />
+            <button class="btn-primary-solid" onclick="searchCallerAccount()" style="white-space: nowrap;">
+              <i data-lucide="search" style="width: 16px; height: 16px;"></i> Verify Caller
+            </button>
+          </div>
+          <div id="caller-search-results" style="margin-top: 12px;"></div>
+        </div>
+
+        <!-- Phone Booking Creation Form -->
+        <form id="staff-phone-booking-form" onsubmit="handleStaffBookingSubmit(event)">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px;">
+            <div>
+              <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 6px;">Selected Customer ID *</label>
+              <input type="text" id="stf-cust-id" class="form-input" readonly placeholder="Select a caller from search above" required style="background: #FAF7F2;" />
+            </div>
+            <div>
+              <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 6px;">Customer Name &amp; Phone</label>
+              <input type="text" id="stf-cust-info" class="form-input" readonly placeholder="Customer info appears here" style="background: #FAF7F2;" />
+            </div>
+
+            <div>
+              <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 6px;">Pickup Address *</label>
+              <input type="text" id="stf-pickup" class="form-input" placeholder="e.g. The Dorchester, Park Lane" required />
+            </div>
+            <div>
+              <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 6px;">Destination Address *</label>
+              <input type="text" id="stf-dropoff" class="form-input" placeholder="e.g. Heathrow Airport Terminal 5" required />
+            </div>
+
+            <div>
+              <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 6px;">Service Type (Table 8 Rates) *</label>
+              <select id="stf-service" class="form-input" onchange="updateStaffFareQuote()">
+                <option value="Airport transfer" data-four="45.00" data-seven="65.00">Airport transfer (£45 / £65 GBP)</option>
+                <option value="Local journey" data-four="20.00" data-seven="30.00">Local journey (£20 / £30 GBP)</option>
+                <option value="Long-distance journey" data-four="80.00" data-seven="120.00">Long-distance journey (£80 / £120 GBP)</option>
+                <option value="Hotel transfer" data-four="30.00" data-seven="45.00">Hotel transfer (£30 / £45 GBP)</option>
+                <option value="Airport meet-and-greet" data-four="55.00" data-seven="80.00">Airport meet-and-greet (£55 / £80 GBP)</option>
+                <option value="Driver and car daily hire" data-four="200.00" data-seven="280.00">Driver and car daily hire (£200 / £280 GBP)</option>
+              </select>
+            </div>
+
+            <div>
+              <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 6px;">Vehicle Capacity *</label>
+              <select id="stf-capacity" class="form-input" onchange="updateStaffFareQuote()">
+                <option value="4" selected>Four-passenger vehicle</option>
+                <option value="7">Seven-passenger vehicle</option>
+              </select>
+            </div>
+
+            <div>
+              <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 6px;">Payment Method *</label>
+              <select id="stf-payment" class="form-input">
+                <option value="CASH" selected>Cash to Chauffeur on Completion (Confirmed / Unpaid)</option>
+                <option value="CARD">Primary Mock Card on Account (Confirmed / Paid)</option>
+              </select>
+            </div>
+
+            <div>
+              <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 6px;">Staff Fare Quote (No 15% Online Discount)</label>
+              <input type="text" id="stf-quote-display" class="form-input" readonly value="£45.00 GBP (Standard Table 8 Rate)" style="background: rgba(22, 75, 59, 0.08); font-weight: 700; color: var(--primary);" />
+            </div>
+          </div>
+
+          <div style="margin-top: 20px;">
+            <button type="submit" class="btn-primary-solid" style="height: 46px; font-size: 14px;">
+              <i data-lucide="check-circle" style="width: 18px; height: 18px;"></i>
+              Confirm Telephone Booking for Caller
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- Tab 3: Refunds Processing Queue (P05) -->
+    <section id="tab-refunds" class="staff-tab-content" style="display: none;">
+      <div class="card-panel">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">
+              <i data-lucide="receipt" style="width: 20px; height: 20px;"></i>
+              Pending Refunds Management Queue (P05)
+            </h2>
+            <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
+              Cancellations and fare-reducing amendments automatically place refund requests here. Staff click <strong>Process Refund</strong> to audit and mark refunded.
+            </p>
+          </div>
+          <button class="btn-action-sm" onclick="loadStaffRefunds()">
+            <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i> Refresh Refunds
+          </button>
+        </div>
+
+        <div style="overflow-x: auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Refund ID</th>
+                <th>Booking Code</th>
+                <th>Customer Name</th>
+                <th>Email</th>
+                <th>Amount</th>
+                <th>Reason</th>
+                <th>Request Date</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="staff-refunds-tbody">
+              <tr><td colspan="8" style="text-align:center; padding:30px; color:var(--text-dim);">No pending refunds found.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 4: Fleet & Chauffeurs (P06) -->
+    <section id="tab-fleet" class="staff-tab-content" style="display: none;">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+        <div class="card-panel">
+          <div class="panel-header">
+            <h2 class="panel-title">
+              <i data-lucide="car" style="width: 18px; height: 18px;"></i>
+              Executive Fleet Vehicles (P06)
+            </h2>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Registration</th>
+                <th>Make &amp; Model</th>
+                <th>Colour</th>
+                <th>Capacity</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="staff-vehicles-tbody"></tbody>
+          </table>
+        </div>
+
+        <div class="card-panel">
+          <div class="panel-header">
+            <h2 class="panel-title">
+              <i data-lucide="user-check" style="width: 18px; height: 18px;"></i>
+              Licensed Chauffeurs (P06)
+            </h2>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th>Chauffeur Name</th>
+                <th>Telephone</th>
+                <th>TFL Reference</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="staff-drivers-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 5: Popularity & Loyalty Analytics (P08) -->
+    <section id="tab-reports" class="staff-tab-content" style="display: none;">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+        <div class="card-panel">
+          <div class="panel-header">
+            <h2 class="panel-title">
+              <i data-lucide="award" style="width: 18px; height: 18px;"></i>
+              P08: Vehicle Popularity
+            </h2>
+            <span style="font-size: 11px; font-family: var(--font-mono); color: var(--text-dim);">COMPLETED TRIPS DESC</span>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Vehicle Reg</th>
+                <th>Model</th>
+                <th>Seats</th>
+                <th>Completed Trips</th>
+              </tr>
+            </thead>
+            <tbody id="staff-rep-vehicles-tbody"></tbody>
+          </table>
+        </div>
+
+        <div class="card-panel">
+          <div class="panel-header">
+            <h2 class="panel-title">
+              <i data-lucide="heart-handshake" style="width: 18px; height: 18px;"></i>
+              P08: Customer Loyalty Metrics
+            </h2>
+            <span style="font-size: 11px; font-family: var(--font-mono); color: var(--text-dim);">&ge; 3 TRIPS = REWARD (P09)</span>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Account Code</th>
+                <th>Customer Name</th>
+                <th>Completed Trips</th>
+                <th>Loyalty Tier</th>
+              </tr>
+            </thead>
+            <tbody id="staff-rep-loyalty-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 6: Customer Enquiries (Epic 1) -->
+    <section id="tab-enquiries" class="staff-tab-content" style="display: none;">
+      <div class="card-panel">
+        <div class="panel-header">
+          <h2 class="panel-title">
+            <i data-lucide="mail" style="width: 20px; height: 20px;"></i>
+            Customer Enquiries &amp; Support Tickets (Epic 1)
+          </h2>
+          <button class="btn-action-sm" onclick="loadStaffEnquiries()">
+            <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i> Refresh Enquiries
+          </button>
+        </div>
+
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Ticket ID</th>
+              <th>Customer Name</th>
+              <th>Email</th>
+              <th>Booking Ref</th>
+              <th>Subject &amp; Message</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="staff-enquiries-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Assign Chauffeur Modal -->
+  <div class="modal-backdrop" id="modal-assign-chauffeur">
+    <div class="modal-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 style="font-family: var(--font-heading); font-size: 18px; color: var(--primary);">Assign Driver to Confirmed Journey (P03)</h3>
+        <button onclick="closeModal('modal-assign-chauffeur')" style="background: none; border: none; font-size: 18px; cursor: pointer;">&times;</button>
+      </div>
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+        Select an active chauffeur to dispatch for booking <strong id="assign-bcode-display">BK-000000</strong>.
+      </p>
+      <input type="hidden" id="assign-booking-id" />
+      <div style="margin-bottom: 16px;">
+        <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 6px;">Available Chauffeur *</label>
+        <select id="assign-driver-select" class="form-input"></select>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button class="btn-action-sm" onclick="closeModal('modal-assign-chauffeur')">Cancel</button>
+        <button class="btn-primary-solid" onclick="confirmDriverAssignment()">
+          <i data-lucide="check" style="width: 16px; height: 16px;"></i> Confirm Driver Assignment
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reply Enquiry Modal -->
+  <div class="modal-backdrop" id="modal-reply-enquiry">
+    <div class="modal-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h3 style="font-family: var(--font-heading); font-size: 18px; color: var(--primary);">Reply to Customer Enquiry</h3>
+        <button onclick="closeModal('modal-reply-enquiry')" style="background: none; border: none; font-size: 18px; cursor: pointer;">&times;</button>
+      </div>
+      <input type="hidden" id="reply-enquiry-id" />
+      <div style="margin-bottom: 12px; font-size: 13px;">
+        <div><strong>Customer:</strong> <span id="reply-customer-display"></span></div>
+        <div style="margin-top: 4px;"><strong>Subject:</strong> <span id="reply-subject-display"></span></div>
+        <div style="margin-top: 8px; background: #FAF7F2; padding: 10px; border-radius: 6px; border: 1px solid var(--border);" id="reply-orig-message"></div>
+      </div>
+      <div style="margin-bottom: 16px;">
+        <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 6px;">Staff Response (Dispatches email to customer) *</label>
+        <textarea id="reply-text-input" rows="4" class="form-input" style="height: auto; padding: 10px;" placeholder="Type your response to the customer..."></textarea>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button class="btn-action-sm" onclick="closeModal('modal-reply-enquiry')">Cancel</button>
+        <button class="btn-primary-solid" onclick="confirmSendEnquiryReply()">
+          <i data-lucide="send" style="width: 16px; height: 16px;"></i> Send Reply to Customer
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="staff-toast">Action completed successfully</div>
+
+  <script>
+    const API_BASE = window.location.origin;
+    let currentDrivers = [];
+    let currentVehicles = [];
+
+    function triggerToast(msg) {
+      const t = document.getElementById('staff-toast');
+      t.textContent = msg;
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 3500);
+    }
+
+    function switchStaffTab(tabId) {
+      document.querySelectorAll('.staff-tab-content').forEach(el => el.style.display = 'none');
+      document.querySelectorAll('.nav-tab-btn').forEach(btn => btn.classList.remove('active'));
+      const activeEl = document.getElementById(tabId);
+      if (activeEl) activeEl.style.display = 'block';
+      event.currentTarget.classList.add('active');
+
+      if (tabId === 'tab-dispatch') loadStaffBookings();
+      if (tabId === 'tab-refunds') loadStaffRefunds();
+      if (tabId === 'tab-fleet') loadStaffFleet();
+      if (tabId === 'tab-reports') loadStaffReports();
+      if (tabId === 'tab-enquiries') loadStaffEnquiries();
+    }
+
+    function closeModal(id) {
+      const m = document.getElementById(id);
+      if (m) m.style.display = 'none';
+    }
+
+    async function checkStaffAuth() {
+      const token = localStorage.getItem('sessionToken');
+      const user = localStorage.getItem('currentUser');
+      if (!token || !user) {
+        // Offer quick 1-click staff demo login
+        await autoStaffDemoLogin();
+        return;
+      }
+      try {
+        const u = JSON.parse(user);
+        if (u.role !== 'STAFF') {
+          // Attempt staff login
+          await autoStaffDemoLogin();
+          return;
+        }
+        document.getElementById('staff-name-display').textContent = u.name;
+        document.getElementById('staff-role-display').textContent = `${u.accountCode || 'STAFF'} • DISPATCH`;
+        loadStaffBookings();
+        loadStaffFleet();
+      } catch (_) {
+        await autoStaffDemoLogin();
+      }
+    }
+
+    async function autoStaffDemoLogin() {
+      try {
+        const res = await fetch(`${API_BASE}/api/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: 'staff@privatehirecars.com',
+            password: 'Staff123!',
+          }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          localStorage.setItem('sessionToken', data.sessionToken);
+          localStorage.setItem('currentUser', JSON.stringify(data.user));
+          document.getElementById('staff-name-display').textContent = data.user.name;
+          document.getElementById('staff-role-display').textContent = `${data.user.accountCode} • DISPATCH`;
+          triggerToast('Staff session active (STAFF-001 Dispatcher).');
+          loadStaffBookings();
+          loadStaffFleet();
+        }
+      } catch (err) {
+        console.error('Staff login error:', err);
+      }
+    }
+
+    function handleStaffSignOut() {
+      localStorage.removeItem('sessionToken');
+      localStorage.removeItem('currentUser');
+      window.location.href = 'login.html';
+    }
+
+    // Load dispatch queue
+    async function loadStaffBookings() {
+      const token = localStorage.getItem('sessionToken');
+      const tbody = document.getElementById('staff-bookings-tbody');
+      tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:30px; color:var(--text-dim);">Loading dispatch queue...</td></tr>`;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/staff/bookings`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (!data.success || !data.bookings || data.bookings.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:30px; color:var(--text-dim);">No bookings in the dispatch queue.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = data.bookings.map(b => `
+          <tr>
+            <td style="font-weight:700; font-family:var(--font-mono); color:var(--primary);">${b.booking_code}</td>
+            <td>
+              <strong>${b.passenger_name}</strong>
+              <div style="font-size:11px; color:var(--text-dim);">${b.passenger_phone}</div>
+            </td>
+            <td>
+              <strong>${b.service_name || 'Executive Journey'}</strong>
+              <div style="font-size:11px; color:var(--text-muted);">${b.vehicle_capacity || 4} Passengers</div>
+            </td>
+            <td style="font-size:12px; max-width:220px;">
+              <div><strong>From:</strong> ${b.pickup_address}</div>
+              <div style="color:var(--text-muted);"><strong>To:</strong> ${b.dropoff_address}</div>
+            </td>
+            <td style="font-size:11.5px; font-family:var(--font-mono);">
+              ${new Date(b.pickup_time).toLocaleString('en-GB', { dateStyle:'short', timeStyle:'short' })}
+            </td>
+            <td>
+              <div style="font-weight:700; color:var(--primary);">£${Number(b.final_fare || b.fare_amount).toFixed(2)} GBP</div>
+              <span class="badge-${b.payment_status || 'UNPAID'}">${b.payment_status || 'UNPAID'}</span>
+              <span style="font-size:10px; color:var(--text-dim);">(${b.payment_method})</span>
+            </td>
+            <td style="font-size:12px;">
+              <div>${b.driver_name ? `👨‍✈️ ${b.driver_name}` : '<em style="color:#B8860B;">Unassigned</em>'}</div>
+              <div style="font-size:11px; color:var(--text-dim);">${b.vehicle_reg || '—'}</div>
+            </td>
+            <td>
+              <span class="badge-status badge-${b.status}">${b.status}</span>
+            </td>
+            <td>
+              <div style="display:flex; flex-direction:column; gap:6px;">
+                ${b.status === 'CONFIRMED' ? `
+                  <button class="btn-action-sm" onclick="openAssignDriverModal(${b.id}, '${b.booking_code}')">
+                    <i data-lucide="user-plus" style="width:13px; height:13px;"></i> Assign Driver
+                  </button>
+                ` : ''}
+
+                ${b.status === 'ASSIGNED' ? `
+                  <button class="btn-action-sm" onclick="updateJourneyState(${b.id}, 'ENROUTE')">
+                    <i data-lucide="navigation-2" style="width:13px; height:13px;"></i> Start En Route
+                  </button>
+                ` : ''}
+
+                ${b.status === 'ENROUTE' ? `
+                  <button class="btn-action-sm" onclick="triggerApproachingAlert(${b.id})" ${b.approaching_alert ? 'disabled style="opacity:0.5;"' : ''}>
+                    <i data-lucide="bell-ring" style="width:13px; height:13px;"></i> ${b.approaching_alert ? 'Alert Sent ✓' : 'Send Alert (P04)'}
+                  </button>
+                  <button class="btn-action-sm" style="color:var(--accent-emerald);" onclick="updateJourneyState(${b.id}, 'COMPLETED')">
+                    <i data-lucide="check-circle" style="width:13px; height:13px;"></i> Complete Journey
+                  </button>
+                ` : ''}
+
+                ${b.status === 'COMPLETED' && b.payment_status === 'UNPAID' ? `
+                  <button class="btn-action-sm" style="color:#B8860B; border-color:#B8860B;" onclick="confirmCashCollection(${b.id})">
+                    <i data-lucide="coins" style="width:13px; height:13px;"></i> Collect Cash (£)
+                  </button>
+                ` : ''}
+              </div>
+            </td>
+          </tr>
+        `).join('');
+
+        lucide.createIcons();
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="9" style="color:var(--danger); padding:20px;">Error loading dispatch queue: ${err.message}</td></tr>`;
+      }
+    }
+
+    // Assign Driver Modal
+    function openAssignDriverModal(bookingId, bCode) {
+      document.getElementById('assign-booking-id').value = bookingId;
+      document.getElementById('assign-bcode-display').textContent = bCode;
+      const select = document.getElementById('assign-driver-select');
+      select.innerHTML = currentDrivers.map(d => `<option value="${d.id}">${d.name} (${d.driver_code} - ${d.reference_number})</option>`).join('');
+      document.getElementById('modal-assign-chauffeur').style.display = 'flex';
+    }
+
+    async function confirmDriverAssignment() {
+      const token = localStorage.getItem('sessionToken');
+      const bookingId = document.getElementById('assign-booking-id').value;
+      const driverId = document.getElementById('assign-driver-select').value;
+      try {
+        const res = await fetch(`${API_BASE}/api/staff/bookings/${bookingId}/status`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ status: 'ASSIGNED', driverId: parseInt(driverId, 10) })
+        });
+        const data = await res.json();
+        if (data.success) {
+          closeModal('modal-assign-chauffeur');
+          triggerToast('Driver assigned successfully! Journey moved to ASSIGNED.');
+          loadStaffBookings();
+        } else {
+          alert(data.message || 'Error assigning driver');
+        }
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    async function updateJourneyState(bookingId, status) {
+      const token = localStorage.getItem('sessionToken');
+      try {
+        const res = await fetch(`${API_BASE}/api/staff/bookings/${bookingId}/status`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ status })
+        });
+        const data = await res.json();
+        if (data.success) {
+          triggerToast(`Journey status updated to ${status}!`);
+          loadStaffBookings();
+        } else {
+          alert(data.message || 'Error updating status');
+        }
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    async function triggerApproachingAlert(bookingId) {
+      const token = localStorage.getItem('sessionToken');
+      try {
+        const res = await fetch(`${API_BASE}/api/staff/bookings/${bookingId}/approaching-alert`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.success) {
+          triggerToast('Approaching vehicle persistent alert dispatched to customer account!');
+          loadStaffBookings();
+        } else {
+          alert(data.message || 'Could not send alert');
+        }
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    async function confirmCashCollection(bookingId) {
+      if (!confirm('Confirm you have collected cash from the customer for this completed journey?')) return;
+      const token = localStorage.getItem('sessionToken');
+      try {
+        const res = await fetch(`${API_BASE}/api/staff/bookings/${bookingId}/collect-cash`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.success) {
+          triggerToast('Cash collected recorded! Payment status is now PAID. Receipt is now available.');
+          loadStaffBookings();
+        } else {
+          alert(data.message || 'Error recording cash');
+        }
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    // Caller Search
+    async function searchCallerAccount() {
+      const q = document.getElementById('caller-search-input').value.trim();
+      const resultsDiv = document.getElementById('caller-search-results');
+      if (!q) return;
+      resultsDiv.innerHTML = `<span style="color:var(--text-dim); font-size:12px;">Searching accounts...</span>`;
+      const token = localStorage.getItem('sessionToken');
+      try {
+        const res = await fetch(`${API_BASE}/api/staff/customers/search?query=${encodeURIComponent(q)}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (!data.success || data.customers.length === 0) {
+          resultsDiv.innerHTML = `<span style="color:var(--danger); font-size:12px;">No matching caller account found. Please ask caller for email or phone.</span>`;
+          return;
+        }
+
+        resultsDiv.innerHTML = data.customers.map(c => `
+          <div style="background:#fff; border:1px solid var(--border); padding:10px 14px; border-radius:6px; margin-top:8px; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <strong>${c.name}</strong> (${c.account_code}) &bull; <span style="font-family:var(--font-mono); font-size:12px;">${c.telephone}</span> &bull; ${c.email}
+            </div>
+            <button type="button" class="btn-action-sm" onclick="selectCallerForBooking(${c.id}, '${c.name.replace(/'/g, "\\'")}', '${c.telephone}')">
+              Select Caller
+            </button>
+          </div>
+        `).join('');
+      } catch (err) {
+        resultsDiv.innerHTML = `<span style="color:var(--danger);">Error searching caller: ${err.message}</span>`;
+      }
+    }
+
+    function selectCallerForBooking(id, name, phone) {
+      document.getElementById('stf-cust-id').value = id;
+      document.getElementById('stf-cust-info').value = `${name} (${phone})`;
+      triggerToast(`Caller selected: ${name}`);
+    }
+
+    function updateStaffFareQuote() {
+      const s = document.getElementById('stf-service');
+      const c = document.getElementById('stf-capacity').value;
+      const opt = s.options[s.selectedIndex];
+      const fare = c === '7' ? opt.getAttribute('data-seven') : opt.getAttribute('data-four');
+      document.getElementById('stf-quote-display').value = `£${Number(fare).toFixed(2)} GBP (Standard Table 8 Rate, No Online Discount)`;
+    }
+
+    async function handleStaffBookingSubmit(e) {
+      e.preventDefault();
+      const token = localStorage.getItem('sessionToken');
+      const custId = document.getElementById('stf-cust-id').value;
+      if (!custId) {
+        alert('Please search and select a caller account first.');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/staff/bookings`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({
+            customerId: parseInt(custId, 10),
+            pickupAddress: document.getElementById('stf-pickup').value,
+            dropoffAddress: document.getElementById('stf-dropoff').value,
+            service: document.getElementById('stf-service').value,
+            vehicleCapacity: parseInt(document.getElementById('stf-capacity').value, 10),
+            paymentMethod: document.getElementById('stf-payment').value,
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          triggerToast(`Staff-assisted booking confirmed (${data.booking.booking_code})!`);
+          document.getElementById('staff-phone-booking-form').reset();
+          document.getElementById('stf-cust-id').value = '';
+          document.getElementById('stf-cust-info').value = '';
+          switchStaffTab('tab-dispatch');
+        } else {
+          alert(data.message || 'Error creating phone booking');
+        }
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    // Load Fleet
+    async function loadStaffFleet() {
+      const token = localStorage.getItem('sessionToken');
+      try {
+        const res = await fetch(`${API_BASE}/api/staff/fleet`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.success) {
+          currentVehicles = data.vehicles;
+          currentDrivers = data.drivers;
+          document.getElementById('staff-vehicles-tbody').innerHTML = data.vehicles.map(v => `
+            <tr>
+              <td style="font-weight:700; font-family:var(--font-mono);">${v.reg_number}</td>
+              <td>${v.make_model}</td>
+              <td>${v.colour}</td>
+              <td>${v.capacity} Seats</td>
+              <td><span class="badge-status badge-${v.status === 'ACTIVE' ? 'CONFIRMED' : 'CANCELLED'}">${v.status}</span></td>
+            </tr>
+          `).join('');
+
+          document.getElementById('staff-drivers-tbody').innerHTML = data.drivers.map(d => `
+            <tr>
+              <td style="font-weight:700; font-family:var(--font-mono);">${d.driver_code}</td>
+              <td>${d.name}</td>
+              <td>${d.telephone}</td>
+              <td style="font-family:var(--font-mono); font-size:11px;">${d.reference_number}</td>
+              <td><span class="badge-status badge-${d.status === 'ACTIVE' ? 'CONFIRMED' : 'CANCELLED'}">${d.status}</span></td>
+            </tr>
+          `).join('');
+        }
+      } catch (_) {}
+    }
+
+    // Load Refunds
+    async function loadStaffRefunds() {
+      const token = localStorage.getItem('sessionToken');
+      const tbody = document.getElementById('staff-refunds-tbody');
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:30px; color:var(--text-dim);">Loading pending refunds...</td></tr>`;
+      try {
+        const res = await fetch(`${API_BASE}/api/staff/refunds`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (!data.success || !data.refunds || data.refunds.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:30px; color:var(--text-dim);">No pending refunds in queue.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = data.refunds.map(r => `
+          <tr>
+            <td style="font-family:var(--font-mono); font-weight:700;">#${r.id}</td>
+            <td style="font-family:var(--font-mono); color:var(--primary);">${r.booking_code}</td>
+            <td><strong>${r.customer_name}</strong></td>
+            <td>${r.customer_email}</td>
+            <td style="font-weight:700; color:var(--danger);">£${Number(r.amount).toFixed(2)} GBP</td>
+            <td style="font-size:12px;">${r.reason}</td>
+            <td style="font-size:11px;">${new Date(r.created_at).toLocaleString('en-GB')}</td>
+            <td>
+              <button class="btn-action-sm" onclick="processRefundRequest(${r.id})">
+                <i data-lucide="check" style="width:13px; height:13px;"></i> Process Refund
+              </button>
+            </td>
+          </tr>
+        `).join('');
+        lucide.createIcons();
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="8" style="color:var(--danger);">Error loading refunds: ${err.message}</td></tr>`;
+      }
+    }
+
+    async function processRefundRequest(id) {
+      if (!confirm('Confirm and log processing of this refund?')) return;
+      const token = localStorage.getItem('sessionToken');
+      try {
+        const res = await fetch(`${API_BASE}/api/staff/refunds/${id}/process`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.success) {
+          triggerToast(data.message);
+          loadStaffRefunds();
+        } else {
+          alert(data.message || 'Error processing refund');
+        }
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    // Load Reports
+    async function loadStaffReports() {
+      const token = localStorage.getItem('sessionToken');
+      try {
+        const res = await fetch(`${API_BASE}/api/staff/reports/popularity-loyalty`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('staff-rep-vehicles-tbody').innerHTML = data.vehiclePopularity.map((v, i) => `
+            <tr>
+              <td style="font-weight:700; color:var(--accent-gold);">#${i + 1}</td>
+              <td style="font-family:var(--font-mono); font-weight:700;">${v.reg_number}</td>
+              <td>${v.make_model}</td>
+              <td>${v.capacity} seats</td>
+              <td style="font-weight:800; color:var(--primary);">${v.completed_trips_count} journeys</td>
+            </tr>
+          `).join('');
+
+          document.getElementById('staff-rep-loyalty-tbody').innerHTML = data.customerLoyalty.map((c, i) => `
+            <tr>
+              <td style="font-weight:700; color:var(--accent-gold);">#${i + 1}</td>
+              <td style="font-family:var(--font-mono); font-weight:700;">${c.account_code}</td>
+              <td>${c.name}</td>
+              <td style="font-weight:800; color:var(--accent-emerald);">${c.completed_trips_count} completed</td>
+              <td>
+                ${c.completed_trips_count >= 3 ? '<span class="badge-PAID">LOYALTY VOUCHER AWARDED (P09)</span>' : '<span style="font-size:11px; color:var(--text-dim);">' + (3 - c.completed_trips_count) + ' more needed</span>'}
+              </td>
+            </tr>
+          `).join('');
+        }
+      } catch (_) {}
+    }
+
+    // Load Enquiries
+    async function loadStaffEnquiries() {
+      const token = localStorage.getItem('sessionToken');
+      const tbody = document.getElementById('staff-enquiries-tbody');
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--text-dim);">Loading customer enquiries...</td></tr>`;
+      try {
+        const res = await fetch(`${API_BASE}/api/staff/enquiries`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (!data.success || !data.enquiries || data.enquiries.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--text-dim);">No customer enquiries found.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = data.enquiries.map(e => `
+          <tr>
+            <td style="font-family:var(--font-mono); font-weight:700;">#${e.id}</td>
+            <td><strong>${e.name}</strong></td>
+            <td>${e.email}</td>
+            <td style="font-family:var(--font-mono);">${e.booking_code || 'General'}</td>
+            <td style="font-size:12px;">
+              <strong>${e.subject}</strong>
+              <div style="color:var(--text-muted);">${e.message}</div>
+              ${e.staff_reply ? `<div style="margin-top:6px; color:var(--primary); font-size:11px;"><strong>Reply:</strong> ${e.staff_reply}</div>` : ''}
+            </td>
+            <td>
+              <span class="badge-status badge-${e.status === 'RESOLVED' ? 'CONFIRMED' : 'PENDING'}">${e.status}</span>
+            </td>
+            <td>
+              ${e.status === 'OPEN' ? `
+                <button class="btn-action-sm" onclick="openReplyEnquiryModal(${e.id}, '${e.name.replace(/'/g, "\\'")}', '${e.subject.replace(/'/g, "\\'")}', '${e.message.replace(/'/g, "\\'")}')">
+                  <i data-lucide="reply" style="width:13px; height:13px;"></i> Reply
+                </button>
+              ` : '<span style="font-size:11px; color:var(--text-dim);">Resolved</span>'}
+            </td>
+          </tr>
+        `).join('');
+        lucide.createIcons();
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="7" style="color:var(--danger);">Error loading enquiries: ${err.message}</td></tr>`;
+      }
+    }
+
+    function openReplyEnquiryModal(id, name, subject, message) {
+      document.getElementById('reply-enquiry-id').value = id;
+      document.getElementById('reply-customer-display').textContent = name;
+      document.getElementById('reply-subject-display').textContent = subject;
+      document.getElementById('reply-orig-message').textContent = message;
+      document.getElementById('modal-reply-enquiry').style.display = 'flex';
+    }
+
+    async function confirmSendEnquiryReply() {
+      const token = localStorage.getItem('sessionToken');
+      const id = document.getElementById('reply-enquiry-id').value;
+      const replyText = document.getElementById('reply-text-input').value.trim();
+      if (!replyText) {
+        alert('Please enter a response message.');
+        return;
+      }
+      try {
+        const res = await fetch(`${API_BASE}/api/staff/enquiries/${id}/reply`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ replyText })
+        });
+        const data = await res.json();
+        if (data.success) {
+          closeModal('modal-reply-enquiry');
+          triggerToast('Reply dispatched via email to customer!');
+          loadStaffEnquiries();
+        } else {
+          alert(data.message || 'Error sending reply');
+        }
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      checkStaffAuth();
+      lucide.createIcons();
+    });
+  </script>
+</body>
+</html>

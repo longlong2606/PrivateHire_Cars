@@ -2,6 +2,11 @@ const express = require('express');
 const router = express.Router();
 const {
   createBooking,
+  simulatePayment,
+  amendBooking,
+  cancelBooking,
+  getPrintableReceipt,
+  validatePromoCode,
   getMyBookings,
   getBookingById,
   saveBookingDraft,
@@ -15,8 +20,21 @@ router.post('/draft', optionalAuth, saveBookingDraft);
 router.get('/draft', optionalAuth, getBookingDraft);
 router.delete('/draft', optionalAuth, clearBookingDraft);
 
+// [P09]: Xác thực mã ưu đãi đặc biệt
+router.get('/validate-promo', requireAuth, validatePromoCode);
+
 // [AC]: Protect customer endpoints so visitors cannot submit online bookings
 router.post('/', requireAuth, createBooking);
+
+// [P03]: Mô phỏng thanh toán (Simulated Electronic Payment / Cash)
+router.post('/:id/simulate-payment', requireAuth, simulatePayment);
+
+// [P05]: Chỉnh sửa và hủy cuốc xe (>= 24h eligibility rule)
+router.patch('/:id/amend', requireAuth, amendBooking);
+router.post('/:id/cancel', requireAuth, cancelBooking);
+
+// [P03]: Lấy biên lai thanh toán (Printable Receipt)
+router.get('/:id/receipt', requireAuth, getPrintableReceipt);
 
 // [AC]: Customers can access only their own protected bookings
 router.get('/my-bookings', requireAuth, getMyBookings);
