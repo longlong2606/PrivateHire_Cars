@@ -363,7 +363,10 @@ class StaffController {
    */
   static async checkAvailability(req, res) {
     try {
-      const { pickupTime, service = 'Airport transfer', passengerCount = 1, channel = 'TELEPHONE' } = req.query;
+      const pickupTime = req.query.pickupTime;
+      const service = req.query.service || req.query.serviceName || 'Airport transfer';
+      const passengerCount = req.query.passengerCount || req.query.passengers || 1;
+      const channel = req.query.channel || 'TELEPHONE';
       const count = parseInt(passengerCount, 10) || 1;
       const capacity = count > 4 ? 7 : 4;
       const pickupDate = pickupTime ? new Date(pickupTime) : new Date();
@@ -413,6 +416,7 @@ class StaffController {
 
       res.json({
         success: true,
+        baseFare: parseFloat(baseFare),
         quote: {
           serviceName,
           passengerCount: count,

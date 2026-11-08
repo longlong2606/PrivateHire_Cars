@@ -708,11 +708,18 @@
     <!-- 3. Availability Tool Tab -->
     <section id="tab-availability" class="tab-content" style="display: none;">
       <div class="card-panel">
-        <h2 class="panel-title">
-          <i data-lucide="calendar" style="width: 20px; height: 20px; color: var(--primary);"></i>
-          Live Vehicle &amp; Driver Availability Search
-        </h2>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+          <h2 class="panel-title" style="margin-bottom: 0;">
+            <i data-lucide="calendar" style="width: 20px; height: 20px; color: var(--primary);"></i>
+            Live Vehicle &amp; Driver Availability Search
+          </h2>
+          <span style="font-size: 12.5px; color: var(--text-dim);">
+            Real-time conflict detection across scheduled trips
+          </span>
+        </div>
+
+        <!-- Search Filters Form -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-bottom: 20px; background: #FAF7F2; padding: 18px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
           <div>
             <label class="field-label">Pickup Date &amp; Time *</label>
             <input type="datetime-local" id="srch-pickup-time" class="field-input" />
@@ -730,16 +737,88 @@
           </div>
           <div>
             <label class="field-label">Passenger Count *</label>
-            <input type="number" id="srch-passengers" class="field-input" min="1" max="7" value="2" />
+            <select id="srch-passengers" class="field-select">
+              <option value="1">1 Passenger (Saloon 4 Pax)</option>
+              <option value="2" selected>2 Passengers (Saloon 4 Pax)</option>
+              <option value="3">3 Passengers (Saloon 4 Pax)</option>
+              <option value="4">4 Passengers (Saloon 4 Pax)</option>
+              <option value="5">5 Passengers (MPV 7 Pax)</option>
+              <option value="6">6 Passengers (MPV 7 Pax)</option>
+              <option value="7">7 Passengers (MPV 7 Pax)</option>
+            </select>
           </div>
           <div style="display: flex; align-items: flex-end;">
-            <button type="button" class="btn-action btn-primary" style="height: 42px; width: 100%; justify-content: center;" onclick="runStaffAvailabilitySearch()">
-              Search Availability
+            <button type="button" class="btn-action btn-primary" style="height: 42px; width: 100%; justify-content: center; font-size: 13.5px;" onclick="runStaffAvailabilitySearch()">
+              <i data-lucide="search" style="width: 16px; height: 16px;"></i> Search Availability
             </button>
           </div>
         </div>
-        <div id="srch-results-box" style="padding: 18px; background: #FAF7F2; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
-          <p style="color: var(--text-muted); font-size: 13.5px;">Click "Search Availability" to evaluate non-conflicting vehicles and drivers for the specified window.</p>
+
+        <!-- Quote & Summary Banner (shown after search) -->
+        <div id="srch-results-box" style="display: none; margin-bottom: 24px;"></div>
+
+        <!-- 2 Side-by-side Tables: Available Vehicles & Available Chauffeurs -->
+        <div id="srch-tables-container" style="display: none; grid-template-columns: 1fr 1fr; gap: 24px;">
+          <!-- Available Vehicles Box -->
+          <div style="background: #FFFFFF; border: 1px solid var(--border-medium); border-radius: var(--radius-md); padding: 18px; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+              <h3 style="font-family: var(--font-heading); font-size: 16px; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="car" style="width: 18px; height: 18px;"></i>
+                Available Vehicles (<span id="avail-vehicles-count">0</span>)
+              </h3>
+              <input type="text" id="filter-avail-vehicles" placeholder="Search available cars..." oninput="filterAvailVehicles()" style="height: 32px; font-size: 12px; padding: 0 10px; border: 1px solid var(--border-medium); border-radius: var(--radius-sm); width: 180px;" />
+            </div>
+            <div class="table-container" style="max-height: 420px; overflow-y: auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Registration</th>
+                    <th>Make &amp; Model</th>
+                    <th>Colour</th>
+                    <th>Capacity</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="avail-vehicles-body">
+                  <tr><td colspan="5" style="text-align: center; padding: 20px;">No vehicles available.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Available Drivers Box -->
+          <div style="background: #FFFFFF; border: 1px solid var(--border-medium); border-radius: var(--radius-md); padding: 18px; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+              <h3 style="font-family: var(--font-heading); font-size: 16px; font-weight: 700; color: var(--accent-emerald); display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="user-check" style="width: 18px; height: 18px;"></i>
+                Available Chauffeurs (<span id="avail-drivers-count">0</span>)
+              </h3>
+              <input type="text" id="filter-avail-drivers" placeholder="Search chauffeurs..." oninput="filterAvailDrivers()" style="height: 32px; font-size: 12px; padding: 0 10px; border: 1px solid var(--border-medium); border-radius: var(--radius-sm); width: 180px;" />
+            </div>
+            <div class="table-container" style="max-height: 420px; overflow-y: auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Code</th>
+                    <th>Name</th>
+                    <th>Telephone</th>
+                    <th>TfL License Ref</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="avail-drivers-body">
+                  <tr><td colspan="5" style="text-align: center; padding: 20px;">No chauffeurs available.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Initial Placeholder State before search -->
+        <div id="srch-initial-placeholder" style="padding: 36px 20px; text-align: center; background: #FAF7F2; border-radius: var(--radius-md); border: 1px dashed var(--border-medium); color: var(--text-muted);">
+          <i data-lucide="calendar-search" style="width: 36px; height: 36px; margin-bottom: 10px; color: var(--accent-gold); display: inline-block;"></i>
+          <h4 style="font-size: 15px; font-weight: 700; color: var(--text-main); margin-bottom: 4px;">Search Live Fleet &amp; Chauffeur Availability</h4>
+          <p style="font-size: 13px; max-width: 500px; margin: 0 auto;">Select your scheduled pickup date, time, and service requirement above, then click <strong>Search Availability</strong> to inspect all non-conflicting vehicles and drivers available for dispatch.</p>
         </div>
       </div>
     </section>
@@ -1083,6 +1162,11 @@
       }
 
       refreshAllStaffData();
+      const pTimeInput = document.getElementById('srch-pickup-time');
+      if (pTimeInput && !pTimeInput.value) {
+        const nextHour = new Date(Date.now() + 3600000);
+        pTimeInput.value = new Date(nextHour.getTime() - nextHour.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+      }
       lucide.createIcons();
     });
 
@@ -1371,30 +1455,143 @@
     }
 
     // Availability Search
+    let currentAvailVehicles = [];
+    let currentAvailDrivers = [];
+
+    function renderAvailVehicles(list) {
+      const tbody = document.getElementById('avail-vehicles-body');
+      if (!tbody) return;
+      if (!list || list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:18px; color:var(--text-muted);">No matching vehicles found.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = list.map(v => `
+        <tr>
+          <td><strong style="color: var(--primary); font-family: var(--font-mono);">${v.reg_number || v.registration_number}</strong></td>
+          <td>${v.make_model || (v.make + ' ' + (v.model || ''))}</td>
+          <td>${v.colour}</td>
+          <td><span class="badge badge-assigned">${v.capacity} Pax</span></td>
+          <td><span class="badge badge-completed">AVAILABLE</span></td>
+        </tr>
+      `).join('');
+    }
+
+    function renderAvailDrivers(list) {
+      const tbody = document.getElementById('avail-drivers-body');
+      if (!tbody) return;
+      if (!list || list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:18px; color:var(--text-muted);">No matching chauffeurs found.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = list.map(d => `
+        <tr>
+          <td><strong style="color: var(--primary); font-family: var(--font-mono);">${d.driver_code}</strong></td>
+          <td>${d.name}</td>
+          <td>${d.telephone || d.phone}</td>
+          <td><span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-dim);">${d.reference_number || 'TFL-PHD'}</span></td>
+          <td><span class="badge badge-completed">ACTIVE</span></td>
+        </tr>
+      `).join('');
+    }
+
+    function filterAvailVehicles() {
+      const q = (document.getElementById('filter-avail-vehicles')?.value || '').toLowerCase().trim();
+      const filtered = currentAvailVehicles.filter(v => {
+        const reg = (v.reg_number || v.registration_number || '').toLowerCase();
+        const mm = (v.make_model || (v.make + ' ' + (v.model || ''))).toLowerCase();
+        const col = (v.colour || '').toLowerCase();
+        return reg.includes(q) || mm.includes(q) || col.includes(q);
+      });
+      renderAvailVehicles(filtered);
+    }
+
+    function filterAvailDrivers() {
+      const q = (document.getElementById('filter-avail-drivers')?.value || '').toLowerCase().trim();
+      const filtered = currentAvailDrivers.filter(d => {
+        const code = (d.driver_code || '').toLowerCase();
+        const name = (d.name || '').toLowerCase();
+        const phone = (d.telephone || d.phone || '').toLowerCase();
+        const ref = (d.reference_number || '').toLowerCase();
+        return code.includes(q) || name.includes(q) || phone.includes(q) || ref.includes(q);
+      });
+      renderAvailDrivers(filtered);
+    }
+
     async function runStaffAvailabilitySearch() {
-      const pTime = document.getElementById('srch-pickup-time').value;
+      let pTime = document.getElementById('srch-pickup-time').value;
       const service = document.getElementById('srch-service').value;
       const pax = document.getElementById('srch-passengers').value;
       const box = document.getElementById('srch-results-box');
+      const tablesCont = document.getElementById('srch-tables-container');
+      const placeholder = document.getElementById('srch-initial-placeholder');
 
       if (!pTime) {
-        triggerToast("Please select pickup time.", "error");
-        return;
+        const defaultTime = new Date(Date.now() + 3600000);
+        pTime = new Date(defaultTime.getTime() - defaultTime.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+        document.getElementById('srch-pickup-time').value = pTime;
       }
+
       try {
-        const res = await authenticatedFetch(`${API_BASE}/api/staff/availability?pickupTime=${encodeURIComponent(pTime)}&serviceName=${encodeURIComponent(service)}&passengers=${pax}`);
+        const res = await authenticatedFetch(`${API_BASE}/api/staff/availability?pickupTime=${encodeURIComponent(pTime)}&service=${encodeURIComponent(service)}&passengerCount=${pax}`);
         const data = await res.json();
         if (res.ok && data.success) {
-          box.innerHTML = `
-            <div style="font-size: 14px; line-height: 1.8;">
-              <strong style="color: var(--primary);">Standard Quote:</strong> £${parseFloat(data.baseFare).toFixed(2)} GBP (No Online Discount for Phone)<br>
-              <strong>Available Suitable Vehicles:</strong> ${(data.availableVehicles || []).length} vehicles available<br>
-              <strong>Available Chauffeurs:</strong> ${(data.availableDrivers || []).length} chauffeurs free during this window<br>
-              <span style="font-size: 12px; color: var(--text-dim);">(Note: Resources are not reserved at search stage)</span>
-            </div>
-          `;
+          currentAvailVehicles = data.availableVehicles || [];
+          currentAvailDrivers = data.availableDrivers || [];
+
+          if (placeholder) placeholder.style.display = 'none';
+
+          const quote = data.quote || {};
+          const fare = parseFloat(data.baseFare || quote.baseFare || 45).toFixed(2);
+          const dur = quote.occupiedDurationMinutes || 90;
+          const cap = quote.vehicleCapacity || (parseInt(pax, 10) > 4 ? 7 : 4);
+
+          if (box) {
+            box.style.display = 'block';
+            box.innerHTML = `
+              <div style="background: #E8F5E9; border: 1px solid #C8E6C9; border-radius: var(--radius-md); padding: 18px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 14px;">
+                <div>
+                  <div style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: #2E7D32; letter-spacing: 0.5px; margin-bottom: 2px;">Availability Check Passed</div>
+                  <div style="font-family: var(--font-heading); font-size: 18px; font-weight: 700; color: #1B5E20;">
+                    ${quote.serviceName || service} &bull; £${fare} GBP
+                  </div>
+                  <div style="font-size: 12.5px; color: #388E3C; margin-top: 2px;">
+                    Required: <strong>${cap}-Pax ${cap === 7 ? 'MPV' : 'Executive Saloon'}</strong> &bull; Estimated Journey Window: <strong>${dur} mins</strong> &bull; Channel: <strong>Telephone Desk (No automatic online discount)</strong>
+                  </div>
+                </div>
+                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                  <div style="background: #FFFFFF; border: 1px solid #C8E6C9; border-radius: var(--radius-sm); padding: 8px 16px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
+                    <div style="font-size: 20px; font-weight: 800; color: var(--primary);">${currentAvailVehicles.length}</div>
+                    <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Available Vehicles</div>
+                  </div>
+                  <div style="background: #FFFFFF; border: 1px solid #C8E6C9; border-radius: var(--radius-sm); padding: 8px 16px; text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
+                    <div style="font-size: 20px; font-weight: 800; color: var(--accent-emerald);">${currentAvailDrivers.length}</div>
+                    <div style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Free Chauffeurs</div>
+                  </div>
+                </div>
+              </div>
+            `;
+          }
+
+          if (tablesCont) {
+            tablesCont.style.display = 'grid';
+          }
+
+          const vCount = document.getElementById('avail-vehicles-count');
+          if (vCount) vCount.textContent = currentAvailVehicles.length;
+
+          const dCount = document.getElementById('avail-drivers-count');
+          if (dCount) dCount.textContent = currentAvailDrivers.length;
+
+          renderAvailVehicles(currentAvailVehicles);
+          renderAvailDrivers(currentAvailDrivers);
+          lucide.createIcons();
+        } else {
+          triggerToast(data.message || "Failed to search availability", "error");
         }
-      } catch (_) {}
+      } catch (err) {
+        console.error("Availability search error:", err);
+        triggerToast("Network error checking availability", "error");
+      }
     }
 
     // Refunds Queue
