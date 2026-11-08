@@ -946,6 +946,75 @@
       } catch (_) {}
     }
 
+    // Modal Add Vehicle (SCRUM-25)
+    function openAddVehicleModal() {
+      document.getElementById('modal-add-vehicle').style.display = 'flex';
+    }
+    function closeAddVehicleModal() {
+      document.getElementById('modal-add-vehicle').style.display = 'none';
+    }
+    async function handleAddVehicleSubmit(e) {
+      e.preventDefault();
+      const regNumber = document.getElementById('veh-reg').value.trim();
+      const makeModel = document.getElementById('veh-make').value.trim();
+      const colour = document.getElementById('veh-colour').value.trim();
+      const capacity = parseInt(document.getElementById('veh-capacity').value, 10);
+      const status = document.getElementById('veh-status').value;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/staff/vehicles`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ regNumber, makeModel, colour, capacity, status })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          triggerToast("Vehicle added to fleet successfully!");
+          closeAddVehicleModal();
+          e.target.reset();
+          loadFleetData();
+        } else {
+          triggerToast(data.message || "Failed to add vehicle", "error");
+        }
+      } catch (err) {
+        triggerToast("Server connection error", "error");
+      }
+    }
+
+    // Modal Add Chauffeur (SCRUM-26)
+    function openAddDriverModal() {
+      document.getElementById('modal-add-driver').style.display = 'flex';
+    }
+    function closeAddDriverModal() {
+      document.getElementById('modal-add-driver').style.display = 'none';
+    }
+    async function handleAddDriverSubmit(e) {
+      e.preventDefault();
+      const name = document.getElementById('drv-name').value.trim();
+      const telephone = document.getElementById('drv-phone').value.trim();
+      const referenceNumber = document.getElementById('drv-ref').value.trim();
+      const status = document.getElementById('drv-status').value;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/staff/drivers`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, telephone, referenceNumber, status })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          triggerToast("Chauffeur registered successfully!");
+          closeAddDriverModal();
+          e.target.reset();
+          loadFleetData();
+        } else {
+          triggerToast(data.message || "Failed to add driver", "error");
+        }
+      } catch (err) {
+        triggerToast("Server connection error", "error");
+      }
+    }
+
     function triggerToast(msg, type = "info") {
       const rack = document.getElementById('toast-rack');
       const toast = document.createElement('div');
@@ -958,5 +1027,84 @@
       setTimeout(() => { toast.remove(); }, 3500);
     }
   </script>
+  <!-- Modal Add Vehicle (SCRUM-25) -->
+  <div id="modal-add-vehicle" style="display: none; position: fixed; inset: 0; background: rgba(37,53,46,0.6); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: #fff; border-radius: 14px; max-width: 480px; width: 100%; padding: 24px; box-shadow: var(--shadow-elevated);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+        <h3 style="font-family: var(--font-heading); font-size: 18px; font-weight: 700; color: var(--primary);">Add Executive Vehicle</h3>
+        <button onclick="closeAddVehicleModal()" style="background: none; border: none; font-size: 22px; cursor: pointer; color: var(--text-dim);">&times;</button>
+      </div>
+      <form onsubmit="handleAddVehicleSubmit(event)" style="display: flex; flex-direction: column; gap: 14px;">
+        <div>
+          <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Registration Number</label>
+          <input type="text" id="veh-reg" required placeholder="e.g. LN24 EXV" style="width: 100%; height: 38px; border: 1px solid var(--border); border-radius: 6px; padding: 0 10px; font-size: 13px;" />
+        </div>
+        <div>
+          <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Make & Model</label>
+          <input type="text" id="veh-make" required placeholder="e.g. Mercedes-Benz E-Class" style="width: 100%; height: 38px; border: 1px solid var(--border); border-radius: 6px; padding: 0 10px; font-size: 13px;" />
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div>
+            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Colour</label>
+            <input type="text" id="veh-colour" required placeholder="e.g. Obsidian Black" style="width: 100%; height: 38px; border: 1px solid var(--border); border-radius: 6px; padding: 0 10px; font-size: 13px;" />
+          </div>
+          <div>
+            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Passenger Capacity</label>
+            <select id="veh-capacity" style="width: 100%; height: 38px; border: 1px solid var(--border); border-radius: 6px; padding: 0 10px; font-size: 13px;">
+              <option value="4" selected>4 Passengers (Saloon)</option>
+              <option value="7">7 Passengers (MPV)</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Status</label>
+          <select id="veh-status" style="width: 100%; height: 38px; border: 1px solid var(--border); border-radius: 6px; padding: 0 10px; font-size: 13px;">
+            <option value="ACTIVE" selected>Active in Service</option>
+            <option value="MAINTENANCE">Maintenance / Unavailable</option>
+          </select>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+          <button type="button" onclick="closeAddVehicleModal()" class="btn-action">Cancel</button>
+          <button type="submit" class="btn-action btn-primary">Save Vehicle</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Add Driver (SCRUM-26) -->
+  <div id="modal-add-driver" style="display: none; position: fixed; inset: 0; background: rgba(37,53,46,0.6); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: #fff; border-radius: 14px; max-width: 480px; width: 100%; padding: 24px; box-shadow: var(--shadow-elevated);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+        <h3 style="font-family: var(--font-heading); font-size: 18px; font-weight: 700; color: var(--primary);">Register Licensed Chauffeur</h3>
+        <button onclick="closeAddDriverModal()" style="background: none; border: none; font-size: 22px; cursor: pointer; color: var(--text-dim);">&times;</button>
+      </div>
+      <form onsubmit="handleAddDriverSubmit(event)" style="display: flex; flex-direction: column; gap: 14px;">
+        <div>
+          <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Full Name</label>
+          <input type="text" id="drv-name" required placeholder="e.g. David Sterling" style="width: 100%; height: 38px; border: 1px solid var(--border); border-radius: 6px; padding: 0 10px; font-size: 13px;" />
+        </div>
+        <div>
+          <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Telephone Number</label>
+          <input type="tel" id="drv-phone" required placeholder="e.g. 07700 900123" style="width: 100%; height: 38px; border: 1px solid var(--border); border-radius: 6px; padding: 0 10px; font-size: 13px;" />
+        </div>
+        <div>
+          <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">TfL PCO License / Reference</label>
+          <input type="text" id="drv-ref" required placeholder="e.g. PCO-98241" style="width: 100%; height: 38px; border: 1px solid var(--border); border-radius: 6px; padding: 0 10px; font-size: 13px;" />
+        </div>
+        <div>
+          <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Status</label>
+          <select id="drv-status" style="width: 100%; height: 38px; border: 1px solid var(--border); border-radius: 6px; padding: 0 10px; font-size: 13px;">
+            <option value="ACTIVE" selected>Active & Ready</option>
+            <option value="OFF_DUTY">Off Duty / Rest</option>
+          </select>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+          <button type="button" onclick="closeAddDriverModal()" class="btn-action">Cancel</button>
+          <button type="submit" class="btn-action btn-primary">Save Chauffeur</button>
+        </div>
+      </form>
+    </div>
+  </div>
 </body>
 </html>
+
