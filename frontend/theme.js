@@ -170,6 +170,210 @@
     });
   };
 
+  // 6. User Profile Dropdown System (Click user pill -> Show account info -> Change Profile CTA)
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  window.handleUserProfileLogout = function () {
+    try {
+      localStorage.removeItem('currentUser');
+      localStorage.removeItem('sessionToken');
+    } catch (_) {}
+    window.location.href = 'login.html';
+  };
+
+  window.initUserProfileDropdown = function () {
+    // Permanently hide or remove obsolete standalone profile buttons
+    document.querySelectorAll('#btn-profile').forEach(function (el) {
+      el.style.setProperty('display', 'none', 'important');
+    });
+
+    var userDisplay = document.getElementById('user-display');
+    if (!userDisplay) return;
+
+    userDisplay.style.cursor = 'pointer';
+
+    // Add chevron icon to user-display if not present
+    if (!userDisplay.querySelector('.user-pill-chevron')) {
+      var chevron = document.createElement('i');
+      chevron.setAttribute('data-lucide', 'chevron-down');
+      chevron.className = 'user-pill-chevron';
+      chevron.style.width = '13px';
+      chevron.style.height = '13px';
+      chevron.style.marginLeft = '4px';
+      userDisplay.appendChild(chevron);
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons();
+      }
+    }
+
+    // Ensure dropdown container exists in DOM
+    var dropdown = document.getElementById('user-profile-dropdown');
+    if (!dropdown) {
+      dropdown = document.createElement('div');
+      dropdown.id = 'user-profile-dropdown';
+      dropdown.className = 'user-profile-dropdown';
+
+      var parent = userDisplay.parentElement;
+      if (parent) {
+        if (getComputedStyle(parent).position === 'static') {
+          parent.style.position = 'relative';
+        }
+        parent.appendChild(dropdown);
+      }
+    }
+
+    function renderDropdownContent() {
+      var dd = document.getElementById('user-profile-dropdown');
+      if (!dd) return;
+
+      var user = null;
+      try {
+        var saved = localStorage.getItem('currentUser');
+        if (saved) user = JSON.parse(saved);
+      } catch (_) {}
+
+      if (!user) {
+        dd.classList.remove('open');
+        userDisplay.classList.remove('active');
+        return;
+      }
+
+      var name = user.name || 'Valued Customer';
+      var email = user.email || 'customer@example.com';
+      var phone = user.telephone || user.phone || '+44 20 7946 0912';
+      var address = user.address || 'London, United Kingdom';
+      var accountCode = user.accountCode || user.account_code || ('ACC-' + (user.id || '001'));
+      var cardRef = user.mockCardRef || user.mock_card_ref || '•••• •••• •••• 4242 (Visa Test Card)';
+
+      var role = (user.role || '').toUpperCase().trim();
+      var emailLower = email.toLowerCase().trim();
+      var isAdmin = role === 'ADMIN' || emailLower === 'longhvn2006@gmail.com' || emailLower === 'nguyennhanduc20345@gmail.com';
+
+      var initials = name.split(' ').filter(Boolean).map(function (w) { return w[0]; }).slice(0, 2).join('').toUpperCase() || 'CU';
+
+      var isProfilePage = window.location.pathname.toLowerCase().indexOf('profile.html') !== -1;
+
+      dd.innerHTML =
+        '<div class="user-dropdown-header">' +
+          '<div class="user-dropdown-avatar">' + initials + '</div>' +
+          '<div class="user-dropdown-info">' +
+            '<div class="user-dropdown-name" title="' + escapeHtml(name) + '">' + escapeHtml(name) + '</div>' +
+            '<div class="user-dropdown-email" title="' + escapeHtml(email) + '">' + escapeHtml(email) + '</div>' +
+            '<span class="user-dropdown-role-badge ' + (isAdmin ? 'user-role-admin' : 'user-role-customer') + '">' +
+              (isAdmin ? '★ Administrator' : '● Customer Account') +
+            '</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="user-dropdown-body">' +
+          '<div class="user-dropdown-item">' +
+            '<i data-lucide="hash"></i>' +
+            '<div class="user-dropdown-item-content">' +
+              '<div class="user-dropdown-item-label">Account Code</div>' +
+              '<div class="user-dropdown-item-value" style="font-family: var(--font-mono); font-weight: 700; color: var(--primary);">' + escapeHtml(accountCode) + '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="user-dropdown-item">' +
+            '<i data-lucide="phone"></i>' +
+            '<div class="user-dropdown-item-content">' +
+              '<div class="user-dropdown-item-label">Telephone Number</div>' +
+              '<div class="user-dropdown-item-value">' + escapeHtml(phone) + '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="user-dropdown-item">' +
+            '<i data-lucide="map-pin"></i>' +
+            '<div class="user-dropdown-item-content">' +
+              '<div class="user-dropdown-item-label">Billing / Contact Address</div>' +
+              '<div class="user-dropdown-item-value">' + escapeHtml(address) + '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="user-dropdown-item">' +
+            '<i data-lucide="credit-card"></i>' +
+            '<div class="user-dropdown-item-content">' +
+              '<div class="user-dropdown-item-label">Payment Card Reference</div>' +
+              '<div class="user-dropdown-item-value" style="font-size: 11.5px;">' + escapeHtml(cardRef) + '</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="user-dropdown-footer">' +
+          '<a href="profile.html" id="btn-dropdown-change-profile" class="btn-change-profile" title="Change Profile">' +
+            '<i data-lucide="edit-3" style="width: 14px; height: 14px;"></i>' +
+            '<span>Change Profile</span>' +
+          '</a>' +
+          '<button type="button" class="btn-dropdown-logout" onclick="window.handleUserProfileLogout()">' +
+            '<i data-lucide="log-out" style="width: 13px; height: 13px;"></i>' +
+            '<span>Sign Out</span>' +
+          '</button>' +
+        '</div>';
+
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons();
+      }
+
+      var changeBtn = document.getElementById('btn-dropdown-change-profile');
+      if (changeBtn && isProfilePage) {
+        changeBtn.onclick = function (e) {
+          e.preventDefault();
+          dd.classList.remove('open');
+          userDisplay.classList.remove('active');
+          var nameInput = document.getElementById('prof-name');
+          if (nameInput) {
+            nameInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            nameInput.focus();
+          }
+        };
+      }
+    }
+
+    userDisplay.onclick = function (e) {
+      e.stopPropagation();
+      var dd = document.getElementById('user-profile-dropdown');
+      if (!dd) return;
+
+      var isOpen = dd.classList.contains('open');
+      if (isOpen) {
+        dd.classList.remove('open');
+        userDisplay.classList.remove('active');
+      } else {
+        renderDropdownContent();
+        dd.classList.add('open');
+        userDisplay.classList.add('active');
+      }
+    };
+
+    if (!window._userDropdownListenersBound) {
+      window._userDropdownListenersBound = true;
+
+      document.addEventListener('click', function (e) {
+        var dd = document.getElementById('user-profile-dropdown');
+        var ud = document.getElementById('user-display');
+        if (!dd || !ud) return;
+        if (!dd.contains(e.target) && !ud.contains(e.target)) {
+          dd.classList.remove('open');
+          ud.classList.remove('active');
+        }
+      });
+
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+          var dd = document.getElementById('user-profile-dropdown');
+          var ud = document.getElementById('user-display');
+          if (dd && ud) {
+            dd.classList.remove('open');
+            ud.classList.remove('active');
+          }
+        }
+      });
+    }
+  };
+
   function syncDomTheme() {
     var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
     if (isDark && document.body) {
@@ -177,9 +381,12 @@
     }
     window.updateThemeUI();
     window.updateStaffPortalAccess();
+    if (typeof window.initUserProfileDropdown === 'function') {
+      window.initUserProfileDropdown();
+    }
   }
 
-  // 6. Update UI once DOM is ready
+  // 7. Update UI once DOM is ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', syncDomTheme);
   } else {

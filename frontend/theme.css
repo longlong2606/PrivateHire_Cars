@@ -728,3 +728,293 @@ body[data-user-role="ADMIN"] .staff-portal-btn,
 body[data-user-role="STAFF"] .staff-portal-btn {
   display: inline-flex !important;
 }
+
+/* ===================================================================
+   7. USER PROFILE DROPDOWN MENU & HOVER STYLES
+   Provides account info preview on user pill click & Change Profile CTA.
+   Permanently removes obsolete standalone profile button from navbar.
+   =================================================================== */
+#btn-profile {
+  display: none !important;
+}
+
+.user-profile-menu-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.user-pill {
+  cursor: pointer !important;
+  user-select: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.user-pill:hover,
+.user-pill.active {
+  background: rgba(22, 75, 59, 0.12) !important;
+  border-color: var(--primary) !important;
+}
+
+[data-theme="dark"] .user-pill:hover,
+[data-theme="dark"] .user-pill.active {
+  background: rgba(82, 183, 136, 0.2) !important;
+  border-color: var(--primary-light) !important;
+}
+
+.user-pill-chevron {
+  transition: transform 0.2s ease;
+  width: 13px;
+  height: 13px;
+  margin-left: 2px;
+  color: var(--text-muted);
+}
+
+.user-pill.active .user-pill-chevron {
+  transform: rotate(180deg);
+}
+
+.user-profile-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 330px;
+  max-width: calc(100vw - 24px);
+  background: var(--bg-card, #FFFFFF);
+  border: 1px solid var(--border-subtle, #E4DED1);
+  border-radius: var(--radius-lg, 14px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0, 0, 0, 0.08);
+  z-index: 1050;
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+  animation: userDropdownFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.user-profile-dropdown.open {
+  display: flex !important;
+}
+
+@keyframes userDropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.user-dropdown-header {
+  padding: 16px;
+  background: linear-gradient(135deg, rgba(22, 75, 59, 0.08), rgba(198, 156, 84, 0.08));
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+[data-theme="dark"] .user-dropdown-header {
+  background: linear-gradient(135deg, rgba(45, 106, 79, 0.3), rgba(212, 175, 55, 0.12));
+}
+
+.user-dropdown-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--primary, #164B3B);
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 800;
+  font-family: var(--font-heading);
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(22, 75, 59, 0.25);
+}
+
+.user-dropdown-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-dropdown-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.25;
+}
+
+.user-dropdown-email {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+
+.user-dropdown-role-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 5px;
+}
+
+.user-role-admin {
+  background: rgba(198, 156, 84, 0.18);
+  color: #8C6B28;
+  border: 1px solid rgba(198, 156, 84, 0.35);
+}
+
+[data-theme="dark"] .user-role-admin {
+  background: rgba(212, 175, 55, 0.2);
+  color: #F5D77F;
+  border: 1px solid rgba(212, 175, 55, 0.4);
+}
+
+.user-role-customer {
+  background: rgba(58, 139, 104, 0.15);
+  color: var(--accent-emerald, #3A8B68);
+  border: 1px solid rgba(58, 139, 104, 0.3);
+}
+
+[data-theme="dark"] .user-role-customer {
+  background: rgba(74, 222, 128, 0.15);
+  color: #4ADE80;
+  border: 1px solid rgba(74, 222, 128, 0.3);
+}
+
+.user-dropdown-body {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  font-size: 12.5px;
+}
+
+.user-dropdown-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: var(--text-muted);
+}
+
+.user-dropdown-item i {
+  width: 14px;
+  height: 14px;
+  color: var(--text-dim);
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.user-dropdown-item-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-dropdown-item-label {
+  font-size: 10.5px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  font-weight: 600;
+}
+
+.user-dropdown-item-value {
+  color: var(--text-main);
+  font-weight: 500;
+  word-break: break-word;
+}
+
+.user-dropdown-footer {
+  padding: 14px 16px;
+  border-top: 1px solid var(--border-subtle);
+  background: var(--bg-surface, #FAF7F2);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+[data-theme="dark"] .user-dropdown-footer {
+  background: #0E1A14 !important;
+}
+
+.btn-change-profile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 9px 16px;
+  background: var(--primary, #164B3B);
+  color: #FFFFFF !important;
+  border-radius: var(--radius-sm, 6px);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(22, 75, 59, 0.2);
+}
+
+.btn-change-profile:hover {
+  background: var(--primary-hover, #0F372B);
+  transform: translateY(-1px);
+}
+
+[data-theme="dark"] .btn-change-profile {
+  background: var(--primary, #2D6A4F);
+}
+
+[data-theme="dark"] .btn-change-profile:hover {
+  background: var(--primary-hover, #1B4332);
+}
+
+.btn-dropdown-logout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 7px 12px;
+  background: none;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm, 6px);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-dropdown-logout:hover {
+  background: rgba(185, 74, 72, 0.08);
+  color: var(--text-error);
+  border-color: rgba(185, 74, 72, 0.3);
+}
+
+@media (max-width: 640px) {
+  .user-profile-dropdown {
+    position: fixed !important;
+    top: 64px !important;
+    left: 12px !important;
+    right: 12px !important;
+    width: auto !important;
+    max-width: none !important;
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.35) !important;
+  }
+}

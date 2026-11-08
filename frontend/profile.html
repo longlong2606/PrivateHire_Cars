@@ -260,9 +260,13 @@
           <span class="theme-toggle-label">Dark</span>
         </button>
         <a href="staff.html" class="btn-outline-sm staff-portal-btn" style="color: var(--primary); font-weight: 700;"><i data-lucide="shield" style="width: 14px; height: 14px;"></i> Staff Portal</a>
-        <div id="user-display" class="user-pill">
-          <i data-lucide="user" style="width: 14px; height: 14px;"></i>
-          <span id="user-name-text">Customer</span>
+        <div class="user-profile-menu-wrapper" style="position: relative; display: inline-flex;">
+          <div id="user-display" class="user-pill" style="cursor: pointer;" title="Click to view profile & account details">
+            <i data-lucide="user" style="width: 14px; height: 14px;"></i>
+            <span id="user-name-text">Customer</span>
+            <i data-lucide="chevron-down" class="user-pill-chevron" style="width: 13px; height: 13px;"></i>
+          </div>
+          <div id="user-profile-dropdown" class="user-profile-dropdown"></div>
         </div>
         <button onclick="handleLogout()" class="btn-outline-sm">
           <i data-lucide="log-out" style="width: 14px; height: 14px;"></i> <span>Log Out</span>
@@ -345,6 +349,7 @@
       try {
         currentUser = JSON.parse(saved);
         document.getElementById('user-name-text').textContent = currentUser.name || 'Customer';
+        if (window.initUserProfileDropdown) window.initUserProfileDropdown();
         loadProfileData();
       } catch (_) {
         window.location.href = "login.html";
