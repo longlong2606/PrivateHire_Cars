@@ -903,7 +903,11 @@
         </div>
       </a>
 
-      <div class="nav-actions">
+      <div class="nav-actions" style="display: flex; align-items: center; gap: 10px;">
+        <a href="staff.html" class="nav-btn" style="border: 1px solid var(--primary); color: var(--primary);" title="Call Centre Staff Portal">
+          <i data-lucide="shield" style="width: 14px; height: 14px;"></i>
+          <span>Staff Portal</span>
+        </a>
         <a href="login.html" class="nav-btn primary" title="Go to Sign In">
           <i data-lucide="log-in" style="width: 14px; height: 14px;"></i>
           <span>Log in</span>
@@ -1641,115 +1645,6 @@
         toast.style.transition = "all 0.3s ease";
         setTimeout(() => toast.remove(), 300);
       }, 3500);
-    }
-  </script>
-  <!-- AC Live Data & Emails Modal -->
-  <div id="ac-modal"
-    style="display:none; position:fixed; inset:0; background:rgba(37,53,46,0.55); backdrop-filter:blur(8px); z-index:9999; align-items:center; justify-content:center; padding:20px;">
-    <div
-      style="background:#FFFFFF; border:1px solid #E8E2D5; border-radius:18px; max-width:960px; width:100%; max-height:90vh; overflow-y:auto; padding:28px; box-shadow:0 25px 60px rgba(37,53,46,0.2);">
-      <div
-        style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #E8E2D5; padding-bottom:16px; margin-bottom:20px;">
-        <div style="display:flex; align-items:center; gap:10px;">
-          <i data-lucide="database" style="width:22px; height:22px; color:#164B3B;"></i>
-          <h3 style="font-family:'Outfit', sans-serif; font-size:20px; font-weight:700; color:#164B3B; margin:0;">
-            PostgreSQL Database &amp; Automated Emails (AC4 &amp; AC5)</h3>
-        </div>
-        <div style="display:flex; gap:10px; align-items:center;">
-          <button type="button" onclick="refreshAcModalData()"
-            style="background:#FAF7F2; color:#164B3B; border:1px solid #E8E2D5; border-radius:8px; padding:6px 14px; font-size:12px; font-weight:600; cursor:pointer;">Refresh</button>
-          <button type="button" onclick="closeAcModal()"
-            style="background:transparent; border:none; color:#5E7168; cursor:pointer; font-size:24px; line-height:1;">&times;</button>
-        </div>
-      </div>
-
-      <div style="margin-bottom:24px;">
-        <h4 style="font-size:14px; text-transform:uppercase; letter-spacing:0.5px; color:#164B3B; margin-bottom:10px;">
-          Registered Accounts in Database (<span id="modal-acc-count">0</span>)</h4>
-        <div style="overflow-x:auto;">
-          <table style="width:100%; border-collapse:collapse; font-size:12px; text-align:left; color:#25352E;">
-            <thead>
-              <tr style="border-bottom:1px solid #E8E2D5; color:#5E7168; background:#FAF7F2;">
-                <th style="padding:10px 8px;">Code</th>
-                <th style="padding:10px 8px;">Name</th>
-                <th style="padding:10px 8px;">Email</th>
-                <th style="padding:10px 8px;">Address</th>
-                <th style="padding:10px 8px;">Telephone</th>
-                <th style="padding:10px 8px;">Card (AC3)</th>
-                <th style="padding:10px 8px;">Status</th>
-              </tr>
-            </thead>
-            <tbody id="modal-acc-table">
-              <tr>
-                <td colspan="7" style="padding:14px; text-align:center; color:#5E7168;">Loading accounts...</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div>
-        <h4 style="font-size:14px; text-transform:uppercase; letter-spacing:0.5px; color:#3A8B68; margin-bottom:10px;">
-          Automated Confirmation Emails Sent (AC5)</h4>
-        <div id="modal-email-list" style="display:flex; flex-direction:column; gap:10px;">
-          <div style="color:#5E7168; font-size:13px; font-style:italic;">No emails sent yet.</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    async function openAcDataModal() {
-      document.getElementById('ac-modal').style.display = 'flex';
-      await refreshAcModalData();
-      lucide.createIcons();
-    }
-    function closeAcModal() {
-      document.getElementById('ac-modal').style.display = 'none';
-    }
-    async function refreshAcModalData() {
-      try {
-        const [accRes, emailRes] = await Promise.all([
-          fetch(`${API_BASE}/api/accounts`).then(r => r.json()),
-          fetch(`${API_BASE}/api/accounts/emails`).then(r => r.json()),
-        ]);
-        if (accRes.success) {
-          document.getElementById('modal-acc-count').textContent = accRes.count || accRes.data.length;
-          document.getElementById('modal-acc-table').innerHTML = accRes.data.map(a => `
-            <tr style="border-bottom:1px solid #E8E2D5;">
-              <td style="padding:10px 8px; font-weight:bold; color:#164B3B;">${a.account_code}</td>
-              <td style="padding:10px 8px;">${a.name}</td>
-              <td style="padding:10px 8px;">${a.email}</td>
-              <td style="padding:10px 8px; color:#5E7168;">${a.address || '—'}</td>
-              <td style="padding:10px 8px;">${a.telephone}</td>
-              <td style="padding:10px 8px;"><span style="background:rgba(22,75,59,0.08); color:#164B3B; border:1px solid rgba(22,75,59,0.2); padding:2px 6px; border-radius:4px; font-size:11px;">${a.mock_card_ref}</span></td>
-              <td style="padding:10px 8px;"><span style="background:rgba(58,139,104,0.12); color:#3A8B68; border:1px solid rgba(58,139,104,0.3); padding:2px 6px; border-radius:4px; font-size:11px;">${a.status}</span></td>
-            </tr>
-          `).join('');
-        }
-        if (emailRes.success && emailRes.data && emailRes.data.length > 0) {
-          document.getElementById('modal-email-list').innerHTML = emailRes.data.map(e => {
-            let statusBadge = '<span style="background:rgba(58,139,104,0.12); color:#3A8B68; border:1px solid rgba(58,139,104,0.3); padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600;">✅ REAL EMAIL SENT (GMAIL SMTP)</span>';
-            if (e.deliveryStatus === 'SMTP_FAILED') {
-              statusBadge = `<span style="background:rgba(220,38,38,0.12); color:#DC2626; border:1px solid rgba(220,38,38,0.3); padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600;">⚠️ SMTP FAILED: ${e.error || 'Check credentials'}</span>`;
-            } else if (!e.deliveryStatus || e.deliveryStatus === 'LOCAL_PREVIEW') {
-              statusBadge = '<span style="background:rgba(22,75,59,0.08); color:#164B3B; border:1px solid rgba(22,75,59,0.2); padding:2px 8px; border-radius:4px; font-size:11px;">📧 LOCAL PREVIEW</span>';
-            }
-            return `
-            <div style="background:#FAF7F2; border:1px solid #E8E2D5; border-radius:10px; padding:12px;">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; flex-wrap:wrap; gap:6px;">
-                <strong style="color:#164B3B; font-size:13px;">${e.subject}</strong>
-                ${statusBadge}
-              </div>
-              <div style="font-size:11px; color:#5E7168; margin-bottom:6px;">To: <span style="color:#25352E; font-weight:600;">${e.to}</span> &bull; Sent: ${new Date(e.sentAt).toLocaleTimeString()}${e.messageId ? ` &bull; ID: ${e.messageId}` : ''}</div>
-              <pre style="font-size:11px; white-space:pre-wrap; background:#FFFFFF; border:1px solid #E8E2D5; padding:8px; border-radius:6px; color:#25352E; font-family:inherit; margin:0;">${e.preview}</pre>
-            </div>
-            `;
-          }).join('');
-        }
-      } catch (err) {
-        console.error('Error fetching AC modal data:', err);
-      }
     }
   </script>
 </body>

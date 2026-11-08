@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Database & System Audit Inspector - PrivateHire Cars</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet">
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    :root {
+      --bg-body: #F4F6F4;
+      --bg-surface: #FFFFFF;
+      --border-subtle: #E2E8E4;
+      --border-medium: #CBD7D0;
+      --primary: #164B3B;
+      --primary-hover: #0E362A;
+      --primary-light: #3A8B68;
+      --accent-gold: #C69C54;
+      --text-main: #1D2A24;
+      --text-muted: #53675E;
+      --text-dim: #7B9186;
+      --danger: #B94A48;
+      --success: #2B7A55;
+      --font-heading: 'Outfit', sans-serif;
+      --font-body: 'Plus Jakarta Sans', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --shadow-sm: 0 2px 8px rgba(22, 75, 59, 0.05);
+      --shadow-md: 0 8px 24px rgba(22, 75, 59, 0.08);
+      --radius: 10px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-body);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      line-height: 1.5;
+      padding-bottom: 60px;
+    }
+
+    /* Top Bar */
+    .top-bar {
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 16px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .brand-cluster {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--primary);
+      border-radius: 8px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .brand-text h1 {
+      font-family: var(--font-heading);
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--primary);
+      line-height: 1.2;
+    }
+
+    .brand-text p {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      letter-spacing: 0.3px;
+    }
+
+    .top-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-decoration: none;
+      border: 1px solid transparent;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #FFFFFF;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .btn-outline {
+      background: var(--bg-surface);
+      border-color: var(--border-medium);
+      color: var(--text-main);
+    }
+
+    .btn-outline:hover {
+      background: #EBF1EE;
+      border-color: var(--primary-light);
+    }
+
+    /* Main Container */
+    .container {
+      max-width: 1400px;
+      margin: 24px auto 0 auto;
+      padding: 0 24px;
+    }
+
+    /* KPI Summary Row */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .kpi-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .kpi-info span {
+      display: block;
+      font-size: 12px;
+      text-transform: uppercase;
+      font-weight: 600;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .kpi-info strong {
+      font-family: var(--font-heading);
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .kpi-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Section Tabs */
+    .tab-bar {
+      display: flex;
+      gap: 8px;
+      border-bottom: 1px solid var(--border-subtle);
+      margin-bottom: 20px;
+    }
+
+    .tab-btn {
+      padding: 10px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tab-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      font-weight: 700;
+    }
+
+    /* Content Cards */
+    .content-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .toolbar-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .search-box {
+      position: relative;
+      max-width: 380px;
+      width: 100%;
+    }
+
+    .search-box input {
+      width: 100%;
+      height: 38px;
+      padding: 0 12px 0 36px;
+      border: 1px solid var(--border-medium);
+      border-radius: 6px;
+      font-size: 13px;
+      font-family: inherit;
+    }
+
+    .search-box input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .search-box i {
+      position: absolute;
+      left: 11px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-dim);
+      width: 16px;
+      height: 16px;
+    }
+
+    /* Table */
+    .table-responsive {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+      text-align: left;
+    }
+
+    thead th {
+      background: #F8FAF8;
+      color: var(--text-muted);
+      font-weight: 600;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border-subtle);
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+    }
+
+    tbody td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border-subtle);
+      color: var(--text-main);
+    }
+
+    tbody tr:hover {
+      background: #FAFBF9;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .badge-success {
+      background: rgba(43, 122, 85, 0.12);
+      color: var(--success);
+      border: 1px solid rgba(43, 122, 85, 0.25);
+    }
+
+    .badge-mono {
+      font-family: var(--font-mono);
+      background: #EBF1EE;
+      color: var(--primary);
+      border: 1px solid var(--border-medium);
+    }
+
+    /* Email cards */
+    .email-item {
+      background: #FAFBF9;
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    .email-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .email-item pre {
+      background: #FFFFFF;
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 12px;
+      font-size: 11.5px;
+      font-family: var(--font-mono);
+      white-space: pre-wrap;
+      color: #2D3A33;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    /* Toast */
+    .toast-rack {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .toast {
+      background: #FFFFFF;
+      border: 1px solid var(--border-medium);
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 13px;
+      box-shadow: var(--shadow-md);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Top Bar -->
+  <header class="top-bar">
+    <div class="brand-cluster">
+      <div class="brand-icon">
+        <i data-lucide="database" style="width: 20px; height: 20px;"></i>
+      </div>
+      <div class="brand-text">
+        <h1>PrivateHire Cars &mdash; Database Inspector</h1>
+        <p>Standalone PostgreSQL Database Audit &amp; System Logs Viewer (AC4 &amp; AC5)</p>
+      </div>
+    </div>
+
+    <div class="top-controls">
+      <span id="last-refreshed-text" style="font-size: 12px; color: var(--text-dim); font-family: var(--font-mono);">Last updated: Just now</span>
+      <button class="btn btn-primary" onclick="loadAllData()">
+        <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i> Refresh Live
+      </button>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- KPI Summary Row -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-info">
+          <span>Registered Accounts (AC4)</span>
+          <strong id="kpi-accounts-count">0</strong>
+        </div>
+        <div class="kpi-icon" style="background: rgba(22, 75, 59, 0.1); color: var(--primary);">
+          <i data-lucide="users" style="width: 22px; height: 22px;"></i>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-info">
+          <span>Mock Cards Registered</span>
+          <strong id="kpi-cards-count">0</strong>
+        </div>
+        <div class="kpi-icon" style="background: rgba(198, 156, 84, 0.15); color: var(--accent-gold);">
+          <i data-lucide="credit-card" style="width: 22px; height: 22px;"></i>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-info">
+          <span>Confirmation Emails (AC5)</span>
+          <strong id="kpi-emails-count">0</strong>
+        </div>
+        <div class="kpi-icon" style="background: rgba(58, 139, 104, 0.15); color: var(--primary-light);">
+          <i data-lucide="mail-check" style="width: 22px; height: 22px;"></i>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-info">
+          <span>Render PostgreSQL Engine</span>
+          <strong style="font-size: 16px; color: var(--success); display: flex; align-items: center; gap: 6px;">
+            <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i> ACTIVE ONLINE
+          </strong>
+        </div>
+        <div class="kpi-icon" style="background: rgba(43, 122, 85, 0.12); color: var(--success);">
+          <i data-lucide="server" style="width: 22px; height: 22px;"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="tab-bar">
+      <button class="tab-btn active" id="tab-btn-accounts" onclick="switchView('accounts')">
+        <i data-lucide="users" style="width: 15px; height: 15px;"></i>
+        Registered Accounts &amp; Cards (<span id="tab-acc-count">0</span>)
+      </button>
+      <button class="tab-btn" id="tab-btn-emails" onclick="switchView('emails')">
+        <i data-lucide="mail" style="width: 15px; height: 15px;"></i>
+        Automated Emails Sent Log (<span id="tab-email-count">0</span>)
+      </button>
+      <button class="tab-btn" id="tab-btn-datagrip" onclick="switchView('datagrip')">
+        <i data-lucide="terminal" style="width: 15px; height: 15px;"></i>
+        DataGrip &amp; SQL Query Guide
+      </button>
+    </div>
+
+    <!-- VIEW 1: ACCOUNTS TABLE -->
+    <div id="view-accounts" class="content-card">
+      <div class="toolbar-row">
+        <div>
+          <h2 style="font-family: var(--font-heading); font-size: 18px; font-weight: 700; color: var(--primary);">PostgreSQL Accounts Table (`accounts`)</h2>
+          <p style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Persisted customer records with hashed passwords and mock card references.</p>
+        </div>
+        <div class="search-box">
+          <i data-lucide="search"></i>
+          <input type="text" id="acc-search-input" placeholder="Search by name, email, account code..." oninput="filterAccounts()">
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Account Code</th>
+              <th>Full Name</th>
+              <th>Email Address</th>
+              <th>Telephone</th>
+              <th>Postal Address</th>
+              <th>Mock Card Ref (AC3)</th>
+              <th>Status</th>
+              <th>Registered At</th>
+            </tr>
+          </thead>
+          <tbody id="accounts-tbody">
+            <tr>
+              <td colspan="9" style="text-align: center; padding: 24px; color: var(--text-muted);">
+                Loading accounts from PostgreSQL database...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- VIEW 2: EMAILS AUDIT LOG -->
+    <div id="view-emails" class="content-card" style="display: none;">
+      <div class="toolbar-row">
+        <div>
+          <h2 style="font-family: var(--font-heading); font-size: 18px; font-weight: 700; color: var(--primary);">Automated Confirmation Emails Sent (AC5)</h2>
+          <p style="font-size: 12px; color: var(--text-muted); margin-top: 2px;">Live transmission log dispatched via Gmail SMTP service.</p>
+        </div>
+      </div>
+
+      <div id="emails-container">
+        <div style="text-align: center; padding: 30px; color: var(--text-muted);">
+          Loading email records...
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 3: DATAGRIP & SQL GUIDE -->
+    <div id="view-datagrip" class="content-card" style="display: none;">
+      <div style="max-width: 860px;">
+        <h2 style="font-family: var(--font-heading); font-size: 19px; font-weight: 700; color: var(--primary); margin-bottom: 8px;">
+          Direct Database Connection with JetBrains DataGrip
+        </h2>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">
+          You can inspect, query, and modify all tables directly in JetBrains DataGrip using these connection credentials:
+        </p>
+
+        <div style="background: #F8FAF8; border: 1px solid var(--border-medium); border-radius: 8px; padding: 18px; margin-bottom: 24px; font-family: var(--font-mono); font-size: 12.5px;">
+          <div style="margin-bottom: 8px;"><strong>Host:</strong> <span style="color: var(--primary);">dpg-dbmrnm7f3r2c73bfh94g-a.singapore-postgres.render.com</span></div>
+          <div style="margin-bottom: 8px;"><strong>Database:</strong> <span style="color: var(--primary);">scrum_db_rf6t</span></div>
+          <div style="margin-bottom: 8px;"><strong>User:</strong> <span style="color: var(--primary);">scrum_db_rf6t_user</span></div>
+          <div style="margin-bottom: 8px;"><strong>Port:</strong> <span style="color: var(--primary);">5432</span></div>
+          <div style="margin-bottom: 8px;"><strong>Password:</strong> <span style="color: var(--primary);">nESkQaVrxz2fICMwG595uQQ5nI0g2Q5k</span></div>
+          <div><strong>SSL Mode:</strong> <span style="color: var(--success); font-weight: 600;">require</span></div>
+        </div>
+
+        <h3 style="font-family: var(--font-heading); font-size: 15px; font-weight: 700; color: var(--primary); margin-bottom: 10px;">
+          Handy SQL Inspection Queries
+        </h3>
+        <pre style="background: #25352E; color: #E8E2D5; border-radius: 8px; padding: 16px; font-family: var(--font-mono); font-size: 12px; line-height: 1.6; overflow-x: auto;">
+-- 1. Xem tất cả tài khoản người dùng đăng ký (AC4)
+SELECT id, account_code, name, email, telephone, mock_card_ref, status, created_at 
+FROM accounts 
+ORDER BY id DESC;
+
+-- 2. Xem thẻ thanh toán mô phỏng (AC3)
+SELECT * FROM mock_cards;
+
+-- 3. Xem danh sách đặt xe minicab
+SELECT id, booking_code, account_id, customer_name, pickup_address, dropoff_address, fare, status 
+FROM bookings 
+ORDER BY id DESC;
+
+-- 4. Xem đội xe executive & chauffeurs (SCRUM-25 & 26)
+SELECT * FROM vehicles;
+SELECT * FROM drivers;
+        </pre>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Toast Rack -->
+  <div class="toast-rack" id="toast-rack"></div>
+
+  <script>
+    const API_BASE = window.location.origin.includes('localhost')
+      ? 'http://localhost:5000'
+      : window.location.origin;
+
+    let rawAccounts = [];
+    let rawEmails = [];
+
+    // Switch Tab Views
+    function switchView(tab) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById('view-accounts').style.display = 'none';
+      document.getElementById('view-emails').style.display = 'none';
+      document.getElementById('view-datagrip').style.display = 'none';
+
+      if (tab === 'accounts') {
+        document.getElementById('tab-btn-accounts').classList.add('active');
+        document.getElementById('view-accounts').style.display = 'block';
+      } else if (tab === 'emails') {
+        document.getElementById('tab-btn-emails').classList.add('active');
+        document.getElementById('view-emails').style.display = 'block';
+      } else if (tab === 'datagrip') {
+        document.getElementById('tab-btn-datagrip').classList.add('active');
+        document.getElementById('view-datagrip').style.display = 'block';
+      }
+      lucide.createIcons();
+    }
+
+    // Load Data Live
+    async function loadAllData() {
+      try {
+        const [accRes, emailRes] = await Promise.all([
+          fetch(`${API_BASE}/api/accounts`).then(r => r.json()),
+          fetch(`${API_BASE}/api/accounts/emails`).then(r => r.json())
+        ]);
+
+        if (accRes && accRes.success) {
+          rawAccounts = accRes.data || [];
+          renderAccountsTable(rawAccounts);
+          document.getElementById('kpi-accounts-count').textContent = rawAccounts.length;
+          document.getElementById('tab-acc-count').textContent = rawAccounts.length;
+          
+          const cardsCount = rawAccounts.filter(a => a.mock_card_ref && a.mock_card_ref !== '—').length;
+          document.getElementById('kpi-cards-count').textContent = cardsCount;
+        }
+
+        if (emailRes && emailRes.success) {
+          rawEmails = emailRes.data || [];
+          renderEmailsList(rawEmails);
+          document.getElementById('kpi-emails-count').textContent = rawEmails.length;
+          document.getElementById('tab-email-count').textContent = rawEmails.length;
+        }
+
+        document.getElementById('last-refreshed-text').textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
+        showToast("Database & email records refreshed live!");
+      } catch (err) {
+        console.error("Error loading DB inspector data:", err);
+        showToast("Connection error while querying API", "error");
+      }
+    }
+
+    // Render Accounts Table
+    function renderAccountsTable(accounts) {
+      const tbody = document.getElementById('accounts-tbody');
+      if (!accounts || accounts.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 20px; color: var(--text-muted);">No registered accounts found in database.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = accounts.map(a => `
+        <tr>
+          <td><span style="font-family: var(--font-mono); color: var(--text-muted); font-size: 11px;">#${a.id}</span></td>
+          <td><strong style="color: var(--primary); font-family: var(--font-mono);">${a.account_code || '—'}</strong></td>
+          <td><strong>${escapeHtml(a.name || '—')}</strong></td>
+          <td>${escapeHtml(a.email || '—')}</td>
+          <td>${escapeHtml(a.telephone || '—')}</td>
+          <td style="color: var(--text-muted); max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${escapeHtml(a.address || '')}">
+            ${escapeHtml(a.address || '—')}
+          </td>
+          <td>
+            <span class="badge badge-mono">${escapeHtml(a.mock_card_ref || 'None')}</span>
+          </td>
+          <td>
+            <span class="badge badge-success">${a.status || 'ACTIVE'}</span>
+          </td>
+          <td style="font-size: 11.5px; color: var(--text-dim); white-space: nowrap;">
+            ${a.created_at ? new Date(a.created_at).toLocaleString() : '—'}
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // Filter Accounts Search
+    function filterAccounts() {
+      const q = document.getElementById('acc-search-input').value.toLowerCase().trim();
+      if (!q) {
+        renderAccountsTable(rawAccounts);
+        return;
+      }
+      const filtered = rawAccounts.filter(a => 
+        (a.name && a.name.toLowerCase().includes(q)) ||
+        (a.email && a.email.toLowerCase().includes(q)) ||
+        (a.account_code && a.account_code.toLowerCase().includes(q)) ||
+        (a.telephone && a.telephone.toLowerCase().includes(q))
+      );
+      renderAccountsTable(filtered);
+    }
+
+    // Render Emails List
+    function renderEmailsList(emails) {
+      const container = document.getElementById('emails-container');
+      if (!emails || emails.length === 0) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 30px; color: var(--text-muted);">
+            <i data-lucide="inbox" style="width: 32px; height: 32px; display: block; margin: 0 auto 8px auto; opacity: 0.5;"></i>
+            No confirmation emails recorded in this session yet.
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      container.innerHTML = emails.map(e => `
+        <div class="email-item">
+          <div class="email-item-header">
+            <div>
+              <strong style="color: var(--primary); font-size: 13.5px;">${escapeHtml(e.subject || 'Automated Confirmation')}</strong>
+              <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px;">
+                Recipient: <strong style="color: var(--text-main);">${escapeHtml(e.to || '—')}</strong> &bull; Sent: ${new Date(e.sentAt).toLocaleString()}
+              </div>
+            </div>
+            <span class="badge badge-success">
+              <i data-lucide="check" style="width: 12px; height: 12px; margin-right: 4px;"></i> GMAIL SMTP ACCEPTED
+            </span>
+          </div>
+          <pre>${escapeHtml(e.preview || '')}</pre>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function showToast(msg, type = "info") {
+      const rack = document.getElementById('toast-rack');
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.innerHTML = `<i data-lucide="check-circle" style="width:16px;height:16px;color:var(--primary-light);"></i> <span>${msg}</span>`;
+      rack.appendChild(toast);
+      lucide.createIcons();
+      setTimeout(() => { toast.remove(); }, 3000);
+    }
+
+    // Auto-load on page startup
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      loadAllData();
+      // Optional polling every 20 seconds
+      setInterval(loadAllData, 20000);
+    });
+  </script>
+</body>
+
+</html>
