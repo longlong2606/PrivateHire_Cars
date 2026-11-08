@@ -280,6 +280,24 @@
 
   <!-- Main Content Layout -->
   <main class="main-layout">
+    <!-- Breadcrumbs -->
+    <nav class="breadcrumb-nav" aria-label="Breadcrumb">
+      <ol class="breadcrumb-list">
+        <li class="breadcrumb-item">
+          <a href="home.html" class="breadcrumb-link">
+            <i data-lucide="home" class="breadcrumb-icon"></i>
+            <span>Home</span>
+          </a>
+        </li>
+        <li class="breadcrumb-separator" aria-hidden="true">
+          <i data-lucide="chevron-right" class="breadcrumb-sep-icon"></i>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">
+          <span>Customer Profile</span>
+        </li>
+      </ol>
+    </nav>
+
     <div class="card-panel">
       <h1 class="page-title">Maintain Customer Profile</h1>
       <p class="page-subtitle">View and update your contact information and prototype payment card reference. Any updated email address will become your new sign-in identifier.</p>

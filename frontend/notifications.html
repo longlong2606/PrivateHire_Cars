@@ -279,6 +279,24 @@
 
   <!-- Main Content Layout -->
   <main class="main-layout">
+    <!-- Breadcrumbs -->
+    <nav class="breadcrumb-nav" aria-label="Breadcrumb">
+      <ol class="breadcrumb-list">
+        <li class="breadcrumb-item">
+          <a href="home.html" class="breadcrumb-link">
+            <i data-lucide="home" class="breadcrumb-icon"></i>
+            <span>Home</span>
+          </a>
+        </li>
+        <li class="breadcrumb-separator" aria-hidden="true">
+          <i data-lucide="chevron-right" class="breadcrumb-sep-icon"></i>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">
+          <span>Alerts &amp; Notifications</span>
+        </li>
+      </ol>
+    </nav>
+
     <h1 class="page-title">Approaching Vehicle Alerts</h1>
     <p class="page-subtitle">Real-time persistent web notifications triggered when your assigned minicab is en route (~10–15 minutes before pickup).</p>
 
