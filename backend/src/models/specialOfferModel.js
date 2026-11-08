@@ -4,6 +4,15 @@ class SpecialOfferModel {
   static async findByCode(code) {
     if (!code) return null;
     const res = await db.query(
+      'SELECT * FROM special_offers WHERE UPPER(code) = UPPER($1) LIMIT 1',
+      [code.trim()]
+    );
+    return res.rows[0] || null;
+  }
+
+  static async findActiveByCode(code) {
+    if (!code) return null;
+    const res = await db.query(
       'SELECT * FROM special_offers WHERE UPPER(code) = UPPER($1) AND is_used = FALSE LIMIT 1',
       [code.trim()]
     );

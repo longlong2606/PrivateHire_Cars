@@ -13,12 +13,34 @@ class RefundModel {
 
   static async getPending() {
     const sql = `
-      SELECT rr.*, b.booking_code, a.name AS customer_name, a.email AS customer_email
+      SELECT 
+        rr.*, 
+        b.booking_code,
+        b.pickup_address,
+        b.dropoff_address,
+        b.pickup_time,
+        b.service_name,
+        b.car_type,
+        b.vehicle_capacity,
+        b.base_fare,
+        b.discount_amount,
+        b.promo_code,
+        b.promo_discount,
+        b.final_fare,
+        b.fare_amount,
+        b.payment_method,
+        b.payment_status,
+        b.card_ref_used,
+        b.status AS booking_status,
+        b.notes AS booking_notes,
+        b.created_at AS booking_created_at,
+        a.name AS customer_name,
+        a.email AS customer_email,
+        a.telephone AS customer_phone
       FROM refund_requests rr
       JOIN bookings b ON rr.booking_id = b.id
       JOIN accounts a ON rr.account_id = a.id
-      WHERE rr.status = 'PENDING'
-      ORDER BY rr.created_at ASC
+      ORDER BY rr.created_at DESC
     `;
     const res = await db.query(sql);
     return res.rows;

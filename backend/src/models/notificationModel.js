@@ -19,6 +19,10 @@ class NotificationModel {
     return res.rows;
   }
 
+  static async getByAccountId(accountId) {
+    return this.getForAccount(accountId);
+  }
+
   static async markRead(id, accountId) {
     const res = await db.query(
       'UPDATE notifications SET is_read = TRUE WHERE id = $1 AND account_id = $2 RETURNING *',

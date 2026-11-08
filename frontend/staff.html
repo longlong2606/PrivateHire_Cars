@@ -661,13 +661,28 @@
         </button>
       </div>
 
-    <!-- 1. Dispatch & Journey Operations Tab -->
+    <!-- 1. Dispatch & Journey Operations Tab (Split into Pending vs Processed) -->
     <section id="tab-dispatch" class="tab-content">
-      <div class="card-panel">
-        <h2 class="panel-title">
-          <i data-lucide="compass" style="width: 20px; height: 20px; color: var(--primary);"></i>
-          Live Bookings Queue &amp; Journey Simulation Controls
-        </h2>
+      <!-- Phần 1: Chuyến đi đang chờ xử lý (Active / Pending Operations) -->
+      <div class="card-panel" style="margin-bottom: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+          <h2 class="panel-title" style="margin-bottom: 0;">
+            <i data-lucide="compass" style="width: 20px; height: 20px; color: var(--primary);"></i>
+            Chuyến Đi Đang Chờ Xử Lý (Active &amp; Pending Operations)
+          </h2>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="badge" style="background: rgba(198, 156, 84, 0.15); color: #8F6B27; border: 1px solid var(--accent-gold); font-weight: 700; font-size: 12px;" id="dispatch-active-count-badge">
+              0 Đang Chờ
+            </span>
+            <button class="btn-action" onclick="loadDispatchQueue()" style="font-size: 12px; padding: 4px 10px;">
+              <i data-lucide="refresh-cw" style="width: 13px; height: 13px;"></i> Refresh
+            </button>
+          </div>
+        </div>
+        <p style="font-size: 12.5px; color: var(--text-muted); margin-top: -8px; margin-bottom: 14px;">
+          Các chuyến xe đang chờ điều phối tài xế, đang trên đường di chuyển (En Route), hoặc chờ thanh toán tiền mặt.
+        </p>
+
         <div class="table-container">
           <table>
             <thead>
@@ -678,11 +693,46 @@
                 <th>Scheduled Time</th>
                 <th>Booking Status</th>
                 <th>Payment Status</th>
-                <th>Dispatch Actions</th>
+                <th style="min-width: 200px;">Actions</th>
               </tr>
             </thead>
-            <tbody id="dispatch-table-body">
-              <tr><td colspan="7" style="text-align: center; padding: 30px;">Loading bookings...</td></tr>
+            <tbody id="dispatch-active-table-body">
+              <tr><td colspan="7" style="text-align: center; padding: 30px;">Loading active bookings...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Phần 2: Chuyến đi đã xử lý (Processed / Finalised Operations) -->
+      <div class="card-panel">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+          <h2 class="panel-title" style="margin-bottom: 0;">
+            <i data-lucide="check-circle" style="width: 20px; height: 20px; color: var(--accent-emerald);"></i>
+            Chuyến Đi Đã Xử Lý (Processed &amp; Finalised Operations)
+          </h2>
+          <span class="badge" style="background: rgba(58, 139, 104, 0.12); color: var(--accent-emerald); border: 1px solid rgba(58, 139, 104, 0.25); font-weight: 700; font-size: 12px;" id="dispatch-processed-count-badge">
+            0 Đã Xử Lý
+          </span>
+        </div>
+        <p style="font-size: 12.5px; color: var(--text-muted); margin-top: -8px; margin-bottom: 14px;">
+          Các chuyến đi đã hoàn thành xuất sắc (Completed) hoặc các cuốc đã bị hủy (Cancelled).
+        </p>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Booking Ref</th>
+                <th>Service &amp; Vehicle</th>
+                <th>Pickup Route</th>
+                <th>Scheduled Time</th>
+                <th>Booking Status</th>
+                <th>Payment Status</th>
+                <th style="min-width: 140px;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="dispatch-processed-table-body">
+              <tr><td colspan="7" style="text-align: center; padding: 30px;">Loading processed bookings...</td></tr>
             </tbody>
           </table>
         </div>
@@ -1006,14 +1056,15 @@
             <thead>
               <tr>
                 <th>Booking Ref</th>
-                <th>Reason</th>
+                <th>Customer</th>
+                <th>Refund Reason</th>
                 <th>Amount Requested</th>
                 <th>Status</th>
-                <th>Action</th>
+                <th style="min-width: 190px;">Action</th>
               </tr>
             </thead>
             <tbody id="refunds-table-body">
-              <tr><td colspan="5" style="text-align: center; padding: 20px;">No pending refund requests.</td></tr>
+              <tr><td colspan="6" style="text-align: center; padding: 20px;">No pending refund requests.</td></tr>
             </tbody>
           </table>
         </div>
@@ -1471,73 +1522,288 @@
     }
 
     // 1. Dispatch Queue & Journey State Simulation
+    let allBookingsCache = [];
+
     async function loadDispatchQueue() {
-      const tbody = document.getElementById('dispatch-table-body');
+      const activeTbody = document.getElementById('dispatch-active-table-body');
+      const processedTbody = document.getElementById('dispatch-processed-table-body');
+      const activeBadge = document.getElementById('dispatch-active-count-badge');
+      const processedBadge = document.getElementById('dispatch-processed-count-badge');
+
       try {
         const res = await authenticatedFetch(`${API_BASE}/api/staff/bookings`);
         const data = await res.json();
-        if (res.ok && data.success && data.bookings) {
-          tbody.innerHTML = data.bookings.map(b => {
-            const bStatus = (b.status || 'PENDING').toUpperCase();
-            const pStatus = (b.payment_status || 'UNPAID').toUpperCase();
+        if (res.ok && data.success && Array.isArray(data.bookings)) {
+          allBookingsCache = data.bookings;
 
-            let actionBtns = '';
-            if (bStatus === 'CONFIRMED') {
-              actionBtns = `<button class="btn-action btn-primary" onclick="openAssignDriverModal(${b.id})">Assign Driver</button>`;
-            } else if (bStatus === 'ASSIGNED') {
-              actionBtns = `<button class="btn-action" onclick="progressJourney(${b.id}, 'ENROUTE')">Set EnRoute</button>`;
-            } else if (bStatus === 'ENROUTE') {
-              actionBtns = `
-                <button class="btn-action" style="color: var(--accent-emerald);" onclick="sendApproachingAlert(${b.id})">Notify Customer</button>
-                <button class="btn-action btn-primary" onclick="progressJourney(${b.id}, 'COMPLETED')">Complete Journey</button>
-              `;
-            } else if (bStatus === 'COMPLETED' && pStatus === 'UNPAID') {
-              actionBtns = `<button class="btn-action btn-primary" onclick="confirmCashCollected(${b.id}, ${b.fare_amount})">Confirm Cash Received (£${parseFloat(b.fare_amount).toFixed(2)})</button>`;
+          const activeBookings = allBookingsCache.filter(b => {
+            const st = (b.status || '').toUpperCase();
+            return st !== 'COMPLETED' && st !== 'CANCELLED';
+          });
+
+          const processedBookings = allBookingsCache.filter(b => {
+            const st = (b.status || '').toUpperCase();
+            return st === 'COMPLETED' || st === 'CANCELLED';
+          });
+
+          if (activeBadge) activeBadge.textContent = `${activeBookings.length} Đang Chờ`;
+          if (processedBadge) processedBadge.textContent = `${processedBookings.length} Đã Xử Lý`;
+
+          // Render Active Bookings
+          if (activeTbody) {
+            if (activeBookings.length === 0) {
+              activeTbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 24px;">Hiện không có chuyến xe nào đang chờ điều phối hoặc đang di chuyển.</td></tr>';
             } else {
-              actionBtns = `<span style="font-size: 11.5px; color: var(--text-dim);">Finalized</span>`;
-            }
+              activeTbody.innerHTML = activeBookings.map(b => {
+                const bStatus = (b.status || 'PENDING').toUpperCase();
+                const pStatus = (b.payment_status || 'UNPAID').toUpperCase();
 
-            return `
-              <tr>
-                <td><strong>${b.booking_code}</strong></td>
-                <td>${b.service_name || 'Standard'}<br><span style="font-size: 11px; color: var(--text-dim);">${b.car_type || 'Saloon'}</span></td>
-                <td>${b.pickup_address} → ${b.dropoff_address}</td>
-                <td>${new Date(b.pickup_time).toLocaleString('en-GB')}</td>
-                <td><span style="font-weight: 700; font-size: 11px;">${bStatus}</span></td>
-                <td><span style="font-weight: 700; font-size: 11px;">${pStatus}</span></td>
-                <td>${actionBtns}</td>
-              </tr>
-            `;
-          }).join('');
+                let statusBadgeClass = 'badge-pending';
+                if (bStatus === 'CONFIRMED') statusBadgeClass = 'badge-confirmed';
+                else if (bStatus === 'ASSIGNED') statusBadgeClass = 'badge-assigned';
+                else if (bStatus === 'ENROUTE') statusBadgeClass = 'badge-enroute';
+
+                const paymentBadgeClass = pStatus === 'PAID' ? 'badge-confirmed' : 'badge-pending';
+
+                let flowBtns = '';
+                if (bStatus === 'CONFIRMED') {
+                  flowBtns = `<button class="btn-action btn-primary" onclick="openAssignDriverModal(${b.id})"><i data-lucide="user-plus" style="width: 13px; height: 13px;"></i> Assign Driver</button>`;
+                } else if (bStatus === 'ASSIGNED') {
+                  flowBtns = `<button class="btn-action" onclick="progressJourney(${b.id}, 'ENROUTE')"><i data-lucide="navigation" style="width: 13px; height: 13px;"></i> Set EnRoute</button>`;
+                } else if (bStatus === 'ENROUTE') {
+                  flowBtns = `
+                    <button class="btn-action" style="color: var(--accent-emerald);" onclick="sendApproachingAlert(${b.id})"><i data-lucide="bell" style="width: 13px; height: 13px;"></i> Notify Customer</button>
+                    <button class="btn-action btn-primary" onclick="progressJourney(${b.id}, 'COMPLETED')"><i data-lucide="check" style="width: 13px; height: 13px;"></i> Complete</button>
+                  `;
+                } else if (pStatus === 'UNPAID') {
+                  flowBtns = `<button class="btn-action btn-primary" onclick="confirmCashCollected(${b.id}, ${b.fare_amount})"><i data-lucide="check-circle" style="width: 13px; height: 13px;"></i> Collect Cash (£${parseFloat(b.fare_amount).toFixed(2)})</button>`;
+                }
+
+                return `
+                  <tr>
+                    <td>
+                      <strong style="font-family: var(--font-mono); color: var(--primary);">${escapeHtml(b.booking_code)}</strong>
+                      <div style="font-size: 11px; color: var(--text-muted);">${escapeHtml(b.customer_name || 'Customer')}</div>
+                    </td>
+                    <td>
+                      <strong>${escapeHtml(b.service_name || 'Standard')}</strong>
+                      <br><span style="font-size: 11px; color: var(--text-dim);">${escapeHtml(b.car_type || 'Saloon')}</span>
+                    </td>
+                    <td style="max-width: 240px; font-size: 12.5px;">
+                      <div><strong style="color: var(--accent-emerald);">From:</strong> ${escapeHtml(b.pickup_address)}</div>
+                      <div style="margin-top: 2px;"><strong style="color: var(--accent-gold);">To:</strong> ${escapeHtml(b.dropoff_address)}</div>
+                    </td>
+                    <td style="font-size: 12px; white-space: nowrap;">
+                      ${new Date(b.pickup_time).toLocaleString('en-GB')}
+                    </td>
+                    <td><span class="badge ${statusBadgeClass}">${bStatus}</span></td>
+                    <td><span class="badge ${paymentBadgeClass}">${pStatus}</span></td>
+                    <td>
+                      <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
+                        <button class="btn-action" onclick="viewJourneyDetail(${b.id})">
+                          <i data-lucide="eye" style="width: 13px; height: 13px;"></i> View Detail
+                        </button>
+                        ${flowBtns}
+                      </div>
+                    </td>
+                  </tr>
+                `;
+              }).join('');
+            }
+          }
+
+          // Render Processed Bookings
+          if (processedTbody) {
+            if (processedBookings.length === 0) {
+              processedTbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 24px;">Chưa có chuyến đi nào đã xử lý hoàn tất hoặc bị hủy.</td></tr>';
+            } else {
+              processedTbody.innerHTML = processedBookings.map(b => {
+                const bStatus = (b.status || 'COMPLETED').toUpperCase();
+                const pStatus = (b.payment_status || 'PAID').toUpperCase();
+
+                const isCancelled = bStatus === 'CANCELLED';
+                const statusBadge = isCancelled
+                  ? '<span class="badge" style="background: rgba(220, 38, 38, 0.1); color: #DC2626; border: 1px solid rgba(220, 38, 38, 0.25);">CANCELLED</span>'
+                  : '<span class="badge badge-confirmed">COMPLETED</span>';
+
+                const paymentBadgeClass = pStatus === 'PAID' ? 'badge-confirmed' : (pStatus === 'REFUNDED' ? 'badge' : 'badge-pending');
+                const paymentBadgeStyle = pStatus === 'REFUNDED' ? 'style="background: rgba(100, 116, 139, 0.15); color: #475569; border: 1px solid #CBD5E1;"' : '';
+
+                let extraAction = '';
+                if (!isCancelled && pStatus === 'UNPAID') {
+                  extraAction = `<button class="btn-action btn-primary" onclick="confirmCashCollected(${b.id}, ${b.fare_amount})">Collect Cash</button>`;
+                }
+
+                return `
+                  <tr>
+                    <td>
+                      <strong style="font-family: var(--font-mono); color: var(--primary);">${escapeHtml(b.booking_code)}</strong>
+                      <div style="font-size: 11px; color: var(--text-muted);">${escapeHtml(b.customer_name || 'Customer')}</div>
+                    </td>
+                    <td>
+                      <strong>${escapeHtml(b.service_name || 'Standard')}</strong>
+                      <br><span style="font-size: 11px; color: var(--text-dim);">${escapeHtml(b.car_type || 'Saloon')}</span>
+                    </td>
+                    <td style="max-width: 240px; font-size: 12.5px;">
+                      <div><strong style="color: var(--accent-emerald);">From:</strong> ${escapeHtml(b.pickup_address)}</div>
+                      <div style="margin-top: 2px;"><strong style="color: var(--accent-gold);">To:</strong> ${escapeHtml(b.dropoff_address)}</div>
+                    </td>
+                    <td style="font-size: 12px; white-space: nowrap;">
+                      ${new Date(b.pickup_time).toLocaleString('en-GB')}
+                    </td>
+                    <td>${statusBadge}</td>
+                    <td><span class="badge ${paymentBadgeClass}" ${paymentBadgeStyle}>${pStatus}</span></td>
+                    <td>
+                      <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
+                        <button class="btn-action" onclick="viewJourneyDetail(${b.id})">
+                          <i data-lucide="eye" style="width: 13px; height: 13px;"></i> View Detail
+                        </button>
+                        ${extraAction}
+                      </div>
+                    </td>
+                  </tr>
+                `;
+              }).join('');
+            }
+          }
+
+          lucide.createIcons();
         }
-      } catch (_) {}
+      } catch (err) {
+        console.error('Error loading dispatch queue:', err);
+      }
+    }
+
+    function viewJourneyDetail(bookingId) {
+      const b = allBookingsCache.find(x => x.id === bookingId);
+      if (!b) {
+        triggerToast("Booking details not found in cache.", "error");
+        return;
+      }
+
+      const modal = document.getElementById('modal-journey-detail');
+      const title = document.getElementById('modal-jd-title');
+      const content = document.getElementById('modal-jd-content');
+      if (!modal || !content) return;
+
+      if (title) title.textContent = `Journey #${b.booking_code}`;
+
+      const bStatus = (b.status || 'PENDING').toUpperCase();
+      const pStatus = (b.payment_status || 'UNPAID').toUpperCase();
+
+      content.innerHTML = `
+        <div style="background: var(--bg-surface-subtle, #FAF7F2); border: 1px solid var(--border-subtle, #E6DEC9); border-radius: 10px; padding: 14px 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+            <div>
+              <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Customer Information</div>
+              <div style="font-size: 15px; font-weight: 700; color: var(--primary);">${escapeHtml(b.customer_name || 'Passenger')}</div>
+              <div style="font-size: 12px; color: var(--text-dim); margin-top: 2px;">
+                <i data-lucide="mail" style="width: 12px; height: 12px; vertical-align: -1px; display: inline-block;"></i> ${escapeHtml(b.customer_email || 'N/A')}
+                ${b.customer_phone ? ` &bull; <i data-lucide="phone" style="width: 12px; height: 12px; vertical-align: -1px; display: inline-block;"></i> ${escapeHtml(b.customer_phone)}` : ''}
+              </div>
+            </div>
+            <div style="text-align: right;">
+              <span class="badge ${bStatus === 'COMPLETED' ? 'badge-confirmed' : (bStatus === 'CANCELLED' ? '' : 'badge-assigned')}" 
+                    ${bStatus === 'CANCELLED' ? 'style="background: rgba(220, 38, 38, 0.1); color: #DC2626; border: 1px solid rgba(220, 38, 38, 0.25);"' : ''}>
+                ${bStatus}
+              </span>
+              <div style="margin-top: 4px;">
+                <span class="badge ${pStatus === 'PAID' ? 'badge-confirmed' : 'badge-pending'}">${pStatus}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="background: var(--bg-surface-subtle, #FAF7F2); border: 1px solid var(--border-subtle, #E6DEC9); border-radius: 10px; padding: 14px 16px;">
+          <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 8px;">Journey Route &amp; Schedule</div>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div style="display: flex; gap: 10px;">
+              <span style="font-size: 12px; font-weight: 700; color: var(--accent-emerald); width: 65px; flex-shrink: 0;">PICKUP:</span>
+              <span style="font-weight: 600; color: var(--primary);">${escapeHtml(b.pickup_address)}</span>
+            </div>
+            <div style="display: flex; gap: 10px;">
+              <span style="font-size: 12px; font-weight: 700; color: var(--accent-gold); width: 65px; flex-shrink: 0;">DROPOFF:</span>
+              <span style="font-weight: 600; color: var(--primary);">${escapeHtml(b.dropoff_address)}</span>
+            </div>
+            <div style="display: flex; gap: 10px; border-top: 1px dashed var(--border-subtle); padding-top: 6px; margin-top: 2px;">
+              <span style="font-size: 12px; font-weight: 700; color: var(--text-dim); width: 65px; flex-shrink: 0;">TIME:</span>
+              <span><strong>${new Date(b.pickup_time).toLocaleString('en-GB')}</strong></span>
+            </div>
+            ${b.flight_number ? `
+              <div style="display: flex; gap: 10px;">
+                <span style="font-size: 12px; font-weight: 700; color: var(--text-dim); width: 65px; flex-shrink: 0;">FLIGHT:</span>
+                <span><span class="badge" style="font-family: var(--font-mono);">${escapeHtml(b.flight_number)}</span></span>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div style="background: var(--bg-surface-subtle, #FAF7F2); border: 1px solid var(--border-subtle, #E6DEC9); border-radius: 10px; padding: 12px 14px;">
+            <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 6px;">Vehicle &amp; Class</div>
+            <div style="font-weight: 700; color: var(--primary);">${escapeHtml(b.service_name || 'Standard')}</div>
+            <div style="font-size: 12px; color: var(--text-muted);">${escapeHtml(b.car_type || 'Saloon')} (${b.vehicle_capacity_seats || 4} seats)</div>
+            <div style="margin-top: 6px; font-size: 12px;">
+              ${b.vehicle_reg ? `
+                <span style="font-family: var(--font-mono); font-weight: 700; background: #E6DEC9; padding: 2px 6px; border-radius: 4px;">${escapeHtml(b.vehicle_reg)}</span>
+                ${b.vehicle_model ? `<span style="color: var(--text-dim); margin-left: 4px;">${escapeHtml(b.vehicle_model)}</span>` : ''}
+              ` : '<span style="color: var(--text-dim); font-style: italic;">No specific vehicle assigned</span>'}
+            </div>
+          </div>
+
+          <div style="background: var(--bg-surface-subtle, #FAF7F2); border: 1px solid var(--border-subtle, #E6DEC9); border-radius: 10px; padding: 12px 14px;">
+            <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 6px;">Assigned Chauffeur</div>
+            <div style="font-weight: 700; color: var(--primary);">${escapeHtml(b.driver_name || 'Unassigned')}</div>
+            <div style="font-size: 12px; color: var(--text-muted);">
+              ${b.driver_code ? `Code: <span style="font-family: var(--font-mono);">${escapeHtml(b.driver_code)}</span>` : 'Chauffeur not allocated yet'}
+            </div>
+            ${b.driver_phone ? `
+              <div style="margin-top: 6px; font-size: 12px; color: var(--accent-emerald);">
+                <i data-lucide="phone" style="width: 12px; height: 12px; vertical-align: -1px; display: inline-block;"></i> ${escapeHtml(b.driver_phone)}
+              </div>
+            ` : ''}
+          </div>
+        </div>
+
+        <div style="background: var(--bg-surface-subtle, #FAF7F2); border: 1px solid var(--border-subtle, #E6DEC9); border-radius: 10px; padding: 14px 16px;">
+          <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 8px;">Fare &amp; Billing Breakdown</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12.5px;">
+            <div>Base Fare: <strong>£${parseFloat(b.base_fare || b.fare_amount || 0).toFixed(2)} GBP</strong></div>
+            <div>Discount / Voucher: <strong>${b.promo_code ? `${escapeHtml(b.promo_code)} (-£${parseFloat(b.promo_discount || b.discount_amount || 0).toFixed(2)})` : 'None'}</strong></div>
+            <div>Total Fare: <strong style="color: var(--accent-emerald); font-size: 14px;">£${parseFloat(b.final_fare || b.fare_amount || 0).toFixed(2)} GBP</strong></div>
+            <div>Payment: <strong>${escapeHtml(b.payment_method || 'CARD')}</strong> ${b.card_ref_used ? `<span style="font-size: 11px; color: var(--text-dim);">(${escapeHtml(b.card_ref_used)})</span>` : ''}</div>
+          </div>
+          ${b.notes || b.booking_notes ? `
+            <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border-subtle); font-size: 12px;">
+              <span style="font-weight: 700; color: var(--text-muted);">Special Instructions / Notes:</span>
+              <p style="margin: 4px 0 0 0; color: var(--text-main); font-style: italic;">"${escapeHtml(b.notes || b.booking_notes)}"</p>
+            </div>
+          ` : ''}
+        </div>
+      `;
+
+      modal.style.display = 'flex';
+      lucide.createIcons();
+    }
+
+    function closeJourneyDetailModal() {
+      const modal = document.getElementById('modal-journey-detail');
+      if (modal) modal.style.display = 'none';
     }
 
     async function progressJourney(bookingId, nextStatus) {
       try {
         const res = await authenticatedFetch(`${API_BASE}/api/staff/bookings/${bookingId}/status`, {
           method: 'PATCH',
-          body: JSON.stringify({ status: nextStatus, staffId: 1 })
+          body: JSON.stringify({ status: nextStatus, staffId: staffUser ? staffUser.id : 1 })
         });
         const data = await res.json();
         if (res.ok && data.success) {
           triggerToast(`Journey updated to ${nextStatus}!`);
           loadDispatchQueue();
           loadInsightsMetrics();
-        }
-      } catch (_) {}
-    }
-
-    async function progressJourney(bookingId, nextStatus) {
-      try {
-        const res = await authenticatedFetch(`${API_BASE}/api/staff/bookings/${bookingId}/status`, {
-          method: 'PATCH',
-          body: JSON.stringify({ status: nextStatus, staffId: 1 })
-        });
-        const data = await res.json();
-        if (res.ok && data.success) {
-          triggerToast(`Journey updated to ${nextStatus}!`);
-          loadDispatchQueue();
+        } else {
+          triggerToast(data.message || `Failed to update journey to ${nextStatus}`, "error");
         }
       } catch (_) {}
     }
@@ -1546,7 +1812,7 @@
       try {
         const res = await authenticatedFetch(`${API_BASE}/api/staff/bookings/${bookingId}/approaching-alert`, {
           method: 'POST',
-          body: JSON.stringify({ staffId: 1 })
+          body: JSON.stringify({ staffId: staffUser ? staffUser.id : 1 })
         });
         const data = await res.json();
         if (res.ok && data.success) {
@@ -1562,7 +1828,7 @@
       try {
         const res = await authenticatedFetch(`${API_BASE}/api/staff/bookings/${bookingId}/collect-cash`, {
           method: 'POST',
-          body: JSON.stringify({ staffId: 1 })
+          body: JSON.stringify({ staffId: staffUser ? staffUser.id : 1 })
         });
         const data = await res.json();
         if (res.ok && data.success) {
@@ -2050,42 +2316,185 @@
       }
     }
 
-    // Refunds Queue
+    // Refunds Queue (Request 15)
+    let allRefundsCache = [];
+
     async function loadRefundQueue() {
       const tbody = document.getElementById('refunds-table-body');
       try {
         const res = await authenticatedFetch(`${API_BASE}/api/staff/refunds`);
         const data = await res.json();
-        if (res.ok && data.success && data.refunds && data.refunds.length > 0) {
-          tbody.innerHTML = data.refunds.map(r => `
-            <tr>
-              <td><strong>${r.booking_code}</strong></td>
-              <td>${r.reason}</td>
-              <td>£${parseFloat(r.amount).toFixed(2)} GBP</td>
-              <td><span style="font-weight: 700;">${r.status}</span></td>
-              <td>
-                ${r.status === 'PENDING' ? `
-                  <button class="btn-action btn-primary" onclick="processRefund(${r.id})">Process Refund</button>
-                ` : 'Processed'}
-              </td>
-            </tr>
-          `).join('');
+        if (res.ok && data.success && Array.isArray(data.refunds) && data.refunds.length > 0) {
+          allRefundsCache = data.refunds;
+          tbody.innerHTML = allRefundsCache.map(r => {
+            const customerName = r.customer_name || 'Customer';
+            const customerEmail = r.customer_email ? `<br><span style="font-size: 11px; color: var(--text-dim);">${escapeHtml(r.customer_email)}</span>` : '';
+            const statusBadge = r.status === 'PENDING'
+              ? '<span class="badge badge-pending">PENDING</span>'
+              : '<span class="badge badge-confirmed">PROCESSED</span>';
+
+            return `
+              <tr>
+                <td><strong style="font-family: var(--font-mono); color: var(--primary);">${escapeHtml(r.booking_code || ('#' + r.booking_id))}</strong></td>
+                <td>${escapeHtml(customerName)}${customerEmail}</td>
+                <td>
+                  <span style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 12.5px;">
+                    ${escapeHtml(r.reason || 'Customer refund requested')}
+                  </span>
+                </td>
+                <td><strong style="color: var(--accent-emerald);">£${parseFloat(r.amount).toFixed(2)} GBP</strong></td>
+                <td>${statusBadge}</td>
+                <td>
+                  <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
+                    <button class="btn-action" onclick="viewRefundDetail(${r.id})">
+                      <i data-lucide="eye" style="width: 13px; height: 13px;"></i> View Detail
+                    </button>
+                    ${r.status === 'PENDING' ? `
+                      <button class="btn-action btn-primary" onclick="processRefund(${r.id})">Process Refund</button>
+                    ` : '<span style="font-size: 11.5px; color: var(--text-dim);">Processed</span>'}
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        } else {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 24px; color: var(--text-muted);">No pending refund requests.</td></tr>';
         }
+        lucide.createIcons();
       } catch (_) {}
     }
+
+    function viewRefundDetail(refundId) {
+      const r = allRefundsCache.find(x => x.id === refundId);
+      if (!r) {
+        triggerToast("Refund request details not found.", "error");
+        return;
+      }
+
+      const modal = document.getElementById('modal-refund-detail');
+      const title = document.getElementById('modal-rf-title');
+      const content = document.getElementById('modal-rf-content');
+      const actionSlot = document.getElementById('modal-rf-action-slot');
+      if (!modal || !content) return;
+
+      if (title) title.textContent = `Refund for ${r.booking_code || ('#' + r.booking_id)}`;
+
+      // Categorize reason
+      const reasonLower = (r.reason || '').toLowerCase();
+      const bStatus = (r.booking_status || '').toUpperCase();
+      let categoryTag = 'General Customer Refund';
+      let categoryExplanation = 'Yêu cầu hoàn trả tiền cho khách hàng.';
+      let categoryColor = '#3A8B68';
+      let categoryBg = 'rgba(58, 139, 104, 0.12)';
+
+      if (reasonLower.includes('cancel') || bStatus === 'CANCELLED') {
+        categoryTag = 'Do Cancel chuyến đi sau khi đã thanh toán (Cancellation Prepayment Refund)';
+        categoryExplanation = 'Chuyến đi đã bị hủy sau khi khách hàng đã thanh toán thành công trực tuyến. Theo chính sách hủy trước >= 24 giờ, hệ thống giải phóng 100% số tiền đã thanh toán để hoàn trả về phương thức thanh toán của khách.';
+        categoryColor = '#DC2626';
+        categoryBg = 'rgba(220, 38, 38, 0.1)';
+      } else if (reasonLower.includes('amend') || reasonLower.includes('change') || reasonLower.includes('fare reduced') || reasonLower.includes('vehicle')) {
+        categoryTag = 'Do thay đổi loại xe hoặc lộ trình chuyến đi (Vehicle / Route Amendment Refund)';
+        categoryExplanation = 'Chuyến đi đã được điều chỉnh loại xe (hoặc thay đổi lộ trình) sau khi đã thanh toán trước, làm cho tổng cước phí mới thấp hơn số tiền đã trả trước đó. Phần cước chênh lệch cần được hoàn lại cho khách hàng.';
+        categoryColor = '#C69C54';
+        categoryBg = 'rgba(198, 156, 84, 0.15)';
+      }
+
+      content.innerHTML = `
+        <div style="background: ${categoryBg}; border: 1px solid ${categoryColor}40; border-radius: 10px; padding: 14px 16px;">
+          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+            <i data-lucide="info" style="width: 16px; height: 16px; color: ${categoryColor}; flex-shrink: 0;"></i>
+            <span style="font-size: 11.5px; text-transform: uppercase; font-weight: 700; color: ${categoryColor}; letter-spacing: 0.5px;">
+              ${categoryTag}
+            </span>
+          </div>
+          <div style="font-size: 13px; color: var(--text-main); line-height: 1.5; margin-bottom: 8px;">
+            ${categoryExplanation}
+          </div>
+          <div style="background: var(--bg-surface, #FFFFFF); border: 1px solid var(--border-subtle, #E6DEC9); border-radius: 6px; padding: 8px 12px; font-size: 12.5px;">
+            <span style="font-weight: 700; color: var(--text-muted);">Ghi chú hệ thống:</span>
+            <span style="color: var(--text-main); font-weight: 600;">"${escapeHtml(r.reason || 'No description provided')}"</span>
+          </div>
+        </div>
+
+        <div style="background: var(--bg-surface-subtle, #FAF7F2); border: 1px solid var(--border-subtle, #E6DEC9); border-radius: 10px; padding: 14px 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Refund Amount Authorized</div>
+              <div style="font-size: 22px; font-weight: 800; color: var(--accent-emerald);">£${parseFloat(r.amount).toFixed(2)} GBP</div>
+            </div>
+            <div style="text-align: right;">
+              <span class="badge ${r.status === 'PENDING' ? 'badge-pending' : 'badge-confirmed'}">${r.status}</span>
+              <div style="font-size: 11px; color: var(--text-dim); margin-top: 4px;">
+                Requested: ${new Date(r.created_at).toLocaleString('en-GB')}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="background: var(--bg-surface-subtle, #FAF7F2); border: 1px solid var(--border-subtle, #E6DEC9); border-radius: 10px; padding: 14px 16px;">
+          <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 8px;">Customer &amp; Journey Information</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12.5px;">
+            <div>Passenger: <strong>${escapeHtml(r.customer_name || 'Customer')}</strong></div>
+            <div>Email: <strong>${escapeHtml(r.customer_email || 'N/A')}</strong></div>
+            <div>Phone: <strong>${escapeHtml(r.customer_phone || 'N/A')}</strong></div>
+            <div>Booking Ref: <strong style="font-family: var(--font-mono);">${escapeHtml(r.booking_code || ('#' + r.booking_id))}</strong></div>
+            <div>Service &amp; Vehicle: <strong>${escapeHtml(r.service_name || 'Standard')} (${escapeHtml(r.car_type || 'Saloon')})</strong></div>
+            <div>Booking Status: <span class="badge" style="font-size: 11px;">${r.booking_status || 'UNKNOWN'}</span></div>
+            <div>Paid Fare: <strong>£${parseFloat(r.final_fare || r.fare_amount || r.amount).toFixed(2)} GBP</strong></div>
+            <div>Payment Method: <strong>${escapeHtml(r.payment_method || 'CARD')}</strong> ${r.card_ref_used ? `<span style="font-size: 11px; color: var(--text-dim);">(${escapeHtml(r.card_ref_used)})</span>` : ''}</div>
+          </div>
+          <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border-subtle); font-size: 12px;">
+            <div><strong style="color: var(--accent-emerald);">Pickup:</strong> ${escapeHtml(r.pickup_address || 'N/A')}</div>
+            <div style="margin-top: 3px;"><strong style="color: var(--accent-gold);">Dropoff:</strong> ${escapeHtml(r.dropoff_address || 'N/A')}</div>
+            ${r.pickup_time ? `<div style="margin-top: 3px;"><strong style="color: var(--text-muted);">Scheduled:</strong> ${new Date(r.pickup_time).toLocaleString('en-GB')}</div>` : ''}
+          </div>
+        </div>
+      `;
+
+      if (actionSlot) {
+        if (r.status === 'PENDING') {
+          actionSlot.innerHTML = `
+            <button type="button" class="btn-action btn-primary" onclick="processRefundFromModal(${r.id})">
+              <i data-lucide="check-circle" style="width: 14px; height: 14px;"></i> Approve &amp; Process Refund (£${parseFloat(r.amount).toFixed(2)})
+            </button>
+          `;
+        } else {
+          actionSlot.innerHTML = `<span class="badge badge-confirmed" style="padding: 6px 14px; font-size: 12px;">Refund Processed</span>`;
+        }
+      }
+
+      modal.style.display = 'flex';
+      lucide.createIcons();
+    }
+
+    function closeRefundDetailModal() {
+      const modal = document.getElementById('modal-refund-detail');
+      if (modal) modal.style.display = 'none';
+    }
+
     async function processRefund(refundId) {
       if (!confirm("Confirm refund processing?")) return;
       try {
         const res = await authenticatedFetch(`${API_BASE}/api/staff/refunds/${refundId}/process`, {
           method: 'POST',
-          body: JSON.stringify({ staffId: 1 })
+          body: JSON.stringify({ staffId: staffUser ? staffUser.id : 1 })
         });
         const data = await res.json();
         if (res.ok && data.success) {
           triggerToast("Refund processed successfully!");
+          closeRefundDetailModal();
           loadRefundQueue();
+          loadInsightsMetrics();
+        } else {
+          triggerToast(data.message || "Failed to process refund", "error");
         }
-      } catch (_) {}
+      } catch (_) {
+        triggerToast("Server connection error processing refund", "error");
+      }
+    }
+
+    async function processRefundFromModal(refundId) {
+      await processRefund(refundId);
     }
 
     // Enquiries Queue
@@ -2556,6 +2965,53 @@
           <button type="submit" class="btn-action btn-primary">Save Chauffeur</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Modal 1: Journey Details (Request 17) -->
+  <div id="modal-journey-detail" style="display: none; position: fixed; inset: 0; background: rgba(18, 33, 26, 0.7); backdrop-filter: blur(4px); z-index: 1050; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: var(--bg-surface, #FFFFFF); border: 1px solid var(--border-subtle, #E6DEC9); border-radius: 14px; max-width: 650px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 26px; box-shadow: var(--shadow-elevated, 0 16px 40px rgba(0,0,0,0.18));">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 12px;">
+        <div>
+          <div style="font-size: 11px; text-transform: uppercase; color: var(--accent-gold); font-weight: 700; letter-spacing: 0.5px;">Operational Journey Dispatch Detail</div>
+          <h3 id="modal-jd-title" style="font-family: var(--font-heading); font-size: 20px; font-weight: 700; color: var(--primary); margin: 2px 0 0 0;">
+            Booking Details
+          </h3>
+        </div>
+        <button onclick="closeJourneyDetailModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-dim); line-height: 1;">&times;</button>
+      </div>
+
+      <div id="modal-jd-content" style="display: flex; flex-direction: column; gap: 16px; font-size: 13.5px;">
+        <!-- Dynamic Content Injected by viewJourneyDetail() -->
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px; border-top: 1px solid var(--border-subtle); padding-top: 14px;">
+        <button type="button" onclick="closeJourneyDetailModal()" class="btn-action">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2: Refund Details & Reason (Request 15) -->
+  <div id="modal-refund-detail" style="display: none; position: fixed; inset: 0; background: rgba(18, 33, 26, 0.7); backdrop-filter: blur(4px); z-index: 1050; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: var(--bg-surface, #FFFFFF); border: 1px solid var(--border-subtle, #E6DEC9); border-radius: 14px; max-width: 620px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 26px; box-shadow: var(--shadow-elevated, 0 16px 40px rgba(0,0,0,0.18));">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 12px;">
+        <div>
+          <div style="font-size: 11px; text-transform: uppercase; color: #DC2626; font-weight: 700; letter-spacing: 0.5px;">Customer Refund Authorization</div>
+          <h3 id="modal-rf-title" style="font-family: var(--font-heading); font-size: 20px; font-weight: 700; color: var(--primary); margin: 2px 0 0 0;">
+            Refund Request Details
+          </h3>
+        </div>
+        <button onclick="closeRefundDetailModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-dim); line-height: 1;">&times;</button>
+      </div>
+
+      <div id="modal-rf-content" style="display: flex; flex-direction: column; gap: 16px; font-size: 13.5px;">
+        <!-- Dynamic Content Injected by viewRefundDetail() -->
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px; border-top: 1px solid var(--border-subtle); padding-top: 14px;">
+        <button type="button" onclick="closeRefundDetailModal()" class="btn-action">Close</button>
+        <div id="modal-rf-action-slot"></div>
+      </div>
     </div>
   </div>
 </body>

@@ -103,17 +103,26 @@ class StaffController {
 
       if (incomingCode) {
         const offer = await SpecialOfferModel.findByCode(incomingCode);
-        if (offer && (!offer.account_id || offer.account_id == customer.id) && !offer.is_used) {
+        if (offer) {
+          if (offer.is_used) {
+            return res.status(400).json({ success: false, code: 'VOUCHER_ALREADY_USED', message: 'You have already used this voucher code.' });
+          }
+          if (offer.account_id && parseInt(offer.account_id, 10) !== parseInt(customer.id, 10)) {
+            return res.status(403).json({ success: false, code: 'OFFER_DIFFERENT_CUSTOMER', message: 'This promo code was issued to another customer.' });
+          }
           promoDiscount = parseFloat(offer.discount_amount);
           validPromoCode = offer.code;
           await SpecialOfferModel.markUsed(validPromoCode);
         } else if (
           incomingCode.toUpperCase().startsWith('LOYALTY') ||
           incomingCode.toUpperCase() === 'SAVE10' ||
-          incomingCode.toUpperCase() === 'VIP10'
+          incomingCode.toUpperCase() === 'VIP10' ||
+          incomingCode.toUpperCase() === 'WELCOME10'
         ) {
           promoDiscount = 10.00;
           validPromoCode = incomingCode.toUpperCase();
+        } else {
+          return res.status(400).json({ success: false, code: 'VOUCHER_NOT_FOUND', message: 'Voucher code does not exist.' });
         }
       }
 
@@ -342,6 +351,23 @@ class StaffController {
 
       // Update booking payment status to REFUNDED
       await BookingModel.updatePaymentStatus(processed.booking_id, 'REFUNDED');
+
+      // [Request 16]: Notify customer that refund was processed
+      try {
+        const booking = await BookingModel.findById(processed.booking_id);
+        const bookingCode = booking ? booking.booking_code : `#${processed.booking_id}`;
+        const refundAmount = parseFloat(processed.amount).toFixed(2);
+
+        await NotificationModel.create({
+          accountId: processed.account_id,
+          bookingId: processed.booking_id,
+          title: 'Refund Processed Successfully',
+          message: `Your refund of £${refundAmount} GBP for journey ${bookingCode} has been approved and issued to your original payment method. Reason: ${processed.reason || 'Booking cancellation or amendment.'}`,
+          type: 'REFUND_PROCESSED',
+        });
+      } catch (nErr) {
+        console.warn('Could not create customer refund notification:', nErr.message);
+      }
 
       res.json({
         success: true,
@@ -593,7 +619,23 @@ class StaffController {
       const incomingCode = code.trim();
       const offer = await SpecialOfferModel.findByCode(incomingCode);
 
-      if (offer && (!offer.account_id || (customerId && offer.account_id == customerId)) && !offer.is_used) {
+      if (offer) {
+        if (offer.is_used) {
+          return res.status(400).json({
+            success: false,
+            valid: false,
+            code: 'VOUCHER_ALREADY_USED',
+            message: 'You have already used this voucher code.',
+          });
+        }
+        if (offer.account_id && customerId && parseInt(offer.account_id, 10) !== parseInt(customerId, 10)) {
+          return res.status(403).json({
+            success: false,
+            valid: false,
+            code: 'OFFER_DIFFERENT_CUSTOMER',
+            message: 'This promo code was issued to another customer.',
+          });
+        }
         return res.json({
           success: true,
           valid: true,
@@ -601,10 +643,13 @@ class StaffController {
           code: offer.code,
           message: `Special voucher applied! £${parseFloat(offer.discount_amount).toFixed(2)} discount.`,
         });
-      } else if (
+      }
+
+      if (
         incomingCode.toUpperCase().startsWith('LOYALTY') ||
         incomingCode.toUpperCase() === 'SAVE10' ||
-        incomingCode.toUpperCase() === 'VIP10'
+        incomingCode.toUpperCase() === 'VIP10' ||
+        incomingCode.toUpperCase() === 'WELCOME10'
       ) {
         return res.json({
           success: true,
@@ -613,13 +658,14 @@ class StaffController {
           code: incomingCode.toUpperCase(),
           message: 'Promotional code verified! £10.00 discount applied.',
         });
-      } else {
-        return res.status(400).json({
-          success: false,
-          valid: false,
-          message: 'Voucher code is invalid, expired, or has already been redeemed.',
-        });
       }
+
+      return res.status(400).json({
+        success: false,
+        valid: false,
+        code: 'VOUCHER_NOT_FOUND',
+        message: 'Voucher code does not exist.',
+      });
     } catch (err) {
       res.status(500).json({ success: false, message: err.message });
     }

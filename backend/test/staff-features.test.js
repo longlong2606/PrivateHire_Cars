@@ -3,6 +3,9 @@ const assert = require('node:assert/strict');
 const StaffController = require('../src/controllers/staffController');
 const AccountModel = require('../src/models/accountModel');
 const SpecialOfferModel = require('../src/models/specialOfferModel');
+const RefundModel = require('../src/models/refundModel');
+const BookingModel = require('../src/models/bookingModel');
+const NotificationModel = require('../src/models/notificationModel');
 
 function createMockRes() {
   return {
@@ -168,5 +171,90 @@ test('Sprint Feature: Phone Booking Desk Step 2 & Staff Account/Role Management'
     await StaffController.updateAccountRole(restoreReq, restoreRes);
     assert.equal(restoreRes.statusCode, 200);
     assert.equal(restoreRes.body.account.role, 'CUSTOMER');
+  });
+
+  await t.test('7. Special Offer Voucher: Reusing used voucher is blocked (400) and non-existent is rejected (400)', async () => {
+    const reuseCode = 'REUSETEST-' + Math.floor(1000 + Math.random() * 9000);
+    await SpecialOfferModel.createOffer({
+      code: reuseCode,
+      accountId: testCustomer.id,
+      discountAmount: 15.00,
+    });
+    // Mark as used
+    await SpecialOfferModel.markUsed(reuseCode);
+
+    // Verify reusing fails
+    const usedReq = {
+      body: { code: reuseCode, customerId: testCustomer.id },
+    };
+    const usedRes = createMockRes();
+    await StaffController.verifyPromoCode(usedReq, usedRes);
+    assert.equal(usedRes.statusCode, 400);
+    assert.equal(usedRes.body.valid, false);
+    assert.equal(usedRes.body.code, 'VOUCHER_ALREADY_USED');
+    assert.equal(usedRes.body.message, 'You have already used this voucher code.');
+
+    // Verify non-existent fails
+    const missingReq = {
+      body: { code: 'TOTALLY_FAKE_CODE_999', customerId: testCustomer.id },
+    };
+    const missingRes = createMockRes();
+    await StaffController.verifyPromoCode(missingReq, missingRes);
+    assert.equal(missingRes.statusCode, 400);
+    assert.equal(missingRes.body.valid, false);
+    assert.equal(missingRes.body.code, 'VOUCHER_NOT_FOUND');
+    assert.equal(missingRes.body.message, 'Voucher code does not exist.');
+  });
+
+  await t.test('8. Refund Processing sends notification to customer and getPending includes journey details', async () => {
+    // Create a confirmed booking with mock card
+    const booking = await BookingModel.create({
+      bookingCode: 'BK-RF-TST-' + Math.floor(100000 + Math.random() * 900000),
+      accountId: testCustomer.id,
+      pickupAddress: 'Mayfair, London W1',
+      dropoffAddress: 'Heathrow Airport Terminal 5, TW6 2GA',
+      pickupTime: new Date(Date.now() + 48 * 3600 * 1000),
+      fareAmount: 85.00,
+      paymentMethod: 'CARD',
+      cardRefUsed: 'MOCK-VISA-4242',
+      status: 'CONFIRMED',
+      paymentStatus: 'PAID',
+      notes: 'Test journey for refund verification',
+    });
+
+    // Create a refund request
+    const refund = await RefundModel.create({
+      bookingId: booking.id,
+      accountId: testCustomer.id,
+      amount: 85.00,
+      reason: 'Cancellation refund: Journey cancelled >= 24h prior to pickup',
+    });
+    assert.ok(refund.id);
+
+    // Test getPending includes journey fields
+    const pendingList = await RefundModel.getPending();
+    const found = pendingList.find(r => r.id === refund.id);
+    assert.ok(found);
+    assert.equal(found.booking_code, booking.booking_code);
+    assert.equal(found.pickup_address, 'Mayfair, London W1');
+    assert.equal(found.customer_email, testCustomer.email);
+
+    // Process the refund
+    const staffUser = { id: 1, name: 'Staff Dispatcher', role: 'STAFF' };
+    const procReq = {
+      params: { id: refund.id },
+      user: staffUser,
+    };
+    const procRes = createMockRes();
+    await StaffController.processRefund(procReq, procRes);
+    assert.equal(procRes.statusCode, 200);
+    assert.equal(procRes.body.success, true);
+
+    // Verify customer received REFUND_PROCESSED notification
+    const notifications = await NotificationModel.getByAccountId(testCustomer.id);
+    const refundNotif = notifications.find(n => n.type === 'REFUND_PROCESSED' && n.booking_id === booking.id);
+    assert.ok(refundNotif);
+    assert.equal(refundNotif.title, 'Refund Processed Successfully');
+    assert.ok(refundNotif.message.includes('85.00'));
   });
 });
