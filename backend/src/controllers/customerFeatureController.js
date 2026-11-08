@@ -13,16 +13,25 @@ class CustomerFeatureController {
   static async submitReview(req, res) {
     try {
       const customer = req.user;
-      const { bookingId, journeyRating, vehicleRating, driverRating, reviewText, comments } = req.body;
+      const { bookingId, bookingCode, journeyRating, vehicleRating, driverRating, reviewText, comments, comment } = req.body;
 
-      if (!bookingId) {
-        return res.status(400).json({ success: false, message: 'Booking ID is required' });
+      let booking = null;
+      if (bookingId) {
+        if (typeof bookingId === 'string' && bookingId.startsWith('BK-')) {
+          booking = await BookingModel.findByCode(bookingId);
+        } else {
+          booking = await BookingModel.findById(bookingId);
+        }
+      }
+      if (!booking && (bookingCode || req.body.code)) {
+        booking = await BookingModel.findByCode(bookingCode || req.body.code);
       }
 
-      const booking = await BookingModel.findById(bookingId);
       if (!booking) {
-        return res.status(404).json({ success: false, message: 'Booking not found' });
+        return res.status(400).json({ success: false, message: 'Valid Booking ID or Booking Code is required' });
       }
+
+      const resolvedBookingId = booking.id;
 
       if (booking.account_id !== customer.id) {
         return res.status(403).json({ success: false, message: 'You can only review your own journeys.' });
@@ -35,7 +44,7 @@ class CustomerFeatureController {
         });
       }
 
-      const existingReview = await ReviewModel.findByBookingId(bookingId);
+      const existingReview = await ReviewModel.findByBookingId(resolvedBookingId);
       if (existingReview) {
         return res.status(400).json({
           success: false,
@@ -54,13 +63,21 @@ class CustomerFeatureController {
         });
       }
 
+      const reviewContent = (reviewText || comments || comment || '').trim();
+      if (!reviewContent) {
+        return res.status(400).json({
+          success: false,
+          message: 'Review comments cannot be empty. Please share your feedback.',
+        });
+      }
+
       const review = await ReviewModel.create({
-        bookingId,
+        bookingId: resolvedBookingId,
         accountId: customer.id,
         journeyRating: jRating,
         vehicleRating: vRating,
         driverRating: dRating,
-        reviewText: reviewText || comments || '',
+        reviewText: reviewContent,
       });
 
       res.status(201).json({
