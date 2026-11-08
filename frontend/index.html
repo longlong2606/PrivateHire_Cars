@@ -4,13 +4,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Create an account - PrivateHire Cars</title>
+  <title>PrivateHire Cars — London's Premier Executive Chauffeur &amp; Minicab Service</title>
 
   <!-- Google Fonts: Plus Jakarta Sans & Outfit -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
-    href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
     rel="stylesheet">
 
   <!-- Lucide Icons -->
@@ -25,1651 +25,1854 @@
       --bg-surface: #FFFFFF;
       --bg-card: #FFFFFF;
       --bg-card-hover: #FAF7F2;
-      --bg-input: #FFFFFF;
+      --bg-hero: linear-gradient(135deg, #103429 0%, #164B3B 50%, #0D2C22 100%);
+      --bg-dark-section: #0F2D24;
 
       --border-subtle: #E8E2D5;
-      --border-medium: #E8E2D5;
+      --border-medium: #DDD6C7;
       --border-focus: #3A8B68;
-      --border-error: #B94A48;
 
       --primary: #164B3B;
-      --primary-hover: #0f372b;
+      --primary-hover: #0F372B;
       --primary-light: #3A8B68;
       --primary-glow: rgba(22, 75, 59, 0.25);
 
       --accent-gold: #C69C54;
+      --accent-gold-light: #E0BA79;
+      --accent-gold-bg: rgba(198, 156, 84, 0.12);
       --accent-emerald: #3A8B68;
 
-      --text-white: #FFFFFF;
-      --text-main: #25352E;
-      --text-muted: #5E7168;
-      --text-dim: #84988F;
-      --text-error: #B94A48;
+      --text-main: #1D2D24;
+      --text-muted: #4A5B52;
+      --text-dim: #718479;
+      --text-light: #F2F7F4;
 
-      --radius-sm: 8px;
-      --radius-md: 12px;
-      --radius-lg: 18px;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
       --radius-xl: 24px;
 
-      --font-heading: 'Outfit', sans-serif;
-      --font-body: 'Plus Jakarta Sans', sans-serif;
-      --font-mono: 'JetBrains Mono', monospace;
+      --shadow-sm: 0 2px 6px rgba(22, 75, 59, 0.05);
+      --shadow-card: 0 4px 18px rgba(22, 75, 59, 0.07);
+      --shadow-elevated: 0 14px 40px rgba(18, 45, 36, 0.12);
 
-      --shadow-soft: 0 8px 24px rgba(37, 53, 46, 0.06);
-      --shadow-elevated: 0 16px 45px rgba(37, 53, 46, 0.1);
-      --transition-smooth: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      --transition-smooth: all 0.22s ease-in-out;
+      --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-heading: 'Outfit', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
     }
 
-    * {
+    /* Reset & Base */
+    *, *::before, *::after {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
     }
 
+    html {
+      scroll-behavior: smooth;
+    }
+
     body {
+      font-family: var(--font-body);
       background-color: var(--bg-body);
       color: var(--text-main);
-      font-family: var(--font-body);
-      min-height: 100vh;
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
       overflow-x: hidden;
     }
 
-    /* Ambient glow effects */
-    .ambient-glow-top {
-      position: fixed;
-      top: -240px;
-      left: 15%;
-      width: 800px;
-      height: 800px;
-      background: radial-gradient(circle, rgba(58, 139, 104, 0.12) 0%, transparent 70%);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .ambient-glow-bottom {
-      position: fixed;
-      bottom: -240px;
-      right: 10%;
-      width: 700px;
-      height: 700px;
-      background: radial-gradient(circle, rgba(198, 156, 84, 0.10) 0%, transparent 70%);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .app-container {
-      position: relative;
-      z-index: 1;
-      max-width: 1440px;
-      margin: 0 auto;
-      padding: 0 28px 70px 28px;
-    }
-
-    /* Top Navigation Bar */
-    .top-navbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 20px 0;
-      border-bottom: 1px solid var(--border-subtle);
-      margin-bottom: 38px;
-    }
-
-    .brand-group {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      cursor: pointer;
+    a {
       text-decoration: none;
+      color: inherit;
+      transition: var(--transition-smooth);
     }
 
-    .brand-emblem {
-      width: 44px;
-      height: 44px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, #164B3B 0%, #0d2e24 100%);
-      border: 1px solid #C69C54;
-      display: flex;
+    img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* Container */
+    .container {
+      width: 100%;
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Section Headers */
+    .section-header {
+      text-align: center;
+      max-width: 720px;
+      margin: 0 auto 52px;
+    }
+
+    .section-eyebrow {
+      display: inline-flex;
       align-items: center;
-      justify-content: center;
-      color: #FFFFFF;
-      box-shadow: 0 4px 15px rgba(22, 75, 59, 0.25);
-      position: relative;
-    }
-
-    .brand-emblem::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      border-radius: 12px;
-      background: linear-gradient(135deg, rgba(198, 156, 84, 0.25) 0%, transparent 60%);
-    }
-
-    .brand-title {
-      font-family: var(--font-heading);
-      font-size: 22px;
+      gap: 6px;
+      font-family: var(--font-mono);
+      font-size: 12px;
       font-weight: 700;
-      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--accent-gold);
+      background: var(--accent-gold-bg);
+      padding: 5px 14px;
+      border-radius: 20px;
+      margin-bottom: 14px;
+    }
+
+    .section-title {
+      font-family: var(--font-heading);
+      font-size: 34px;
+      font-weight: 800;
+      color: var(--text-main);
+      line-height: 1.25;
+      margin-bottom: 14px;
       letter-spacing: -0.5px;
     }
 
-    .brand-title span {
-      background: linear-gradient(90deg, #164B3B 40%, #3A8B68 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+    .section-subtitle {
+      font-size: 15.5px;
+      color: var(--text-muted);
+      line-height: 1.65;
     }
 
-    .nav-actions {
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 24px;
+      font-size: 14px;
+      font-weight: 700;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: var(--transition-smooth);
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #FFFFFF;
+      box-shadow: 0 4px 14px var(--primary-glow);
+    }
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-gold {
+      background: linear-gradient(135deg, #C69C54 0%, #B88B3E 100%);
+      color: #FFFFFF;
+      box-shadow: 0 4px 16px rgba(198, 156, 84, 0.35);
+    }
+    .btn-gold:hover {
+      background: linear-gradient(135deg, #D4A95F 0%, #C69C54 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(198, 156, 84, 0.45);
+    }
+
+    .btn-outline-white {
+      background: rgba(255, 255, 255, 0.08);
+      color: #FFFFFF;
+      border-color: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(4px);
+    }
+    .btn-outline-white:hover {
+      background: rgba(255, 255, 255, 0.18);
+      border-color: #FFFFFF;
+      transform: translateY(-1px);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--primary);
+      border-color: var(--primary);
+    }
+    .btn-outline:hover {
+      background: var(--primary);
+      color: #FFFFFF;
+    }
+
+    /* 1. Header & Navigation */
+    .app-header {
+      position: sticky;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-subtle);
+      z-index: 100;
+      transition: var(--transition-smooth);
+    }
+
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 72px;
+    }
+
+    .brand-logo {
       display: flex;
       align-items: center;
       gap: 12px;
     }
-
-    .nav-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      padding: 8px 16px;
+    .brand-shield {
+      width: 38px;
+      height: 38px;
+      background: var(--primary);
       border-radius: var(--radius-sm);
-      background: #FFFFFF;
-      border: 1px solid var(--border-subtle);
-      color: var(--text-main);
-      font-size: 13px;
-      font-weight: 600;
-      text-decoration: none;
-      transition: var(--transition-smooth);
-    }
-
-    .nav-btn:hover {
-      border-color: var(--primary-light);
-      color: var(--primary);
-      background: var(--bg-card-hover);
-    }
-
-    .nav-btn.primary {
-      background: #164B3B;
-      border-color: #164B3B;
-      color: #FFFFFF;
-    }
-
-    .nav-btn.primary:hover {
-      background: #0f372b;
-      color: #FFFFFF;
-    }
-
-    /* Main Split Layout */
-    .split-layout-grid {
-      display: grid;
-      grid-template-columns: 1.08fr 1.02fr;
-      gap: 48px;
-      align-items: start;
-    }
-
-    /* ===================================================================
-       1. LEFT COLUMN: BRANDING, OUR SERVICES & FLEET VISUAL
-       =================================================================== */
-    .brand-services-col {
       display: flex;
-      flex-direction: column;
-      gap: 28px;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent-gold);
+      box-shadow: 0 4px 12px var(--primary-glow);
+    }
+    .brand-text-name {
+      font-family: var(--font-heading);
+      font-size: 19px;
+      font-weight: 800;
+      color: var(--primary);
+      letter-spacing: -0.3px;
+      line-height: 1.1;
+    }
+    .brand-text-sub {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--accent-gold);
+      letter-spacing: 1px;
+      text-transform: uppercase;
     }
 
-    .hero-badge-tag {
+    .nav-menu {
+      display: flex;
+      align-items: center;
+      list-style: none;
+      gap: 22px;
+    }
+    .nav-link {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--text-muted);
+      position: relative;
+      padding: 6px 2px;
+    }
+    .nav-link:hover, .nav-link.active {
+      color: var(--primary);
+    }
+    .nav-link.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: var(--primary);
+      border-radius: 2px;
+    }
+
+    .nav-right-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .theme-toggle-btn {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-sm);
+      height: 36px;
+      padding: 0 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--text-main);
+    }
+
+    .mobile-hamburger-btn {
+      display: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 8px;
+      color: var(--primary);
+    }
+
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(22, 75, 59, 0.08);
+      color: var(--primary);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12.5px;
+      font-weight: 700;
+    }
+
+    /* 2. Hero Section */
+    .hero-section {
+      background: var(--bg-hero);
+      color: #FFFFFF;
+      position: relative;
+      padding: 90px 0 100px;
+      overflow: hidden;
+    }
+
+    .hero-bg-shapes {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.15;
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(198, 156, 84, 0.4) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(58, 139, 104, 0.4) 0%, transparent 40%);
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 48px;
+      align-items: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-badge-pill {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 5px 14px;
-      background: rgba(22, 75, 59, 0.08);
-      border: 1px solid rgba(22, 75, 59, 0.22);
-      border-radius: 100px;
-      color: var(--primary);
-      font-size: 12.5px;
-      font-weight: 600;
-      width: fit-content;
+      background: rgba(198, 156, 84, 0.16);
+      border: 1px solid rgba(198, 156, 84, 0.4);
+      color: var(--accent-gold-light);
+      padding: 6px 16px;
+      border-radius: 30px;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 22px;
     }
 
-    .hero-title {
+    .hero-headline {
       font-family: var(--font-heading);
-      font-size: 40px;
-      font-weight: 800;
+      font-size: 46px;
+      font-weight: 900;
       line-height: 1.15;
       letter-spacing: -1px;
-      color: var(--text-main);
-      margin-top: 10px;
+      margin-bottom: 20px;
+    }
+    .hero-headline span {
+      color: var(--accent-gold-light);
+      display: block;
     }
 
-    .hero-title span.highlight-gradient {
-      background: linear-gradient(90deg, #164B3B 0%, #C69C54 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+    .hero-lead {
+      font-size: 16.5px;
+      line-height: 1.7;
+      color: #D2E4DC;
+      margin-bottom: 34px;
+      max-width: 580px;
     }
 
-    .hero-desc {
-      color: var(--text-muted);
-      font-size: 15px;
-      max-width: 540px;
-      margin-top: 8px;
-    }
-
-    /* Our Services Box */
-    .services-box {
-      background: #FFFFFF;
-      border: 1px solid var(--border-medium);
-      border-radius: var(--radius-lg);
-      padding: 24px 26px;
-      box-shadow: var(--shadow-soft);
-    }
-
-    .services-box-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding-bottom: 14px;
-      border-bottom: 1px solid var(--border-subtle);
-      margin-bottom: 16px;
-    }
-
-    .services-box-title {
-      font-family: var(--font-heading);
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--primary);
-      display: flex;
-      align-items: center;
-      gap: 9px;
-    }
-
-    .services-badge-guarantee {
-      font-size: 11px;
-      font-family: var(--font-mono);
-      color: var(--accent-gold);
-      background: rgba(198, 156, 84, 0.12);
-      border: 1px solid rgba(198, 156, 84, 0.35);
-      padding: 3px 10px;
-      border-radius: 100px;
-      font-weight: 700;
-    }
-
-    .services-list-items {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 13px;
-    }
-
-    .service-row-item {
+    .hero-cta-group {
       display: flex;
       align-items: center;
       gap: 14px;
-      padding: 10px 14px;
-      border-radius: var(--radius-sm);
-      background: #FAF7F2;
+      flex-wrap: wrap;
+      margin-bottom: 40px;
+    }
+
+    .hero-trust-row {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      flex-wrap: wrap;
+    }
+    .hero-trust-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #E2EDE7;
+    }
+    .hero-trust-item i {
+      color: var(--accent-gold);
+    }
+
+    .hero-preview-card {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(16px);
+      border-radius: var(--radius-xl);
+      padding: 30px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);
+    }
+
+    .preview-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 22px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .preview-discount-tag {
+      background: #D946EF;
+      background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+      color: #FFFFFF;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      text-transform: uppercase;
+    }
+
+    .preview-stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+    .preview-stat-box {
+      background: rgba(0, 0, 0, 0.18);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .preview-stat-val {
+      font-family: var(--font-heading);
+      font-size: 24px;
+      font-weight: 800;
+      color: #FFFFFF;
+      line-height: 1.1;
+    }
+    .preview-stat-lbl {
+      font-size: 11.5px;
+      color: #A9C2B5;
+      margin-top: 4px;
+    }
+
+    /* 3. Featured Services Section */
+    .services-section {
+      padding: 90px 0;
+      background: var(--bg-surface);
+    }
+
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 28px;
+    }
+
+    .service-card {
+      background: var(--bg-surface);
       border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 28px 24px;
+      box-shadow: var(--shadow-sm);
       transition: var(--transition-smooth);
+      display: flex;
+      flex-direction: column;
+      position: relative;
     }
-
-    .service-row-item:hover {
-      background: rgba(58, 139, 104, 0.08);
+    .service-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-elevated);
       border-color: var(--primary-light);
-      transform: translateX(4px);
     }
 
-    .service-icon-square {
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
-      background: #FFFFFF;
-      border: 1px solid var(--border-medium);
+    .service-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 18px;
+    }
+    .service-icon-box {
+      width: 48px;
+      height: 48px;
+      background: rgba(22, 75, 59, 0.08);
+      border-radius: var(--radius-md);
       display: flex;
       align-items: center;
       justify-content: center;
       color: var(--primary);
-      flex-shrink: 0;
     }
-
-    .service-info-text {
-      font-size: 14px;
-      font-weight: 500;
-      color: var(--text-main);
-    }
-
-    /* Fleet Hero Visual (IMAGE from wireframe) */
-    .fleet-hero-visual {
-      position: relative;
-      border-radius: var(--radius-lg);
-      overflow: hidden;
-      border: 1px solid var(--border-medium);
-      box-shadow: var(--shadow-soft);
-      height: 230px;
-      background: #F8F5EE;
-    }
-
-    .fleet-hero-visual img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-      filter: brightness(0.85) contrast(1.05);
-      transition: transform 0.5s ease;
-    }
-
-    .fleet-hero-visual:hover img {
-      transform: scale(1.03);
-    }
-
-    .fleet-visual-overlay {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(180deg, transparent 35%, rgba(22, 75, 59, 0.95) 100%);
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      padding: 20px 22px;
-    }
-
-    .fleet-specs-pills {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 6px;
-    }
-
-    .spec-pill {
-      font-size: 11px;
+    .service-badge {
       font-family: var(--font-mono);
-      background: rgba(22, 75, 59, 0.85);
-      backdrop-filter: blur(8px);
-      border: 1px solid rgba(232, 226, 213, 0.35);
-      padding: 3px 9px;
-      border-radius: 4px;
-      color: #F8F5EE;
-      display: inline-flex;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 12px;
+      background: var(--accent-gold-bg);
+      color: #8F6B27;
+      text-transform: uppercase;
+    }
+
+    .service-name {
+      font-family: var(--font-heading);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 10px;
+    }
+
+    .service-desc {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 20px;
+      flex: 1;
+    }
+
+    .service-meta-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 12.5px;
+      color: var(--text-dim);
+      padding: 12px 0;
+      border-top: 1px dashed var(--border-medium);
+      border-bottom: 1px dashed var(--border-medium);
+      margin-bottom: 18px;
+    }
+    .service-meta-row span {
+      display: flex;
       align-items: center;
       gap: 5px;
     }
 
-    .fleet-car-heading {
+    .service-pricing-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 18px;
+    }
+    .price-orig {
+      font-size: 12px;
+      color: var(--text-dim);
+      text-decoration: line-through;
+    }
+    .price-online {
+      font-family: var(--font-heading);
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--primary);
+      line-height: 1;
+    }
+    .price-discount-lbl {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent-emerald);
+      text-transform: uppercase;
+    }
+
+    /* 4. Fleet Collection Section */
+    .fleet-section {
+      padding: 90px 0;
+      background: var(--bg-body);
+    }
+
+    .fleet-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 28px;
+    }
+
+    .fleet-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      transition: var(--transition-smooth);
+      display: flex;
+      flex-direction: column;
+    }
+    .fleet-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-elevated);
+      border-color: var(--accent-gold);
+    }
+
+    .fleet-img-wrapper {
+      height: 200px;
+      background: linear-gradient(135deg, #1A3E32 0%, #102B22 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      padding: 20px;
+      color: #FFFFFF;
+    }
+    .fleet-card-badge {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      color: var(--accent-gold-light);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+    }
+
+    .fleet-body {
+      padding: 24px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .fleet-title {
+      font-family: var(--font-heading);
+      font-size: 21px;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+    .fleet-models {
+      font-size: 12.5px;
+      color: var(--accent-gold);
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
+    .fleet-specs-strip {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      background: var(--bg-card-hover);
+      padding: 12px;
+      border-radius: var(--radius-md);
+      margin-bottom: 18px;
+    }
+    .fleet-spec-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .fleet-amenities-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 12.5px;
+      color: var(--text-muted);
+      margin-bottom: 22px;
+      flex: 1;
+    }
+    .fleet-amenities-list li {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .fleet-amenities-list li i {
+      color: var(--accent-emerald);
+      width: 14px;
+      height: 14px;
+    }
+
+    /* 5. Why Choose Us / Advantages */
+    .why-section {
+      padding: 90px 0;
+      background: var(--bg-surface);
+    }
+
+    .advantages-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 28px;
+    }
+
+    .advantage-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 30px 24px;
+      transition: var(--transition-smooth);
+    }
+    .advantage-card:hover {
+      border-color: var(--primary);
+      box-shadow: var(--shadow-card);
+      transform: translateY(-3px);
+    }
+
+    .advantage-icon-box {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      background: rgba(22, 75, 59, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary);
+      margin-bottom: 20px;
+    }
+
+    .advantage-title {
+      font-family: var(--font-heading);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 10px;
+    }
+
+    .advantage-desc {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      line-height: 1.65;
+    }
+
+    /* 6. Simple Booking Process */
+    .process-section {
+      padding: 90px 0;
+      background: var(--bg-dark-section);
+      color: #FFFFFF;
+      position: relative;
+    }
+
+    .process-steps-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      position: relative;
+      margin-bottom: 50px;
+    }
+
+    .step-card {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: var(--radius-lg);
+      padding: 28px 20px;
+      position: relative;
+      transition: var(--transition-smooth);
+    }
+    .step-card:hover {
+      background: rgba(255, 255, 255, 0.08);
+      transform: translateY(-4px);
+      border-color: var(--accent-gold);
+    }
+
+    .step-num-badge {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--accent-gold-light);
+      background: rgba(198, 156, 84, 0.2);
+      border: 1px solid rgba(198, 156, 84, 0.4);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 18px;
+    }
+
+    .step-title {
+      font-family: var(--font-heading);
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #FFFFFF;
+    }
+
+    .step-desc {
+      font-size: 13px;
+      color: #A9C2B5;
+      line-height: 1.6;
+    }
+
+    /* 7. Testimonials & Partners */
+    .reviews-section {
+      padding: 90px 0;
+      background: var(--bg-surface);
+    }
+
+    .reviews-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 28px;
+      margin-bottom: 60px;
+    }
+
+    .review-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 30px 24px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .review-stars-row {
+      color: #F59E0B;
+      font-size: 16px;
+      margin-bottom: 14px;
+      letter-spacing: 2px;
+    }
+
+    .review-quote {
+      font-size: 14px;
+      line-height: 1.65;
+      color: var(--text-main);
+      font-style: italic;
+      margin-bottom: 22px;
+      flex: 1;
+    }
+
+    .review-author-box {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-top: 1px dashed var(--border-medium);
+      padding-top: 16px;
+    }
+    .author-avatar-initials {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: var(--accent-gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+    }
+    .author-name {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .author-journey {
+      font-size: 11.5px;
+      color: var(--text-dim);
+    }
+
+    .partners-strip {
+      background: var(--bg-card-hover);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 24px 30px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    .partner-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-heading);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-dim);
+    }
+    .partner-pill i {
+      color: var(--accent-gold);
+    }
+
+    /* 8. Footer */
+    .app-footer {
+      background: #091C16;
+      color: #A9C2B5;
+      padding: 80px 0 30px;
+      font-size: 13.5px;
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 1fr 1.2fr;
+      gap: 40px;
+      margin-bottom: 60px;
+    }
+
+    .footer-col-title {
       font-family: var(--font-heading);
       font-size: 16px;
       font-weight: 700;
       color: #FFFFFF;
+      margin-bottom: 18px;
+      letter-spacing: 0.2px;
     }
 
-    /* ===================================================================
-       2. RIGHT COLUMN: MAIN REGISTRATION FORM
-       =================================================================== */
-    .auth-glass-card {
-      background: #FFFFFF;
-      border: 1px solid var(--border-medium);
-      border-radius: var(--radius-xl);
-      padding: 34px 36px;
-      box-shadow: var(--shadow-elevated);
-      position: relative;
-    }
-
-    .auth-glass-card::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 10%;
-      right: 10%;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, var(--accent-gold), transparent);
-    }
-
-    .auth-card-header {
-      margin-bottom: 24px;
-    }
-
-    .auth-title-large {
-      font-family: var(--font-heading);
-      font-size: 28px;
-      font-weight: 700;
-      color: var(--primary);
-      letter-spacing: -0.5px;
-    }
-
-    .auth-subtitle-text {
-      color: var(--text-muted);
-      font-size: 14px;
-      margin-top: 5px;
-    }
-
-    .auth-switch-link {
-      color: var(--primary-light);
-      font-weight: 600;
-      text-decoration: underline;
-      transition: color 0.18s;
-      cursor: pointer;
-    }
-
-    .auth-switch-link:hover {
-      color: var(--primary);
-    }
-
-    /* Form Fields Grid */
-    .form-fields-stack {
+    .footer-links-list {
+      list-style: none;
       display: flex;
       flex-direction: column;
-      gap: 18px;
+      gap: 10px;
+    }
+    .footer-links-list a:hover {
+      color: var(--accent-gold-light);
+      padding-left: 4px;
     }
 
-    .field-row-split {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-    }
-
-    .field-group {
+    .footer-contact-item {
       display: flex;
-      flex-direction: column;
-      gap: 6px;
-      position: relative;
+      gap: 10px;
+      margin-bottom: 12px;
+      line-height: 1.5;
     }
-
-    .field-label {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text-main);
-    }
-
-    .required-stars {
+    .footer-contact-item i {
       color: var(--accent-gold);
-      font-family: var(--font-mono);
-      font-size: 12px;
-      letter-spacing: 1px;
-    }
-
-    .field-input-wrapper {
-      position: relative;
-      display: flex;
-      align-items: center;
-    }
-
-    .field-input {
-      width: 100%;
-      height: 44px;
-      background: var(--bg-input);
-      border: 1px solid var(--border-medium);
-      border-radius: var(--radius-sm);
-      color: var(--text-main);
-      font-family: var(--font-body);
-      font-size: 14px;
-      padding: 0 14px 0 42px;
-      outline: none;
-      transition: var(--transition-smooth);
-    }
-
-    .field-input:focus {
-      border-color: var(--border-focus);
-      background: #FFFFFF;
-      box-shadow: 0 0 0 3px rgba(58, 139, 104, 0.18);
-    }
-
-    .input-icon-left-slot {
-      position: absolute;
-      left: 14px;
-      color: var(--text-dim);
-      pointer-events: none;
-      display: flex;
-      align-items: center;
-    }
-
-    .input-icon-right-slot {
-      position: absolute;
-      right: 14px;
-      color: var(--text-dim);
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      transition: var(--transition-smooth);
-    }
-
-    .input-icon-right-slot:hover {
-      color: var(--primary);
-    }
-
-    /* Validation Error State (Exact Requirement: Red border & text ONLY) */
-    .field-group.has-error .field-input {
-      border-color: var(--border-error) !important;
-      background: rgba(185, 74, 72, 0.04);
-      box-shadow: 0 0 0 2px rgba(185, 74, 72, 0.18);
-    }
-
-    .field-group.has-error .input-icon-left-slot {
-      color: var(--border-error);
-    }
-
-    .validation-error-text {
-      display: none;
-      align-items: center;
-      gap: 6px;
-      color: var(--text-error);
-      font-size: 12px;
-      font-family: var(--font-mono);
+      flex-shrink: 0;
       margin-top: 3px;
     }
 
-    .field-group.has-error .validation-error-text {
+    .footer-bottom-bar {
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding-top: 26px;
       display: flex;
-    }
-
-    /* ===================================================================
-       PAYMENT METHOD DROPDOWN (EXPANDED BY DEFAULT AS REQUIRED)
-       =================================================================== */
-    .dropdown-container {
-      position: relative;
-    }
-
-    .dropdown-trigger-btn {
-      width: 100%;
-      height: 46px;
-      background: var(--bg-input);
-      border: 1px solid var(--border-medium);
-      border-radius: var(--radius-sm);
-      padding: 0 14px 0 42px;
-      display: flex;
-      align-items: center;
       justify-content: space-between;
-      cursor: pointer;
-      color: var(--text-main);
-      font-size: 14px;
-      font-family: var(--font-body);
-      transition: var(--transition-smooth);
-      position: relative;
-    }
-
-    .dropdown-trigger-btn:hover {
-      border-color: var(--primary-light);
-      background: #FAF7F2;
-    }
-
-    .dropdown-chevron-icon {
-      color: var(--text-dim);
-      transition: transform 0.2s ease;
-    }
-
-    .dropdown-container.open .dropdown-chevron-icon {
-      transform: rotate(180deg);
-    }
-
-    .dropdown-options-menu {
-      position: static;
-      margin-top: 8px;
-      background: #FFFFFF;
-      border: 1px solid var(--border-medium);
-      border-radius: var(--radius-md);
-      box-shadow: 0 15px 35px rgba(37, 53, 46, 0.12);
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      transition: var(--transition-smooth);
-    }
-
-    .dropdown-container:not(.open) .dropdown-options-menu {
-      display: none;
-    }
-
-    .dropdown-item {
-      display: flex;
       align-items: center;
-      justify-content: space-between;
-      padding: 12px 16px;
-      cursor: pointer;
-      border-bottom: 1px solid var(--border-subtle);
-      transition: var(--transition-smooth);
-    }
-
-    .dropdown-item:last-child {
-      border-bottom: none;
-    }
-
-    .dropdown-item:hover {
-      background: rgba(58, 139, 104, 0.08);
-    }
-
-    .dropdown-item.active {
-      background: rgba(22, 75, 59, 0.08);
-      border-left: 3px solid var(--primary);
-    }
-
-    .card-item-left {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .card-badge-pill {
-      font-size: 10.5px;
-      font-family: var(--font-mono);
-      font-weight: 700;
-      padding: 2px 7px;
-      border-radius: 4px;
-      background: #FAF7F2;
-      border: 1px solid var(--border-subtle);
-      color: var(--text-main);
-    }
-
-    .card-badge-pill.visa {
-      color: #164B3B;
-      background: rgba(22, 75, 59, 0.08);
-      border-color: rgba(22, 75, 59, 0.25);
-    }
-
-    .card-badge-pill.mc {
-      color: #C69C54;
-      background: rgba(198, 156, 84, 0.15);
-      border-color: rgba(198, 156, 84, 0.35);
-    }
-
-    .card-badge-pill.amex {
-      color: #3A8B68;
-      background: rgba(58, 139, 104, 0.15);
-      border-color: rgba(58, 139, 104, 0.35);
-    }
-
-    .card-name-title {
-      font-size: 13.5px;
-      font-weight: 600;
-      color: var(--text-main);
-    }
-
-    .card-selected-check {
-      color: var(--primary);
-      display: none;
-    }
-
-    .dropdown-item.active .card-selected-check {
-      display: flex;
-    }
-
-    /* Footer: Terms Checkbox & Register Button */
-    .terms-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin: 20px 0 24px 0;
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .custom-checkbox-sq {
-      width: 20px;
-      height: 20px;
-      border-radius: 5px;
-      border: 1.5px solid var(--border-medium);
-      background: var(--bg-input);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      color: transparent;
-      transition: var(--transition-smooth);
-    }
-
-    .custom-checkbox-sq.checked {
-      background: var(--primary);
-      border-color: var(--primary);
-      color: #ffffff;
-    }
-
-    .terms-text-label {
-      font-size: 13px;
-      color: var(--text-muted);
-    }
-
-    .terms-text-label a {
-      color: var(--primary);
-      text-decoration: underline;
-    }
-
-    .btn-register-solid {
-      width: 100%;
-      height: 50px;
-      background: var(--primary);
-      color: #ffffff;
-      border: none;
-      border-radius: var(--radius-sm);
-      font-family: var(--font-heading);
-      font-size: 15px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      transition: var(--transition-smooth);
-      box-shadow: 0 4px 18px rgba(22, 75, 59, 0.35);
-    }
-
-    .btn-register-solid:hover {
-      background: var(--primary-hover);
-      box-shadow: 0 6px 24px rgba(22, 75, 59, 0.5);
-      transform: translateY(-1px);
-    }
-
-    .btn-register-solid:active {
-      transform: translateY(0);
-    }
-
-    /* Interactive Simulation & Test Control Bar */
-    .sim-test-bar {
-      margin-top: 40px;
-      background: #FAF7F2;
-      border: 1px solid var(--border-medium);
-      border-radius: var(--radius-lg);
-      padding: 16px 20px;
-      display: flex;
       flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
       gap: 14px;
-    }
-
-    .sim-bar-label {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 13px;
-      font-family: var(--font-mono);
-      color: var(--text-muted);
-    }
-
-    .sim-buttons-cluster {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .sim-btn-pill {
-      background: #FFFFFF;
-      border: 1px solid var(--border-subtle);
-      color: var(--text-main);
-      padding: 6px 14px;
-      border-radius: 6px;
       font-size: 12px;
-      font-family: var(--font-mono);
-      font-weight: 600;
-      cursor: pointer;
-      transition: var(--transition-smooth);
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
+      color: #718479;
     }
 
-    .sim-btn-pill:hover {
-      background: #FAF7F2;
-      border-color: var(--primary-light);
-      color: var(--primary);
-    }
-
-    .sim-btn-pill.danger:hover {
-      border-color: var(--border-error);
-      color: var(--border-error);
-    }
-
-    .sim-btn-pill.success:hover {
-      border-color: var(--accent-emerald);
-      color: var(--accent-emerald);
-    }
-
-    /* Toast Notification Rack */
-    .toast-notifications-rack {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      z-index: 10000;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .toast-pill-item {
-      background: #FFFFFF;
-      border: 1px solid var(--border-medium);
-      border-radius: var(--radius-md);
-      padding: 12px 18px;
-      color: var(--text-main);
-      font-size: 13px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      box-shadow: 0 10px 30px rgba(37, 53, 46, 0.15);
-      animation: slideInToast 0.25s ease;
-    }
-
-    @keyframes slideInToast {
-      from {
-        transform: translateX(40px);
-        opacity: 0;
-      }
-
-      to {
-        transform: translateX(0);
-        opacity: 1;
-      }
-    }
-
-    /* Mobile Responsive (Single Column) */
+    /* Responsive Media Queries */
     @media (max-width: 1024px) {
-      .split-layout-grid {
-        grid-template-columns: 1fr;
-        gap: 32px;
+      .services-grid, .fleet-grid, .advantages-grid, .reviews-grid {
+        grid-template-columns: repeat(2, 1fr);
       }
-
-      .brand-services-col {
-        order: 2;
+      .process-steps-grid {
+        grid-template-columns: repeat(2, 1fr);
       }
-
-      .login-col-wrapper {
-        order: 1;
+      .footer-grid {
+        grid-template-columns: repeat(2, 1fr);
       }
     }
 
-    @media (max-width: 640px) {
-      .top-navbar {
-        padding: 12px 16px;
-        flex-wrap: wrap;
-        gap: 8px;
+    @media (max-width: 768px) {
+      .hero-grid {
+        grid-template-columns: 1fr;
+        gap: 36px;
       }
-
-      .nav-actions {
-        gap: 6px !important;
+      .hero-headline {
+        font-size: 34px;
       }
-
-      .nav-btn {
-        padding: 6px 10px;
-        font-size: 11.5px;
+      .section-title {
+        font-size: 28px;
       }
-
-      .auth-glass-card {
-        padding: 20px 16px;
-      }
-
-      .field-row-split {
+      .services-grid, .fleet-grid, .advantages-grid, .reviews-grid, .process-steps-grid, .footer-grid {
         grid-template-columns: 1fr;
       }
 
-      .hero-title {
-        font-size: 26px;
+      .mobile-hamburger-btn {
+        display: block;
+      }
+      .nav-menu {
+        position: fixed;
+        top: 72px;
+        left: 0;
+        width: 100%;
+        background: var(--bg-surface);
+        flex-direction: column;
+        padding: 24px;
+        gap: 16px;
+        border-bottom: 1px solid var(--border-subtle);
+        box-shadow: var(--shadow-elevated);
+        display: none;
+      }
+      .nav-menu.mobile-open {
+        display: flex;
       }
     }
   </style>
 
-  <!-- Luxury Dark Theme System (Overrides default styles) -->
+  <!-- External High-Specificity Theme Stylesheet -->
   <link rel="stylesheet" href="theme.css">
 </head>
 
 <body>
 
-  <div class="ambient-glow-top"></div>
-  <div class="ambient-glow-bottom"></div>
-
-  <div class="app-container">
-
-    <!-- Top Navigation Bar -->
-    <header class="top-navbar">
-      <a href="index.html" class="brand-group">
-        <div class="brand-emblem">
-          <i data-lucide="shield" style="width: 22px; height: 22px;"></i>
+  <!-- ===================================================================
+       1. NAVIGATION BAR (Thanh điều hướng)
+       =================================================================== -->
+  <header class="app-header">
+    <div class="container header-inner">
+      <a href="home.html" class="brand-logo" title="PrivateHire Cars Homepage">
+        <div class="brand-shield">
+          <i data-lucide="shield" style="width: 20px; height: 20px;"></i>
         </div>
-        <div class="brand-title">
-          <span>PrivateHire</span> Cars
+        <div>
+          <div class="brand-text-name">PrivateHire Cars</div>
+          <div class="brand-text-sub">London Chauffeurs</div>
         </div>
       </a>
 
-      <div class="nav-actions" style="display: flex; align-items: center; gap: 10px;">
-        <button type="button" class="theme-toggle-btn nav-btn" onclick="toggleTheme()" title="Switch Theme">
+      <nav>
+        <ul class="nav-menu">
+          <li><a href="home.html" class="nav-link active">Home</a></li>
+          <li><a href="#services" class="nav-link">Services</a></li>
+          <li><a href="#fleet" class="nav-link">Fleet (150)</a></li>
+          <li><a href="#why-us" class="nav-link">Why Choose Us</a></li>
+          <li><a href="#how-it-works" class="nav-link">How It Works</a></li>
+          <li><a href="#reviews" class="nav-link">Reviews</a></li>
+          <li><a href="booking.html" class="nav-link" style="color: var(--primary); font-weight: 700;">Book a Car</a></li>
+          <li><a href="my-bookings.html" class="nav-link">My Bookings</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-right-actions">
+        <!-- Theme toggle -->
+        <button type="button" class="theme-toggle-btn" onclick="toggleTheme()" title="Switch Theme">
           <i data-lucide="moon" class="theme-toggle-icon" style="width: 14px; height: 14px;"></i>
           <span class="theme-toggle-label">Dark</span>
         </button>
-        <a href="staff.html" class="nav-btn staff-portal-btn" style="border: 1px solid var(--primary); color: var(--primary);" title="Call Centre Staff Portal">
-          <i data-lucide="shield" style="width: 14px; height: 14px;"></i>
-          <span>Staff Portal</span>
+
+        <!-- Staff Portal Button: Restricted strictly to ADMIN / STAFF -->
+        <a href="staff.html" class="btn btn-outline staff-portal-btn" style="padding: 7px 14px; font-size: 13px;">
+          <i data-lucide="shield" style="width: 14px; height: 14px;"></i> Staff Portal
         </a>
-        <a href="login.html" class="nav-btn primary" title="Go to Sign In">
-          <i data-lucide="log-in" style="width: 14px; height: 14px;"></i>
-          <span>Log in</span>
+
+        <!-- Dynamic User Pill / Auth Buttons -->
+        <div id="user-display" class="user-pill" style="display: none;">
+          <i data-lucide="user" style="width: 14px; height: 14px;"></i>
+          <span id="user-name-text">Customer</span>
+        </div>
+        <a href="profile.html" id="btn-profile" class="btn btn-outline" style="display: none; padding: 7px 12px; font-size: 13px;">
+          <i data-lucide="settings" style="width: 14px; height: 14px;"></i> Profile
         </a>
+        <a href="login.html" id="btn-login" class="btn btn-primary" style="padding: 7px 16px; font-size: 13px;">
+          <i data-lucide="log-in" style="width: 14px; height: 14px;"></i> <span>Log In</span>
+        </a>
+        <button id="btn-logout" onclick="handleLogout()" class="btn btn-outline" style="display: none; padding: 7px 12px; font-size: 13px;">
+          <i data-lucide="log-out" style="width: 14px; height: 14px;"></i> Logout
+        </button>
+
+        <!-- Mobile Menu Hamburger -->
+        <button class="mobile-hamburger-btn" onclick="toggleMobileNav()" aria-label="Toggle navigation menu" type="button">
+          <i data-lucide="menu" style="width: 22px; height: 22px;"></i>
+        </button>
       </div>
-    </header>
+    </div>
+  </header>
 
-    <!-- Main Split Layout (Desktop: 2 Columns / Mobile: 1 Column) -->
-    <main class="split-layout-grid">
+  <!-- ===================================================================
+       2. HERO SECTION
+       =================================================================== -->
+  <section class="hero-section">
+    <div class="hero-bg-shapes"></div>
+    <div class="container hero-grid">
+      <div>
+        <div class="hero-badge-pill">
+          <i data-lucide="award" style="width: 14px; height: 14px;"></i>
+          LONDON'S PREMIER EXECUTIVE MINICAB &amp; CHAUFFEUR SERVICE
+        </div>
+        <h1 class="hero-headline">
+          Arrive in Distinction,
+          <span>Travel in Absolute Comfort.</span>
+        </h1>
+        <p class="hero-lead">
+          Providing seamless airport transfers, corporate roadshows, and bespoke private hire across London. 
+          150 TfL licensed professional chauffeurs, an immaculate executive fleet, transparent Table 8 fixed fares, and an automatic <strong>15% online booking discount</strong>.
+        </p>
 
-      <!-- ===============================================================
-           1. LEFT COLUMN (Desktop only / Branding & Services)
-           =============================================================== -->
-      <section class="brand-services-col">
-        <div>
-          <h1 class="hero-title" style="margin-top: 0;">
-            Private Chauffeur <br>
-            <span class="highlight-gradient">At Your Service.</span>
-          </h1>
+        <div class="hero-cta-group">
+          <a href="booking.html" class="btn btn-gold" style="padding: 14px 28px; font-size: 15px;">
+            <i data-lucide="calendar" style="width: 18px; height: 18px;"></i>
+            Book Journey Online (Save 15%)
+          </a>
+          <a href="#fleet" class="btn btn-outline-white" style="padding: 14px 22px; font-size: 15px;">
+            <i data-lucide="car" style="width: 18px; height: 18px;"></i>
+            Explore 150 Fleet Cars
+          </a>
         </div>
 
-        <!-- Our Services Box (Exact 5 items from Wireframe) -->
-        <div class="services-box">
-          <div class="services-box-header">
-            <h2 class="services-box-title">
-              <i data-lucide="layers" style="width: 18px; height: 18px; color: var(--primary-light);"></i>
-              Our Services
-            </h2>
-            <span class="services-badge-guarantee">
-              FIXED RATES GUARANTEED
-            </span>
+        <div class="hero-trust-row">
+          <div class="hero-trust-item">
+            <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
+            TfL Licensed Operator
+          </div>
+          <div class="hero-trust-item">
+            <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
+            Flight Delay Tracking
+          </div>
+          <div class="hero-trust-item">
+            <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
+            Zero Peak Surge Pricing
+          </div>
+          <div class="hero-trust-item">
+            <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
+            Free 24h Cancellation
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Metrics & Booking Guarantee Preview Card -->
+      <div>
+        <div class="hero-preview-card">
+          <div class="preview-card-header">
+            <div>
+              <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--accent-gold-light);">Dispatch Control</div>
+              <div style="font-size: 18px; font-weight: 800; color: #FFFFFF;">Heathrow Live Hub</div>
+            </div>
+            <span class="preview-discount-tag">15% Off Online</span>
           </div>
 
-          <ul class="services-list-items">
-            <li class="service-row-item">
-              <div class="service-icon-square">
-                <i data-lucide="car-taxi-front" style="width: 16px; height: 16px;"></i>
-              </div>
-              <div class="service-info-text">Private hire cars at your service</div>
-            </li>
+          <div class="preview-stats-grid">
+            <div class="preview-stat-box">
+              <div class="preview-stat-val">150</div>
+              <div class="preview-stat-lbl">Executive Vehicles</div>
+            </div>
+            <div class="preview-stat-box">
+              <div class="preview-stat-val">150</div>
+              <div class="preview-stat-lbl">Licensed Chauffeurs</div>
+            </div>
+            <div class="preview-stat-box">
+              <div class="preview-stat-val">4.9 ★</div>
+              <div class="preview-stat-lbl">12,500+ Journeys</div>
+            </div>
+            <div class="preview-stat-box">
+              <div class="preview-stat-val">24/7</div>
+              <div class="preview-stat-lbl">Operations Desk</div>
+            </div>
+          </div>
 
-            <li class="service-row-item">
-              <div class="service-icon-square">
-                <i data-lucide="calendar-check" style="width: 16px; height: 16px;"></i>
-              </div>
-              <div class="service-info-text">Pre-booked &amp; reliable transport</div>
-            </li>
+          <div style="background: rgba(255, 255, 255, 0.05); border-radius: var(--radius-md); padding: 14px; margin-bottom: 20px; font-size: 13px; line-height: 1.5; color: #D2E4DC;">
+            <div style="font-weight: 700; color: #FFFFFF; margin-bottom: 2px;">Table 8 Fixed Fare Guarantee:</div>
+            Bookings made online automatically receive a 15% discount. Every vehicle is paired with a licensed chauffeur.
+          </div>
 
-            <li class="service-row-item">
-              <div class="service-icon-square">
-                <i data-lucide="shield-check" style="width: 16px; height: 16px;"></i>
-              </div>
-              <div class="service-info-text">24/7 client coordination &amp; safety</div>
-            </li>
+          <a href="booking.html" class="btn btn-gold" style="width: 100%; justify-content: center;">
+            <i data-lucide="arrow-right" style="width: 16px; height: 16px;"></i> Get Instant Quote &amp; Book
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
 
-            <li class="service-row-item">
-              <div class="service-icon-square">
-                <i data-lucide="badge-check" style="width: 16px; height: 16px;"></i>
-              </div>
-              <div class="service-info-text">Guaranteed best rates</div>
-            </li>
+  <!-- ===================================================================
+       3. DANH MỤC DỊCH VỤ NỔI BẬT (Featured Services)
+       =================================================================== -->
+  <section id="services" class="services-section">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-eyebrow">
+          <i data-lucide="briefcase" style="width: 13px; height: 13px;"></i> SIGNATURE SERVICES
+        </div>
+        <h2 class="section-title">Tailored Journeys for Every Destination</h2>
+        <p class="section-subtitle">
+          From punctual airport meet-and-greet to full-day corporate executive travel, explore our Table 8 private hire services with guaranteed fixed pricing and 15% automatic online savings.
+        </p>
+      </div>
 
-            <li class="service-row-item">
-              <div class="service-icon-square">
-                <i data-lucide="award" style="width: 16px; height: 16px;"></i>
+      <div class="services-grid">
+        <!-- Service 1: Heathrow -->
+        <div class="service-card">
+          <div class="service-card-top">
+            <div class="service-icon-box">
+              <i data-lucide="plane-takeoff" style="width: 24px; height: 24px;"></i>
+            </div>
+            <span class="service-badge">Most Popular</span>
+          </div>
+          <h3 class="service-name">Heathrow Airport Transfer</h3>
+          <p class="service-desc">
+            Direct executive transfer to and from all Heathrow Terminals (2, 3, 4 &amp; 5). Real-time flight arrival monitoring, 45-minute complimentary wait time, and terminal meet &amp; greet.
+          </p>
+          <div class="service-meta-row">
+            <span><i data-lucide="clock" style="width: 14px; height: 14px;"></i> 90 mins</span>
+            <span><i data-lucide="users" style="width: 14px; height: 14px;"></i> 4 or 7 Pax</span>
+            <span><i data-lucide="wifi" style="width: 14px; height: 14px;"></i> Free Wi-Fi</span>
+          </div>
+          <div class="service-pricing-row">
+            <div>
+              <div class="price-orig">Standard £45.00</div>
+              <div class="price-online">£38.25 <span style="font-size: 14px; font-weight: 600; color: var(--text-dim);">GBP</span></div>
+            </div>
+            <span class="price-discount-lbl">15% Online Off</span>
+          </div>
+          <a href="booking.html" class="btn btn-primary" style="width: 100%; justify-content: center;">
+            Book Heathrow Transfer
+          </a>
+        </div>
+
+        <!-- Service 2: Gatwick -->
+        <div class="service-card">
+          <div class="service-card-top">
+            <div class="service-icon-box">
+              <i data-lucide="plane" style="width: 24px; height: 24px;"></i>
+            </div>
+            <span class="service-badge">Airport VIP</span>
+          </div>
+          <h3 class="service-name">Gatwick Airport Transfer</h3>
+          <p class="service-desc">
+            Long-range luxury saloon or MPV between Central London and Gatwick North &amp; South Terminals. Quiet, comfortable motorway transit avoiding public train delays.
+          </p>
+          <div class="service-meta-row">
+            <span><i data-lucide="clock" style="width: 14px; height: 14px;"></i> 120 mins</span>
+            <span><i data-lucide="users" style="width: 14px; height: 14px;"></i> 4 or 7 Pax</span>
+            <span><i data-lucide="coffee" style="width: 14px; height: 14px;"></i> Refreshments</span>
+          </div>
+          <div class="service-pricing-row">
+            <div>
+              <div class="price-orig">Standard £70.00</div>
+              <div class="price-online">£59.50 <span style="font-size: 14px; font-weight: 600; color: var(--text-dim);">GBP</span></div>
+            </div>
+            <span class="price-discount-lbl">15% Online Off</span>
+          </div>
+          <a href="booking.html" class="btn btn-primary" style="width: 100%; justify-content: center;">
+            Book Gatwick Transfer
+          </a>
+        </div>
+
+        <!-- Service 3: London City -->
+        <div class="service-card">
+          <div class="service-card-top">
+            <div class="service-icon-box">
+              <i data-lucide="building-2" style="width: 24px; height: 24px;"></i>
+            </div>
+            <span class="service-badge">Corporate Fav</span>
+          </div>
+          <h3 class="service-name">London City Business Express</h3>
+          <p class="service-desc">
+            Fast, discrete transit between the Square Mile, Canary Wharf financial hubs, and London City Airport (LCY). Work on the go with dedicated mobile Wi-Fi and power outlets.
+          </p>
+          <div class="service-meta-row">
+            <span><i data-lucide="clock" style="width: 14px; height: 14px;"></i> 60 mins</span>
+            <span><i data-lucide="users" style="width: 14px; height: 14px;"></i> 4 Pax</span>
+            <span><i data-lucide="zap" style="width: 14px; height: 14px;"></i> Express</span>
+          </div>
+          <div class="service-pricing-row">
+            <div>
+              <div class="price-orig">Standard £35.00</div>
+              <div class="price-online">£29.75 <span style="font-size: 14px; font-weight: 600; color: var(--text-dim);">GBP</span></div>
+            </div>
+            <span class="price-discount-lbl">15% Online Off</span>
+          </div>
+          <a href="booking.html" class="btn btn-primary" style="width: 100%; justify-content: center;">
+            Book City Express
+          </a>
+        </div>
+
+        <!-- Service 4: West End -->
+        <div class="service-card">
+          <div class="service-card-top">
+            <div class="service-icon-box">
+              <i data-lucide="sparkles" style="width: 24px; height: 24px;"></i>
+            </div>
+            <span class="service-badge">Luxury Night</span>
+          </div>
+          <h3 class="service-name">West End Luxury Chauffeur</h3>
+          <p class="service-desc">
+            An entire evening of elegance. Multi-stop chauffeur service for West End theatre performances, Michelin-starred dining, and luxury shopping along Bond Street.
+          </p>
+          <div class="service-meta-row">
+            <span><i data-lucide="clock" style="width: 14px; height: 14px;"></i> 180 mins</span>
+            <span><i data-lucide="users" style="width: 14px; height: 14px;"></i> 4 or 7 Pax</span>
+            <span><i data-lucide="map-pin" style="width: 14px; height: 14px;"></i> Multi-Stop</span>
+          </div>
+          <div class="service-pricing-row">
+            <div>
+              <div class="price-orig">Standard £120.00</div>
+              <div class="price-online">£102.00 <span style="font-size: 14px; font-weight: 600; color: var(--text-dim);">GBP</span></div>
+            </div>
+            <span class="price-discount-lbl">15% Online Off</span>
+          </div>
+          <a href="booking.html" class="btn btn-primary" style="width: 100%; justify-content: center;">
+            Book West End Chauffeur
+          </a>
+        </div>
+
+        <!-- Service 5: Stansted -->
+        <div class="service-card">
+          <div class="service-card-top">
+            <div class="service-icon-box">
+              <i data-lucide="send" style="width: 24px; height: 24px;"></i>
+            </div>
+            <span class="service-badge">North London</span>
+          </div>
+          <h3 class="service-name">Stansted Airport VIP</h3>
+          <p class="service-desc">
+            Seamless point-to-point connections to London Stansted Airport (STN). Reliable timetable-matched pickups for early-morning or late-night departures.
+          </p>
+          <div class="service-meta-row">
+            <span><i data-lucide="clock" style="width: 14px; height: 14px;"></i> 90 mins</span>
+            <span><i data-lucide="users" style="width: 14px; height: 14px;"></i> 4 or 7 Pax</span>
+            <span><i data-lucide="shield" style="width: 14px; height: 14px;"></i> Flight Radar</span>
+          </div>
+          <div class="service-pricing-row">
+            <div>
+              <div class="price-orig">Standard £65.00</div>
+              <div class="price-online">£55.25 <span style="font-size: 14px; font-weight: 600; color: var(--text-dim);">GBP</span></div>
+            </div>
+            <span class="price-discount-lbl">15% Online Off</span>
+          </div>
+          <a href="booking.html" class="btn btn-primary" style="width: 100%; justify-content: center;">
+            Book Stansted VIP
+          </a>
+        </div>
+
+        <!-- Service 6: Luton -->
+        <div class="service-card">
+          <div class="service-card-top">
+            <div class="service-icon-box">
+              <i data-lucide="compass" style="width: 24px; height: 24px;"></i>
+            </div>
+            <span class="service-badge">Business Hub</span>
+          </div>
+          <h3 class="service-name">Luton Corporate Express</h3>
+          <p class="service-desc">
+            Executive transport serving London Luton Airport (LTN) and signature private jet terminals (Harrods Aviation &amp; Signature Flight Support).
+          </p>
+          <div class="service-meta-row">
+            <span><i data-lucide="clock" style="width: 14px; height: 14px;"></i> 90 mins</span>
+            <span><i data-lucide="users" style="width: 14px; height: 14px;"></i> 4 or 7 Pax</span>
+            <span><i data-lucide="award" style="width: 14px; height: 14px;"></i> Private Jet Gate</span>
+          </div>
+          <div class="service-pricing-row">
+            <div>
+              <div class="price-orig">Standard £60.00</div>
+              <div class="price-online">£51.00 <span style="font-size: 14px; font-weight: 600; color: var(--text-dim);">GBP</span></div>
+            </div>
+            <span class="price-discount-lbl">15% Online Off</span>
+          </div>
+          <a href="booking.html" class="btn btn-primary" style="width: 100%; justify-content: center;">
+            Book Luton Express
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================
+       4. BỘ SƯU TẬP XE TIÊU BIỂU (Featured Fleet Collection)
+       =================================================================== -->
+  <section id="fleet" class="fleet-section">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-eyebrow">
+          <i data-lucide="car" style="width: 13px; height: 13px;"></i> THE EXECUTIVE FLEET
+        </div>
+        <h2 class="section-title">The Benchmark of Chauffeur Luxury</h2>
+        <p class="section-subtitle">
+          Our managed fleet of 150 executive saloons and luxury MPVs is maintained to showroom standard, TfL inspected, and each vehicle is permanently linked to an accredited licensed chauffeur.
+        </p>
+      </div>
+
+      <div class="fleet-grid">
+        <!-- Fleet 1: Executive Saloon -->
+        <div class="fleet-card">
+          <div class="fleet-img-wrapper">
+            <span class="fleet-card-badge">SALOON CLASS (4 PAX)</span>
+            <div style="text-align: center;">
+              <i data-lucide="car" style="width: 56px; height: 56px; color: var(--accent-gold-light); margin-bottom: 8px;"></i>
+              <div style="font-family: var(--font-heading); font-size: 18px; font-weight: 700;">Mercedes E-Class &amp; BMW 5-Series</div>
+            </div>
+          </div>
+          <div class="fleet-body">
+            <h3 class="fleet-title">Executive Saloon</h3>
+            <div class="fleet-models">Mercedes-Benz E-Class • BMW 5-Series Executive</div>
+
+            <div class="fleet-specs-strip">
+              <div class="fleet-spec-item">
+                <i data-lucide="users" style="width: 15px; height: 15px; color: var(--primary);"></i>
+                4 Passengers
               </div>
-              <div class="service-info-text">Extensive fleet &amp; professional drivers</div>
-            </li>
+              <div class="fleet-spec-item">
+                <i data-lucide="briefcase" style="width: 15px; height: 15px; color: var(--primary);"></i>
+                2 Large + 2 Small Bags
+              </div>
+              <div class="fleet-spec-item">
+                <i data-lucide="palette" style="width: 15px; height: 15px; color: var(--primary);"></i>
+                Obsidian Black
+              </div>
+              <div class="fleet-spec-item">
+                <i data-lucide="shield-check" style="width: 15px; height: 15px; color: var(--primary);"></i>
+                TfL Inspected
+              </div>
+            </div>
+
+            <ul class="fleet-amenities-list">
+              <li><i data-lucide="check"></i> Hand-stitched Nappa leather upholstery</li>
+              <li><i data-lucide="check"></i> Complimentary Hildon mineral water</li>
+              <li><i data-lucide="check"></i> High-speed 5G in-car Wi-Fi hotspot</li>
+              <li><i data-lucide="check"></i> USB-C phone fast-charging cables</li>
+              <li><i data-lucide="check"></i> Dual-zone rear climate comfort control</li>
+            </ul>
+
+            <a href="booking.html" class="btn btn-outline" style="width: 100%; justify-content: center;">
+              Book Executive Saloon (4 Pax)
+            </a>
+          </div>
+        </div>
+
+        <!-- Fleet 2: Luxury MPV -->
+        <div class="fleet-card">
+          <div class="fleet-img-wrapper">
+            <span class="fleet-card-badge">MPV CLASS (7 PAX)</span>
+            <div style="text-align: center;">
+              <i data-lucide="truck" style="width: 56px; height: 56px; color: var(--accent-gold-light); margin-bottom: 8px;"></i>
+              <div style="font-family: var(--font-heading); font-size: 18px; font-weight: 700;">Mercedes V-Class &amp; Caravelle</div>
+            </div>
+          </div>
+          <div class="fleet-body">
+            <h3 class="fleet-title">Luxury Executive MPV</h3>
+            <div class="fleet-models">Mercedes-Benz V-Class • Volkswagen Caravelle</div>
+
+            <div class="fleet-specs-strip">
+              <div class="fleet-spec-item">
+                <i data-lucide="users" style="width: 15px; height: 15px; color: var(--primary);"></i>
+                7 Passengers
+              </div>
+              <div class="fleet-spec-item">
+                <i data-lucide="briefcase" style="width: 15px; height: 15px; color: var(--primary);"></i>
+                6 Large + 6 Small Bags
+              </div>
+              <div class="fleet-spec-item">
+                <i data-lucide="palette" style="width: 15px; height: 15px; color: var(--primary);"></i>
+                Silver &amp; Black
+              </div>
+              <div class="fleet-spec-item">
+                <i data-lucide="shield-check" style="width: 15px; height: 15px; color: var(--primary);"></i>
+                Large Luggage Cap
+              </div>
+            </div>
+
+            <ul class="fleet-amenities-list">
+              <li><i data-lucide="check"></i> Conference face-to-face seating arrangement</li>
+              <li><i data-lucide="check"></i> Power automatic sliding passenger doors</li>
+              <li><i data-lucide="check"></i> Expansive luggage boot for 6+ suitcases</li>
+              <li><i data-lucide="check"></i> Privacy glass &amp; integrated side sunshades</li>
+              <li><i data-lucide="check"></i> Ideal for families, roadshows &amp; ski luggage</li>
+            </ul>
+
+            <a href="booking.html" class="btn btn-outline" style="width: 100%; justify-content: center;">
+              Book Luxury MPV (7 Pax)
+            </a>
+          </div>
+        </div>
+
+        <!-- Fleet 3: First Class Flagship -->
+        <div class="fleet-card">
+          <div class="fleet-img-wrapper">
+            <span class="fleet-card-badge">FIRST CLASS (VIP)</span>
+            <div style="text-align: center;">
+              <i data-lucide="crown" style="width: 56px; height: 56px; color: var(--accent-gold-light); margin-bottom: 8px;"></i>
+              <div style="font-family: var(--font-heading); font-size: 18px; font-weight: 700;">Mercedes S-Class &amp; BMW 7-Series</div>
+            </div>
+          </div>
+          <div class="fleet-body">
+            <h3 class="fleet-title">First Class Flagship</h3>
+            <div class="fleet-models">Mercedes-Benz S-Class Long Wheelbase</div>
+
+            <div class="fleet-specs-strip">
+              <div class="fleet-spec-item">
+                <i data-lucide="users" style="width: 15px; height: 15px; color: var(--primary);"></i>
+                4 Passengers
+              </div>
+              <div class="fleet-spec-item">
+                <i data-lucide="briefcase" style="width: 15px; height: 15px; color: var(--primary);"></i>
+                3 Large Cases
+              </div>
+              <div class="fleet-spec-item">
+                <i data-lucide="palette" style="width: 15px; height: 15px; color: var(--primary);"></i>
+                Diamond Black
+              </div>
+              <div class="fleet-spec-item">
+                <i data-lucide="shield-check" style="width: 15px; height: 15px; color: var(--primary);"></i>
+                VIP Diplomatic
+              </div>
+            </div>
+
+            <ul class="fleet-amenities-list">
+              <li><i data-lucide="check"></i> Reclining executive seating with massage</li>
+              <li><i data-lucide="check"></i> Acoustic double-glazed noise-cancelling glass</li>
+              <li><i data-lucide="check"></i> Burmester 3D surround sound entertainment</li>
+              <li><i data-lucide="check"></i> Chilled still &amp; sparkling water upon boarding</li>
+              <li><i data-lucide="check"></i> Senior master chauffeurs with 10+ yrs protocol</li>
+            </ul>
+
+            <a href="booking.html" class="btn btn-outline" style="width: 100%; justify-content: center;">
+              Book First Class Flagship
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================
+       5. ƯU ĐIỂM NỔI BẬT / LÝ DO CHỌN CHÚNG TÔI (Why Choose Us)
+       =================================================================== -->
+  <section id="why-us" class="why-section">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-eyebrow">
+          <i data-lucide="award" style="width: 13px; height: 13px;"></i> THE PRIVATEHIRE ADVANTAGE
+        </div>
+        <h2 class="section-title">Engineered for Reliability, Designed for Comfort</h2>
+        <p class="section-subtitle">
+          We combine traditional British chauffeur etiquette with real-time dispatch technology to guarantee absolute peace of mind on every journey.
+        </p>
+      </div>
+
+      <div class="advantages-grid">
+        <!-- Adv 1: 15% discount -->
+        <div class="advantage-card">
+          <div class="advantage-icon-box">
+            <i data-lucide="tag" style="width: 26px; height: 26px;"></i>
+          </div>
+          <h3 class="advantage-title">Automatic 15% Online Discount</h3>
+          <p class="advantage-desc">
+            All journeys booked through our online portal automatically receive an instant 15% discount off standard telephone fares (Rule P02). No voucher codes required.
+          </p>
+        </div>
+
+        <!-- Adv 2: TfL Licensed -->
+        <div class="advantage-card">
+          <div class="advantage-icon-box">
+            <i data-lucide="shield-check" style="width: 26px; height: 26px;"></i>
+          </div>
+          <h3 class="advantage-title">100% TfL Licensed Chauffeurs</h3>
+          <p class="advantage-desc">
+            Every one of our 150 drivers is licensed by Transport for London, rigorously vetted through enhanced DBS criminal background checks, medical assessments, and topographical testing.
+          </p>
+        </div>
+
+        <!-- Adv 3: Fixed Pricing -->
+        <div class="advantage-card">
+          <div class="advantage-icon-box">
+            <i data-lucide="check-circle-2" style="width: 26px; height: 26px;"></i>
+          </div>
+          <h3 class="advantage-title">Fixed Fares &amp; Zero Surge</h3>
+          <p class="advantage-desc">
+            The quote calculated at reservation is your final price. We never impose surge multipliers in rain, tube strikes, or peak rush hours. Transparent Table 8 pricing.
+          </p>
+        </div>
+
+        <!-- Adv 4: Live Approaching Alert -->
+        <div class="advantage-card">
+          <div class="advantage-icon-box">
+            <i data-lucide="bell" style="width: 26px; height: 26px;"></i>
+          </div>
+          <h3 class="advantage-title">Approaching Vehicle Alerts</h3>
+          <p class="advantage-desc">
+            Receive automated real-time dispatch alerts and notifications directly on your dashboard when your chauffeur is approaching your pickup address (Rule P04).
+          </p>
+        </div>
+
+        <!-- Adv 5: Complimentary Wait Time -->
+        <div class="advantage-card">
+          <div class="advantage-icon-box">
+            <i data-lucide="clock" style="width: 26px; height: 26px;"></i>
+          </div>
+          <h3 class="advantage-title">Flight Tracking &amp; Free Waiting</h3>
+          <p class="advantage-desc">
+            We continuously track commercial and private flight arrivals. Enjoy up to 45 minutes of complimentary wait time after aircraft touchdown without extra fees.
+          </p>
+        </div>
+
+        <!-- Adv 6: 24/7 Control Room -->
+        <div class="advantage-card">
+          <div class="advantage-icon-box">
+            <i data-lucide="headphones" style="width: 26px; height: 26px;"></i>
+          </div>
+          <h3 class="advantage-title">24/7 Operations Control Room</h3>
+          <p class="advantage-desc">
+            Our Heathrow-based operations centre is staffed 24 hours a day, 365 days a year to manage route amendments, VIP itineraries, and urgent flight diversions.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================
+       6. QUY TRÌNH ĐẶT XE ĐƠN GIẢN (How It Works)
+       =================================================================== -->
+  <section id="how-it-works" class="process-section">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-eyebrow" style="background: rgba(198, 156, 84, 0.2); color: var(--accent-gold-light);">
+          <i data-lucide="list-ordered" style="width: 13px; height: 13px;"></i> EFFORTLESS RESERVATIONS
+        </div>
+        <h2 class="section-title" style="color: #FFFFFF;">Book Your Journey in 4 Simple Steps</h2>
+        <p class="section-subtitle" style="color: #A9C2B5;">
+          From instant quote to executive curbside pickup, reserve your private hire car online in under 60 seconds.
+        </p>
+      </div>
+
+      <div class="process-steps-grid">
+        <!-- Step 1 -->
+        <div class="step-card">
+          <div class="step-num-badge">01</div>
+          <h3 class="step-title">Select Route &amp; Time</h3>
+          <p class="step-desc">
+            Enter your pickup address, destination, and scheduled journey date. Our smart routing automatically calculates the fastest journey path.
+          </p>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="step-card">
+          <div class="step-num-badge">02</div>
+          <h3 class="step-title">Choose Vehicle Class</h3>
+          <p class="step-desc">
+            Select between our 4-passenger Executive Saloon (Mercedes E-Class) or spacious 7-passenger Luxury MPV (Mercedes V-Class).
+          </p>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="step-card">
+          <div class="step-num-badge">03</div>
+          <h3 class="step-title">Instant 15% Discount</h3>
+          <p class="step-desc">
+            Review your transparent fixed fare quote with the 15% online discount automatically applied. Settle securely via Card or choose Cash on Arrival.
+          </p>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="step-card">
+          <div class="step-num-badge">04</div>
+          <h3 class="step-title">Chauffeur Meets You</h3>
+          <p class="step-desc">
+            Receive approaching notifications. Your driver arrives promptly in an immaculate vehicle, assists with bags, and ensures a peaceful ride.
+          </p>
+        </div>
+      </div>
+
+      <div style="text-align: center;">
+        <a href="booking.html" class="btn btn-gold" style="padding: 16px 36px; font-size: 16px;">
+          <i data-lucide="arrow-right" style="width: 18px; height: 18px;"></i>
+          Start Your Booking Now (Save 15%)
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================
+       7. ĐÁNH GIÁ TỪ KHÁCH HÀNG & ĐỐI TÁC (Testimonials & Reviews)
+       =================================================================== -->
+  <section id="reviews" class="reviews-section">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-eyebrow">
+          <i data-lucide="star" style="width: 13px; height: 13px;"></i> VERIFIED REPUTATION
+        </div>
+        <h2 class="section-title">Trusted by Discerning Travellers &amp; Partners</h2>
+        <p class="section-subtitle">
+          Real customer reviews submitted directly after completed journeys across our executive private hire fleet. Average rating: <strong>4.9 / 5.0 Stars</strong> across 12,500+ transfers.
+        </p>
+      </div>
+
+      <div class="reviews-grid">
+        <!-- Review 1 -->
+        <div class="review-card">
+          <div class="review-stars-row">★★★★★</div>
+          <p class="review-quote">
+            "The punctuality and professionalism of PrivateHire Cars are unmatched. Travelling between our Bank office and Heathrow is always seamless. The Mercedes E-Class was spotless, and the driver waited curbside at Terminal 2 arrivals with a personalized name-board."
+          </p>
+          <div class="review-author-box">
+            <div class="author-avatar-initials">AD</div>
+            <div>
+              <div class="author-name">Sir Anthony Davies</div>
+              <div class="author-journey">Managing Partner, Mayfair Advisory • Heathrow T2 to Mayfair</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Review 2 -->
+        <div class="review-card">
+          <div class="review-stars-row">★★★★★</div>
+          <p class="review-quote">
+            "Booked two 7-passenger Mercedes V-Class MPVs for our production crew during London Fashion Week. The vehicles were immaculately valeted, drivers courteous and punctual, and the automatic 15% online booking discount saved our company over £350 across the week."
+          </p>
+          <div class="review-author-box">
+            <div class="author-avatar-initials">ER</div>
+            <div>
+              <div class="author-name">Elena Rostova</div>
+              <div class="author-journey">Executive Producer • West End Luxury Chauffeur</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Review 3 -->
+        <div class="review-card">
+          <div class="review-stars-row">★★★★★</div>
+          <p class="review-quote">
+            "Travelling with three young children and six heavy suitcases is usually stressful, but chauffeur Arthur made it effortless. Water bottles, smooth driving, and child safety booster seats were already prepared upon boarding at Gatwick South Terminal."
+          </p>
+          <div class="review-author-box">
+            <div class="author-avatar-initials">JH</div>
+            <div>
+              <div class="author-name">James &amp; Claire Holloway</div>
+              <div class="author-journey">Family Holiday Travellers • Gatwick Airport to Kensington</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Partner Recognition Strip -->
+      <div class="partners-strip">
+        <div class="partner-pill">
+          <i data-lucide="shield-check" style="width: 18px; height: 18px;"></i>
+          Transport for London (TfL #009841)
+        </div>
+        <div class="partner-pill">
+          <i data-lucide="award" style="width: 18px; height: 18px;"></i>
+          London Chamber of Commerce
+        </div>
+        <div class="partner-pill">
+          <i data-lucide="check-circle" style="width: 18px; height: 18px;"></i>
+          Heathrow Airline Chauffeur Partner
+        </div>
+        <div class="partner-pill">
+          <i data-lucide="star" style="width: 18px; height: 18px;"></i>
+          VisitBritain Quality Transport
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================
+       8. FOOTER
+       =================================================================== -->
+  <footer class="app-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <!-- Col 1: Brand & Licensing -->
+        <div>
+          <div class="brand-logo" style="margin-bottom: 18px;">
+            <div class="brand-shield" style="background: rgba(255, 255, 255, 0.1);">
+              <i data-lucide="shield" style="width: 20px; height: 20px; color: var(--accent-gold);"></i>
+            </div>
+            <div>
+              <div class="brand-text-name" style="color: #FFFFFF;">PrivateHire Cars</div>
+              <div class="brand-text-sub" style="color: var(--accent-gold);">London Operations</div>
+            </div>
+          </div>
+          <p style="font-size: 13px; line-height: 1.65; color: #8BA89B; margin-bottom: 18px;">
+            London's premier private hire minicab and chauffeur service. Specialising in 24/7 executive airport transfers, corporate roadshows, and luxury city travel.
+          </p>
+          <div style="font-size: 12px; color: #718479; line-height: 1.5;">
+            Transport for London Operator License #009841<br>
+            Registered in England &amp; Wales
+          </div>
+        </div>
+
+        <!-- Col 2: Signature Services -->
+        <div>
+          <h4 class="footer-col-title">Executive Services</h4>
+          <ul class="footer-links-list">
+            <li><a href="booking.html">Heathrow Airport Transfer</a></li>
+            <li><a href="booking.html">Gatwick Airport Transfer</a></li>
+            <li><a href="booking.html">London City Business Express</a></li>
+            <li><a href="booking.html">West End Luxury Chauffeur</a></li>
+            <li><a href="booking.html">Stansted Airport VIP</a></li>
+            <li><a href="booking.html">Luton Corporate Express</a></li>
           </ul>
         </div>
 
-        <!-- Large Fleet Image Visual (IMAGE Placeholder from wireframe) -->
-        <div class="fleet-hero-visual">
-          <img src="https://images.unsplash.com/photo-1563720223185-11003d516935?auto=format&fit=crop&w=1200&q=80"
-            alt="Executive Chauffeur Fleet Mercedes S-Class" />
+        <!-- Col 3: Navigation & Customer Links -->
+        <div>
+          <h4 class="footer-col-title">Customer Portal</h4>
+          <ul class="footer-links-list">
+            <li><a href="booking.html">Book Online (Save 15%)</a></li>
+            <li><a href="my-bookings.html">My Bookings &amp; Receipts</a></li>
+            <li><a href="offers.html">Loyalty Promo Offers</a></li>
+            <li><a href="notifications.html">Approaching Alerts</a></li>
+            <li><a href="enquiries.html">Customer Support &amp; Enquiries</a></li>
+            <li><a href="profile.html">Manage Account Profile</a></li>
+          </ul>
         </div>
-      </section>
 
-      <!-- ===============================================================
-           2. RIGHT COLUMN (Desktop) / MAIN FORM (Mobile)
-           =============================================================== -->
-      <section class="login-col-wrapper">
-        <div class="auth-glass-card">
-
-          <!-- Heading & Sub-text -->
-          <div class="auth-card-header">
-            <h2 class="auth-title-large">Create an account</h2>
-            <p class="auth-subtitle-text">
-              Already have an account? <a href="login.html" class="auth-switch-link">Log in</a>
-            </p>
+        <!-- Col 4: 24/7 Dispatch Control Room -->
+        <div>
+          <h4 class="footer-col-title">24/7 Operations Hub</h4>
+          <div class="footer-contact-item">
+            <i data-lucide="map-pin" style="width: 16px; height: 16px;"></i>
+            <span>PrivateHire Cars Heathrow Control Centre, Compass Centre, Nelson Road, London TW6 2GW</span>
           </div>
-
-          <!-- Registration Form -->
-          <form id="register-form" novalidate onsubmit="handleRegisterSubmit(event)">
-            <div class="form-fields-stack">
-
-              <!-- 1. Full Name *** -->
-              <div class="field-group" id="grp-full-name">
-                <label class="field-label" for="f-full-name">
-                  <span>Full Name</span>
-                  <span class="required-stars">***</span>
-                </label>
-                <div class="field-input-wrapper">
-                  <span class="input-icon-left-slot"><i data-lucide="user"
-                      style="width: 16px; height: 16px;"></i></span>
-                  <input type="text" class="field-input" id="f-full-name" value=""
-                    placeholder="Enter your legal full name" oninput="validateField('full-name')" />
-                </div>
-                <!-- Error text below: (!) Full Name is required (in red) -->
-                <div class="validation-error-text" id="err-full-name">
-                  <i data-lucide="alert-circle" style="width: 14px; height: 14px;"></i>
-                  <span>(!) Full Name is required</span>
-                </div>
-              </div>
-
-              <!-- 2. Mobile Number *** -->
-              <div class="field-group" id="grp-mobile">
-                <label class="field-label" for="f-mobile">
-                  <span>Mobile Number</span>
-                  <span class="required-stars">***</span>
-                </label>
-                <div class="field-input-wrapper">
-                  <span class="input-icon-left-slot"><i data-lucide="phone"
-                      style="width: 16px; height: 16px;"></i></span>
-                  <input type="tel" class="field-input" id="f-mobile" value="" placeholder="Enter your phone number..."
-                    oninput="validateField('mobile')" />
-                </div>
-                <div class="validation-error-text" id="err-mobile">
-                  <i data-lucide="alert-circle" style="width: 14px; height: 14px;"></i>
-                  <span>(!) Valid mobile number is required</span>
-                </div>
-              </div>
-
-              <!-- 3. Email *** -->
-              <div class="field-group" id="grp-email">
-                <label class="field-label" for="f-email">
-                  <span>Email</span>
-                  <span class="required-stars">***</span>
-                </label>
-                <div class="field-input-wrapper">
-                  <span class="input-icon-left-slot"><i data-lucide="mail"
-                      style="width: 16px; height: 16px;"></i></span>
-                  <input type="email" class="field-input" id="f-email" value="" placeholder="name@company.com"
-                    oninput="validateField('email')" />
-                </div>
-                <!-- Error text below: (!) Invalid email format (in red) -->
-                <div class="validation-error-text" id="err-email">
-                  <i data-lucide="alert-circle" style="width: 14px; height: 14px;"></i>
-                  <span>(!) Invalid email format</span>
-                </div>
-              </div>
-
-              <!-- 4. Address *** -->
-              <div class="field-group" id="grp-address">
-                <label class="field-label" for="f-address">
-                  <span>Address</span>
-                  <span class="required-stars">***</span>
-                </label>
-                <div class="field-input-wrapper">
-                  <span class="input-icon-left-slot"><i data-lucide="map-pin"
-                      style="width: 16px; height: 16px;"></i></span>
-                  <input type="text" class="field-input" id="f-address" value="" placeholder="Pickup or home address"
-                    oninput="validateField('address')" />
-                </div>
-                <div class="validation-error-text" id="err-address">
-                  <i data-lucide="alert-circle" style="width: 14px; height: 14px;"></i>
-                  <span>(!) Address is required</span>
-                </div>
-              </div>
-
-              <!-- 5 & 6. Password & Confirm Password Row -->
-              <div class="field-row-split">
-
-                <!-- Password *** -->
-                <div class="field-group" id="grp-password">
-                  <label class="field-label" for="f-password">
-                    <span>Password</span>
-                    <span class="required-stars">***</span>
-                  </label>
-                  <div class="field-input-wrapper">
-                    <span class="input-icon-left-slot"><i data-lucide="lock"
-                        style="width: 16px; height: 16px;"></i></span>
-                    <input type="password" class="field-input" id="f-password" value="" placeholder="••••••••"
-                      oninput="validateField('password')" />
-                    <span class="input-icon-right-slot" onclick="togglePasswordVisibility('f-password', 'eye-pw-icon')"
-                      title="Show / Hide password">
-                      <i data-lucide="eye" id="eye-pw-icon" style="width: 16px; height: 16px;"></i>
-                    </span>
-                  </div>
-                  <div class="validation-error-text" id="err-password">
-                    <i data-lucide="alert-circle" style="width: 14px; height: 14px;"></i>
-                    <span>(!) Password is required</span>
-                  </div>
-                </div>
-
-                <!-- Confirm Password *** -->
-                <div class="field-group" id="grp-confirm-password">
-                  <label class="field-label" for="f-confirm-password">
-                    <span>Confirm Password</span>
-                    <span class="required-stars">***</span>
-                  </label>
-                  <div class="field-input-wrapper">
-                    <span class="input-icon-left-slot"><i data-lucide="lock-keyhole"
-                        style="width: 16px; height: 16px;"></i></span>
-                    <input type="password" class="field-input" id="f-confirm-password" value="" placeholder="••••••••"
-                      oninput="validateField('confirm-password')" />
-                    <span class="input-icon-right-slot"
-                      onclick="togglePasswordVisibility('f-confirm-password', 'eye-confirm-icon')"
-                      title="Show / Hide password">
-                      <i data-lucide="eye" id="eye-confirm-icon" style="width: 16px; height: 16px;"></i>
-                    </span>
-                  </div>
-                  <!-- Error text below: (!) Passwords do not match (in red) -->
-                  <div class="validation-error-text" id="err-confirm-password">
-                    <i data-lucide="alert-circle" style="width: 14px; height: 14px;"></i>
-                    <span>(!) Passwords do not match</span>
-                  </div>
-                </div>
-
-              </div>
-
-              <!-- 4. PAYMENT METHOD DROPDOWN (EXPANDED OPEN WITH 3 EXACT OPTIONS) -->
-              <div class="field-group">
-                <label class="field-label">
-                  <span>Default Payment Method (Mock Cards)</span>
-                  <span class="required-stars">***</span>
-                </label>
-
-                <div class="dropdown-container" id="payment-dropdown-container">
-                  <!-- Trigger box showing selected: Visa (Mock Card) **** 4242 -->
-                  <div class="dropdown-trigger-btn" onclick="togglePaymentDropdown()">
-                    <span class="input-icon-left-slot"><i data-lucide="credit-card"
-                        style="width: 16px; height: 16px;"></i></span>
-                    <span id="selected-card-label" style="font-weight: 600;">Visa (Mock Card) **** 4242</span>
-                    <span class="dropdown-chevron-icon"><i data-lucide="chevron-down"
-                        style="width: 16px; height: 16px;"></i></span>
-                  </div>
-
-                  <!-- Dropdown Menu Expanded showing exact 3 options -->
-                  <div class="dropdown-options-menu" id="payment-dropdown-menu">
-                    <!-- Option 1: Visa (Mock Card) **** 4242 (Active) -->
-                    <div class="dropdown-item active" onclick="selectPaymentMethod('Visa (Mock Card) **** 4242', this)">
-                      <div class="card-item-left">
-                        <span class="card-badge-pill visa">VISA</span>
-                        <span class="card-name-title">Visa (Mock Card) **** 4242</span>
-                      </div>
-                      <span class="card-selected-check"><i data-lucide="check"
-                          style="width: 16px; height: 16px;"></i></span>
-                    </div>
-
-                    <!-- Option 2: Mastercard (Mock Card) **** 5555 -->
-                    <div class="dropdown-item" onclick="selectPaymentMethod('Mastercard (Mock Card) **** 5555', this)">
-                      <div class="card-item-left">
-                        <span class="card-badge-pill mc">MC</span>
-                        <span class="card-name-title">Mastercard (Mock Card) **** 5555</span>
-                      </div>
-                      <span class="card-selected-check"><i data-lucide="check"
-                          style="width: 16px; height: 16px;"></i></span>
-                    </div>
-
-                    <!-- Option 3: American Express (Mock Card) **** 1007 -->
-                    <div class="dropdown-item"
-                      onclick="selectPaymentMethod('American Express (Mock Card) **** 1007', this)">
-                      <div class="card-item-left">
-                        <span class="card-badge-pill amex">AMEX</span>
-                        <span class="card-name-title">American Express (Mock Card) **** 1007</span>
-                      </div>
-                      <span class="card-selected-check"><i data-lucide="check"
-                          style="width: 16px; height: 16px;"></i></span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- 5. Footer: Terms Checkbox [x] -->
-              <div class="terms-row" onclick="toggleTermsAgreement()">
-                <div class="custom-checkbox-sq checked" id="terms-box">
-                  <i data-lucide="check" style="width: 14px; height: 14px; stroke-width: 3;"></i>
-                </div>
-                <div class="terms-text-label">
-                  [x] I agree to the <a href="#" onclick="event.stopPropagation()">Terms &amp; Privacy Policy</a>
-                </div>
-              </div>
-
-              <!-- 5. Footer: Solid Button "REGISTER" -->
-              <button type="submit" class="btn-register-solid" id="btn-submit-register">
-                <span>REGISTER</span>
-                <i data-lucide="arrow-right" style="width: 18px; height: 18px;"></i>
-              </button>
-
-            </div>
-          </form>
-
+          <div class="footer-contact-item">
+            <i data-lucide="phone-call" style="width: 16px; height: 16px;"></i>
+            <span><a href="tel:+442079460991" style="color: #FFFFFF; font-weight: 700;">+44 20 7946 0991</a> (24/7 Dispatch)</span>
+          </div>
+          <div class="footer-contact-item">
+            <i data-lucide="mail" style="width: 16px; height: 16px;"></i>
+            <span><a href="mailto:dispatch@privatehirecars.co.uk" style="color: #FFFFFF;">dispatch@privatehirecars.co.uk</a></span>
+          </div>
+          <div class="footer-contact-item">
+            <i data-lucide="clock" style="width: 16px; height: 16px;"></i>
+            <span>365 Days a Year Continuous Service</span>
+          </div>
         </div>
-      </section>
+      </div>
 
-    </main>
+      <div class="footer-bottom-bar">
+        <div>
+          &copy; 2026 PrivateHire Cars London Ltd. All rights reserved.
+        </div>
+        <div style="display: flex; gap: 18px;">
+          <a href="#" style="color: #718479;">Terms of Carriage</a>
+          <a href="#" style="color: #718479;">Privacy Policy</a>
+          <a href="#" style="color: #718479;">Cookie Settings</a>
+          <a href="#" style="color: #718479;">TfL Standards</a>
+        </div>
+      </div>
+    </div>
+  </footer>
 
-  </div>
-
-  <!-- Toast Notification Rack -->
-  <div class="toast-notifications-rack" id="toast-rack"></div>
-
+  <!-- Script for Dynamic Auth Navbar State -->
   <script>
-    const API_BASE = (function () {
-      if (window.location.protocol === 'file:') return 'http://localhost:5000';
-      if (window.location.port === '5173' || window.location.port === '5000' || !window.location.port) return '';
-      return `http://${window.location.hostname || 'localhost'}:5000`;
-    })();
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedUser = localStorage.getItem('currentUser');
+      const token = localStorage.getItem('sessionToken');
 
-    // Initialize Lucide Icons
-    document.addEventListener("DOMContentLoaded", () => {
-      lucide.createIcons();
-    });
+      if (savedUser && token) {
+        try {
+          const user = JSON.parse(savedUser);
+          const userDisplay = document.getElementById('user-display');
+          const userNameText = document.getElementById('user-name-text');
+          const btnProfile = document.getElementById('btn-profile');
+          const btnLogin = document.getElementById('btn-login');
+          const btnLogout = document.getElementById('btn-logout');
 
-    // Password Visibility Toggle
-    function togglePasswordVisibility(inputId, iconId) {
-      const input = document.getElementById(inputId);
-      const icon = document.getElementById(iconId);
-      if (!input) return;
-
-      if (input.type === "password") {
-        input.type = "text";
-        icon.setAttribute("data-lucide", "eye-off");
-      } else {
-        input.type = "password";
-        icon.setAttribute("data-lucide", "eye");
+          if (userDisplay) userDisplay.style.display = 'flex';
+          if (userNameText) userNameText.textContent = user.name || 'Customer';
+          if (btnProfile) btnProfile.style.display = 'inline-flex';
+          if (btnLogin) btnLogin.style.display = 'none';
+          if (btnLogout) btnLogout.style.display = 'inline-flex';
+        } catch (_) {}
       }
-      lucide.createIcons();
-    }
 
-    // Toggle Payment Dropdown
-    function togglePaymentDropdown() {
-      const container = document.getElementById("payment-dropdown-container");
-      container.classList.toggle("open");
-    }
-
-    // Select Payment Method
-    function selectPaymentMethod(cardName, el) {
-      document.getElementById("selected-card-label").textContent = cardName;
-      const items = document.querySelectorAll(".dropdown-item");
-      items.forEach(item => item.classList.remove("active"));
-      el.classList.add("active");
-      const container = document.getElementById("payment-dropdown-container");
-      if (container) container.classList.remove("open");
-      showToast(`Selected Payment Method: ${cardName}`);
-    }
-
-    // Close payment dropdown when clicking outside
-    document.addEventListener("click", (e) => {
-      const container = document.getElementById("payment-dropdown-container");
-      if (container && !container.contains(e.target)) {
-        container.classList.remove("open");
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        lucide.createIcons();
       }
     });
 
-    // Terms Agreement Toggle
-    let termsAgreed = true;
-    function toggleTermsAgreement() {
-      termsAgreed = !termsAgreed;
-      const box = document.getElementById("terms-box");
-      if (termsAgreed) {
-        box.classList.add("checked");
-      } else {
-        box.classList.remove("checked");
-      }
-    }
-
-    // Individual Field Validation
-    let registeredAccountsCache = [];
-    async function fetchAccountsForValidation() {
-      try {
-        const res = await fetch(`${API_BASE}/api/accounts`);
-        const data = await res.json();
-        if (data.success && data.data) {
-          registeredAccountsCache = data.data;
-        }
-      } catch (e) { }
-    }
-
-    // Dynamic Mock Cards from Backend (AC3)
-    async function loadBackendCards() {
-      try {
-        const res = await fetch(`${API_BASE}/api/accounts/mock-cards`);
-        const data = await res.json();
-        if (data.success && data.data && data.data.length > 0) {
-          const menu = document.getElementById("payment-dropdown-menu");
-          if (menu) {
-            menu.innerHTML = data.data.map((c, i) => `
-              <div class="dropdown-item ${i === 0 ? 'active' : ''}" onclick="selectPaymentMethod('${c.masked_reference}', this)">
-                <div class="card-item-left">
-                  <span class="card-badge-pill ${c.card_brand.toLowerCase().includes('visa') ? 'visa' : c.card_brand.toLowerCase().includes('mc') || c.card_brand.toLowerCase().includes('master') ? 'mc' : 'amex'}">${c.card_brand.slice(0, 4).toUpperCase()}</span>
-                  <span class="card-name-title">${c.masked_reference}</span>
-                </div>
-                <span class="card-selected-check"><i data-lucide="check" style="width: 16px; height: 16px;"></i></span>
-              </div>
-            `).join('');
-            lucide.createIcons();
-            document.getElementById("selected-card-label").textContent = data.data[0].masked_reference;
-          }
-        }
-      } catch (e) {
-        console.warn('Backend cards fallback active');
-      }
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-      lucide.createIcons();
-      fetchAccountsForValidation();
-      loadBackendCards();
-    });
-
-    function validateField(fieldName) {
-      const grp = document.getElementById(`grp-${fieldName}`);
-      if (!grp) return;
-
-      if (fieldName === 'full-name') {
-        const val = document.getElementById('f-full-name').value.trim();
-        if (!val) {
-          grp.classList.add('has-error');
-          document.querySelector('#err-full-name span').textContent = '(!) Full Name is required';
-        } else {
-          grp.classList.remove('has-error');
-        }
-      } else if (fieldName === 'mobile') {
-        const val = document.getElementById('f-mobile').value.trim();
-        if (!val) {
-          grp.classList.add('has-error');
-          document.querySelector('#err-mobile span').textContent = '(!) Mobile number is required';
-        } else {
-          grp.classList.remove('has-error');
-        }
-      } else if (fieldName === 'email') {
-        const val = document.getElementById('f-email').value.trim();
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!val) {
-          grp.classList.add('has-error');
-          document.querySelector('#err-email span').textContent = '(!) Email is required';
-        } else if (!emailRegex.test(val)) {
-          grp.classList.add('has-error');
-          document.querySelector('#err-email span').textContent = '(!) Invalid email format';
-        } else if (registeredAccountsCache.some(a => a.email.toLowerCase() === val.toLowerCase())) {
-          grp.classList.add('has-error');
-          document.querySelector('#err-email span').textContent = `(!) Email is already registered`;
-        } else {
-          grp.classList.remove('has-error');
-        }
-      } else if (fieldName === 'address') {
-        const val = document.getElementById('f-address').value.trim();
-        if (!val) {
-          grp.classList.add('has-error');
-          document.querySelector('#err-address span').textContent = '(!) Address is required';
-        } else {
-          grp.classList.remove('has-error');
-        }
-      } else if (fieldName === 'password') {
-        const val = document.getElementById('f-password').value;
-        if (!val) {
-          grp.classList.add('has-error');
-          document.querySelector('#err-password span').textContent = '(!) Password is required';
-        } else if (val.length < 6) {
-          grp.classList.add('has-error');
-          document.querySelector('#err-password span').textContent = '(!) Password must be at least 6 characters';
-        } else {
-          grp.classList.remove('has-error');
-        }
-      } else if (fieldName === 'confirm-password') {
-        const pw = document.getElementById('f-password').value;
-        const cpw = document.getElementById('f-confirm-password').value;
-        if (!cpw) {
-          grp.classList.add('has-error');
-          document.querySelector('#err-confirm-password span').textContent = '(!) Confirm Password is required';
-        } else if (pw !== cpw) {
-          grp.classList.add('has-error');
-          document.querySelector('#err-confirm-password span').textContent = '(!) Passwords do not match';
-        } else {
-          grp.classList.remove('has-error');
-        }
-      }
-    }
-
-    // Load Exact Wireframe Review Error State
-    function loadWireframeErrorState() {
-      document.getElementById('f-full-name').value = '';
-      document.getElementById('grp-full-name').classList.add('has-error');
-
-      document.getElementById('f-mobile').value = '+84 901 234 567';
-      document.getElementById('grp-mobile').classList.remove('has-error');
-
-      document.getElementById('f-email').value = 'user@invalid';
-      document.getElementById('grp-email').classList.add('has-error');
-
-      document.getElementById('f-address').value = '123 Nguyen Van Linh, District 7, HCMC';
-      document.getElementById('grp-address').classList.remove('has-error');
-
-      document.getElementById('f-password').value = 'Password123!';
-      document.getElementById('f-password').type = 'password';
-      document.getElementById('grp-password').classList.remove('has-error');
-
-      document.getElementById('f-confirm-password').value = 'DiffPass';
-      document.getElementById('f-confirm-password').type = 'password';
-      document.getElementById('grp-confirm-password').classList.add('has-error');
-
-      // Expand payment dropdown
-      document.getElementById("payment-dropdown-container").classList.add("open");
-
-      termsAgreed = true;
-      document.getElementById("terms-box").classList.add("checked");
-
-      showToast("Applied exact wireframe error states: Full Name [Empty], Email [user@invalid], Passwords mismatch", "error");
-    }
-
-    // Fill 100% Valid VIP Data
-    function fillValidVipData() {
-      const randomCode = Math.floor(1000 + Math.random() * 9000);
-      document.getElementById('f-full-name').value = 'Nguyen Van An';
-      document.getElementById('grp-full-name').classList.remove('has-error');
-
-      document.getElementById('f-mobile').value = '+84 901 234 567';
-      document.getElementById('grp-mobile').classList.remove('has-error');
-
-      document.getElementById('f-email').value = `an.nguyen${randomCode}@enterprise.vn`;
-      document.getElementById('grp-email').classList.remove('has-error');
-
-      document.getElementById('f-address').value = '123 Nguyen Van Linh, District 7, HCMC';
-      document.getElementById('grp-address').classList.remove('has-error');
-
-      document.getElementById('f-password').value = 'Executive#2026';
-      document.getElementById('grp-password').classList.remove('has-error');
-
-      document.getElementById('f-confirm-password').value = 'Executive#2026';
-      document.getElementById('grp-confirm-password').classList.remove('has-error');
-
-      termsAgreed = true;
-      document.getElementById("terms-box").classList.add("checked");
-
-      showToast("Filled valid executive VIP credentials — Ready to register into backend!", "success");
-    }
-
-    // Handle Real Backend Form Submit (AC1 - AC5)
-    async function handleRegisterSubmit(e) {
-      e.preventDefault();
-
-      const fullName = document.getElementById('f-full-name').value.trim();
-      const mobile = document.getElementById('f-mobile').value.trim();
-      const email = document.getElementById('f-email').value.trim();
-      const address = document.getElementById('f-address').value.trim();
-      const pw = document.getElementById('f-password').value;
-      const cpw = document.getElementById('f-confirm-password').value;
-      const card = document.getElementById("selected-card-label").textContent.trim();
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-      let hasError = false;
-
-      if (!fullName) {
-        document.getElementById('grp-full-name').classList.add('has-error');
-        document.querySelector('#err-full-name span').textContent = '(!) Full Name is required';
-        hasError = true;
-      } else {
-        document.getElementById('grp-full-name').classList.remove('has-error');
-      }
-
-      if (!mobile) {
-        document.getElementById('grp-mobile').classList.add('has-error');
-        document.querySelector('#err-mobile span').textContent = '(!) Mobile number is required';
-        hasError = true;
-      } else {
-        document.getElementById('grp-mobile').classList.remove('has-error');
-      }
-
-      if (!email) {
-        document.getElementById('grp-email').classList.add('has-error');
-        document.querySelector('#err-email span').textContent = '(!) Email is required';
-        hasError = true;
-      } else if (!emailRegex.test(email)) {
-        document.getElementById('grp-email').classList.add('has-error');
-        document.querySelector('#err-email span').textContent = '(!) Invalid email format';
-        hasError = true;
-      } else if (
-        email.toLowerCase().endsWith('@gmai.com') ||
-        email.toLowerCase().endsWith('@gamil.com') ||
-        email.toLowerCase().endsWith('@gmial.com') ||
-        email.toLowerCase().endsWith('@gmal.com')
-      ) {
-        document.getElementById('grp-email').classList.add('has-error');
-        document.querySelector('#err-email span').textContent = '(!) Typo in domain: did you mean @gmail.com?';
-        hasError = true;
-      } else {
-        document.getElementById('grp-email').classList.remove('has-error');
-      }
-
-      if (!address) {
-        document.getElementById('grp-address').classList.add('has-error');
-        document.querySelector('#err-address span').textContent = '(!) Address is required';
-        hasError = true;
-      } else {
-        document.getElementById('grp-address').classList.remove('has-error');
-      }
-
-      if (!pw) {
-        document.getElementById('grp-password').classList.add('has-error');
-        document.querySelector('#err-password span').textContent = '(!) Password is required';
-        hasError = true;
-      } else if (pw.length < 6) {
-        document.getElementById('grp-password').classList.add('has-error');
-        document.querySelector('#err-password span').textContent = '(!) Password must be at least 6 characters';
-        hasError = true;
-      } else {
-        document.getElementById('grp-password').classList.remove('has-error');
-      }
-
-      if (!cpw || pw !== cpw) {
-        document.getElementById('grp-confirm-password').classList.add('has-error');
-        document.querySelector('#err-confirm-password span').textContent = '(!) Passwords do not match';
-        hasError = true;
-      } else {
-        document.getElementById('grp-confirm-password').classList.remove('has-error');
-      }
-
-      if (!termsAgreed) {
-        showToast("Please agree to the Terms & Privacy Policy", "error");
-        return;
-      }
-
-      if (hasError) {
-        showToast("Form has validation errors marked in red. Please correct them.", "error");
-        return;
-      }
-
-      const submitBtn = document.getElementById('btn-submit-register');
-      const origText = submitBtn.innerHTML;
-      submitBtn.innerHTML = `<span>SAVING TO POSTGRESQL BACKEND...</span>`;
-      submitBtn.disabled = true;
-
-      try {
-        const response = await fetch(`${API_BASE}/api/accounts/register`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: fullName,
-            telephone: mobile,
-            email: email,
-            address: address,
-            password: pw,
-            confirmPassword: cpw,
-            mockCardRef: card,
-          }),
-        });
-
-        const data = await response.json();
-
-        if (!response.ok || !data.success) {
-          // Backend validation or duplicate email error (AC2)
-          if (data.errors) {
-            if (data.errors.email) {
-              document.getElementById('grp-email').classList.add('has-error');
-              document.querySelector('#err-email span').textContent = '(!) ' + data.errors.email;
-            }
-            if (data.errors.name) {
-              document.getElementById('grp-full-name').classList.add('has-error');
-              document.querySelector('#err-full-name span').textContent = '(!) ' + data.errors.name;
-            }
-            if (data.errors.telephone) {
-              document.getElementById('grp-mobile').classList.add('has-error');
-              document.querySelector('#err-mobile span').textContent = '(!) ' + data.errors.telephone;
-            }
-            if (data.errors.address) {
-              document.getElementById('grp-address').classList.add('has-error');
-              document.querySelector('#err-address span').textContent = '(!) ' + data.errors.address;
-            }
-            if (data.errors.password) {
-              document.getElementById('grp-password').classList.add('has-error');
-              document.querySelector('#err-password span').textContent = '(!) ' + data.errors.password;
-            }
-            if (data.errors.confirmPassword) {
-              document.getElementById('grp-confirm-password').classList.add('has-error');
-              document.querySelector('#err-confirm-password span').textContent = '(!) ' + data.errors.confirmPassword;
-            }
-          }
-          showToast(data.message || data.errors?.email || "Registration failed", "error");
-          submitBtn.innerHTML = origText;
-          submitBtn.disabled = false;
-          return;
-        }
-
-        // Success (AC1, AC4, AC5)
-        localStorage.setItem('registeredEmail', data.account.email);
-        localStorage.setItem('currentUser', JSON.stringify(data.account));
-
-        if (data.emailDeliveryStatus === 'SMTP_ACCEPTED') {
-          showToast(`🎉 Registration Successful! Real confirmation email sent to ${data.account.email} (check Inbox / Spam)`, "success");
-        } else if (data.emailDeliveryStatus === 'SMTP_FAILED') {
-          showToast(`⚠️ Account created (${data.account.accountCode}), but email error: ${data.emailError || 'Check SMTP credentials'}`, "error");
-        } else {
-          showToast(`🎉 Registration Successful! Code: ${data.account.accountCode}. Confirmation email dispatched.`, "success");
-        }
-
-        submitBtn.innerHTML = `<span>ACCOUNT CREATED (${data.account.accountCode}) ✓</span>`;
-        setTimeout(() => {
-          window.location.href = "login.html";
-        }, 2200);
-
-      } catch (err) {
-        console.error('Registration error:', err);
-        showToast(`Cannot connect to backend server: ${err.message}`, "error");
-        submitBtn.innerHTML = origText;
-        submitBtn.disabled = false;
-      }
-    }
-
-    function testDirectSubmit() {
-      document.getElementById("register-form").requestSubmit();
-    }
-
-    // Toast Generator
-    function showToast(message, type = "info") {
-      const rack = document.getElementById("toast-rack");
-      const toast = document.createElement("div");
-      toast.className = "toast-pill-item";
-
-      let iconHtml = '<i data-lucide="info" style="width:16px; height:16px; color:#3A8B68;"></i>';
-      if (type === "success") {
-        iconHtml = '<i data-lucide="check-circle-2" style="width:16px; height:16px; color:#3A8B68;"></i>';
-      } else if (type === "error") {
-        iconHtml = '<i data-lucide="alert-octagon" style="width:16px; height:16px; color:#B94A48;"></i>';
-      }
-
-      toast.innerHTML = `${iconHtml}<span>${message}</span>`;
-      rack.appendChild(toast);
-      lucide.createIcons();
-
-      setTimeout(() => {
-        toast.style.opacity = "0";
-        toast.style.transform = "translateX(30px)";
-        toast.style.transition = "all 0.3s ease";
-        setTimeout(() => toast.remove(), 300);
-      }, 3500);
+    function handleLogout() {
+      localStorage.removeItem('currentUser');
+      localStorage.removeItem('sessionToken');
+      window.location.reload();
     }
   </script>
 </body>
