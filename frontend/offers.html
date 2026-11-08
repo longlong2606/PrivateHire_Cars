@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Special Offers &amp; Loyalty Rewards — PrivateHire Cars</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    :root {
+      --bg-body: #F4F1EA;
+      --bg-card: #FFFFFF;
+      --bg-card-hover: #FAF7F2;
+      --bg-input: #FFFFFF;
+
+      --border-subtle: #E4DED1;
+      --border-medium: #D8D0C0;
+      --border-focus: #164B3B;
+      --border-error: #B94A48;
+
+      --primary: #164B3B;
+      --primary-hover: #0F372B;
+      --primary-light: #3A8B68;
+      --accent-gold: #C69C54;
+      --accent-emerald: #3A8B68;
+
+      --text-main: #25352E;
+      --text-muted: #5E7168;
+      --text-dim: #84988F;
+      --text-error: #B94A48;
+
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --radius-xl: 18px;
+
+      --font-heading: 'Outfit', sans-serif;
+      --font-body: 'Plus Jakarta Sans', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+
+      --shadow-card: 0 10px 35px rgba(37, 53, 46, 0.08), 0 1px 3px rgba(37, 53, 46, 0.05);
+      --transition-smooth: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-body);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Top Navigation Bar */
+    .top-header {
+      background: #FFFFFF;
+      border-bottom: 1px solid var(--border-subtle);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text-main);
+    }
+
+    .brand-logo-emblem {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 18px;
+      font-family: var(--font-heading);
+    }
+
+    .nav-menu {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      list-style: none;
+    }
+
+    .nav-menu a {
+      text-decoration: none;
+      color: var(--text-muted);
+      font-size: 13.5px;
+      font-weight: 500;
+      transition: var(--transition-smooth);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+    }
+
+    .nav-menu a:hover, .nav-menu a.active {
+      color: var(--primary);
+      background: rgba(22, 75, 59, 0.05);
+      font-weight: 600;
+    }
+
+    .nav-user-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(22, 75, 59, 0.06);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .btn-outline-sm {
+      padding: 6px 12px;
+      border: 1px solid var(--border-medium);
+      background: #FFFFFF;
+      border-radius: var(--radius-sm);
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-main);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--transition-smooth);
+      text-decoration: none;
+    }
+    .btn-outline-sm:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--text-muted);
+    }
+
+    /* Main Container */
+    .main-layout {
+      max-width: 800px;
+      margin: 36px auto;
+      padding: 0 24px;
+      width: 100%;
+      flex: 1;
+    }
+
+    .page-title {
+      font-family: var(--font-heading);
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+
+    .page-subtitle {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+
+    .offer-card {
+      background: #FFFFFF;
+      border: 2px dashed var(--accent-emerald);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-card);
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #FAF7F2;
+    }
+    @media (max-width: 650px) {
+      .offer-card { flex-direction: column; text-align: center; gap: 16px; }
+    }
+
+    .offer-code-pill {
+      font-family: var(--font-mono);
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--primary);
+      background: #FFFFFF;
+      border: 1px solid var(--border-medium);
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      display: inline-block;
+      margin-top: 8px;
+      letter-spacing: 1px;
+    }
+
+    .rule-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-card);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="top-header">
+    <div class="nav-container">
+      <a href="booking.html" class="brand-left">
+        <div class="brand-logo-emblem">P</div>
+        <div>
+          <span style="font-family: var(--font-heading); font-size: 17px; font-weight: 700; display: block; line-height: 1.2;">PrivateHire Cars</span>
+          <span style="font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; font-family: var(--font-mono);">London Minicab Service</span>
+        </div>
+      </a>
+
+      <nav>
+        <ul class="nav-menu">
+          <li><a href="booking.html"><i data-lucide="calendar-plus" style="width: 15px; height: 15px;"></i> Book a Minicab</a></li>
+          <li><a href="my-bookings.html"><i data-lucide="clock" style="width: 15px; height: 15px;"></i> My Bookings</a></li>
+          <li><a href="offers.html" class="active"><i data-lucide="tag" style="width: 15px; height: 15px;"></i> Offers</a></li>
+          <li><a href="enquiries.html"><i data-lucide="help-circle" style="width: 15px; height: 15px;"></i> Support</a></li>
+          <li><a href="notifications.html"><i data-lucide="bell" style="width: 15px; height: 15px;"></i> Alerts</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-user-actions">
+        <div id="user-display" class="user-pill">
+          <i data-lucide="user" style="width: 14px; height: 14px;"></i>
+          <span id="user-name-text">Customer</span>
+        </div>
+        <a href="profile.html" id="btn-profile" class="btn-outline-sm">
+          <i data-lucide="settings" style="width: 14px; height: 14px;"></i> Profile
+        </a>
+        <button onclick="handleLogout()" class="btn-outline-sm">
+          <i data-lucide="log-out" style="width: 14px; height: 14px;"></i> <span>Log Out</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Layout -->
+  <main class="main-layout">
+    <h1 class="page-title">Loyalty Privileges &amp; Special Offers (SCRUM-28)</h1>
+    <p class="page-subtitle">Frequent travellers with 3 or more completed bookings receive an exclusive £10 GBP voucher code redeemable on their next booking.</p>
+
+    <!-- Offer Display Area -->
+    <div id="offer-display-container">
+      <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+        <i data-lucide="loader" style="width: 30px; height: 30px; animation: spin 1.5s linear infinite;"></i>
+        <p style="margin-top: 10px;">Evaluating loyalty eligibility...</p>
+      </div>
+    </div>
+
+    <!-- Rule Explanation Card -->
+    <div class="rule-card">
+      <h3 style="font-family: var(--font-heading); font-size: 16px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+        <i data-lucide="info" style="width: 18px; height: 18px; color: var(--primary);"></i>
+        Loyalty Offer Terms (SCRUM-28, SCRUM-29)
+      </h3>
+      <ul style="font-size: 13.5px; color: var(--text-muted); line-height: 1.8; padding-left: 20px;">
+        <li><strong>Eligibility Rule:</strong> You qualify once you reach <strong>3 or more Completed bookings</strong>.</li>
+        <li><strong>Deduction:</strong> The voucher discount (£10 GBP) is deducted <strong>after</strong> the automatic 15% online booking discount.</li>
+        <li><strong>Redemption:</strong> Enter the voucher code on the booking review screen. A voucher code is consumed once the booking is successfully confirmed.</li>
+        <li><strong>No Expiry:</strong> Your recommended loyalty discount does not expire.</li>
+      </ul>
+    </div>
+  </main>
+
+  <script>
+    const API_BASE = (function() {
+      if (window.location.protocol === 'file:') return 'http://localhost:5000';
+      if (window.location.port === '5173' || window.location.port === '5000' || !window.location.port) return '';
+      return `http://${window.location.hostname || 'localhost'}:5000`;
+    })();
+
+    let currentUser = null;
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const saved = localStorage.getItem('currentUser');
+      const token = localStorage.getItem('sessionToken');
+      if (!saved || !token) {
+        window.location.href = "login.html";
+        return;
+      }
+      try {
+        currentUser = JSON.parse(saved);
+        document.getElementById('user-name-text').textContent = currentUser.name || 'Customer';
+        checkLoyaltyOffers();
+      } catch (_) {
+        window.location.href = "login.html";
+      }
+      lucide.createIcons();
+    });
+
+    function handleLogout() {
+      localStorage.removeItem('currentUser');
+      localStorage.removeItem('sessionToken');
+      window.location.href = "login.html";
+    }
+
+    async function checkLoyaltyOffers() {
+      const container = document.getElementById('offer-display-container');
+      try {
+        const res = await fetch(`${API_BASE}/api/offers/my`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('sessionToken') || ''}` }
+        });
+        const data = await res.json();
+
+        if (res.ok && data.success && data.offer) {
+          const off = data.offer;
+          container.innerHTML = `
+            <div class="offer-card">
+              <div>
+                <span style="font-size: 12px; font-weight: 700; color: var(--accent-emerald); text-transform: uppercase; letter-spacing: 0.5px;">✓ Loyalty Privilege Awarded</span>
+                <h3 style="font-family: var(--font-heading); font-size: 20px; font-weight: 700; margin: 4px 0;">£${parseFloat(off.amount || 10).toFixed(2)} GBP Loyalty Voucher</h3>
+                <p style="font-size: 13px; color: var(--text-muted);">Use this code when booking your next executive minicab journey.</p>
+                <div class="offer-code-pill">${off.code || 'LOYALTY-PRESTIGE'}</div>
+              </div>
+              <div>
+                <a href="booking.html" class="btn-outline-sm" style="background: var(--primary); color: #fff; border: none; padding: 12px 20px; font-size: 14px;">
+                  Use Voucher Now
+                </a>
+              </div>
+            </div>
+          `;
+        } else {
+          container.innerHTML = `
+            <div style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 32px; text-align: center; margin-bottom: 20px;">
+              <i data-lucide="award" style="width: 36px; height: 36px; color: var(--accent-gold); margin-bottom: 10px;"></i>
+              <h3 style="font-family: var(--font-heading); font-size: 17px; font-weight: 700; margin-bottom: 6px;">Loyalty Progress: ${data.completedCount || 0} / 3 Completed Journeys</h3>
+              <p style="font-size: 13.5px; color: var(--text-muted); max-width: 520px; margin: 0 auto 16px auto;">
+                Complete ${Math.max(0, 3 - (data.completedCount || 0))} more journey${Math.max(0, 3 - (data.completedCount || 0)) === 1 ? '' : 's'} to unlock your exclusive £10 GBP loyalty voucher.
+              </p>
+              <a href="booking.html" class="btn-outline-sm" style="background: var(--primary); color: #fff; border: none; padding: 10px 18px;">
+                Book a Journey
+              </a>
+            </div>
+          `;
+        }
+      } catch (err) {
+        container.innerHTML = `<p style="color: var(--text-error); text-align: center;">Unable to check loyalty status.</p>`;
+      }
+      lucide.createIcons();
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Enquiries &amp; Support — PrivateHire Cars</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    :root {
+      --bg-body: #F4F1EA;
+      --bg-card: #FFFFFF;
+      --bg-card-hover: #FAF7F2;
+      --bg-input: #FFFFFF;
+
+      --border-subtle: #E4DED1;
+      --border-medium: #D8D0C0;
+      --border-focus: #164B3B;
+      --border-error: #B94A48;
+
+      --primary: #164B3B;
+      --primary-hover: #0F372B;
+      --primary-light: #3A8B68;
+      --accent-gold: #C69C54;
+      --accent-emerald: #3A8B68;
+
+      --text-main: #25352E;
+      --text-muted: #5E7168;
+      --text-dim: #84988F;
+      --text-error: #B94A48;
+
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --radius-xl: 18px;
+
+      --font-heading: 'Outfit', sans-serif;
+      --font-body: 'Plus Jakarta Sans', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+
+      --shadow-card: 0 10px 35px rgba(37, 53, 46, 0.08), 0 1px 3px rgba(37, 53, 46, 0.05);
+      --transition-smooth: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-body);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Top Navigation Bar */
+    .top-header {
+      background: #FFFFFF;
+      border-bottom: 1px solid var(--border-subtle);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text-main);
+    }
+
+    .brand-logo-emblem {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 18px;
+      font-family: var(--font-heading);
+    }
+
+    .nav-menu {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      list-style: none;
+    }
+
+    .nav-menu a {
+      text-decoration: none;
+      color: var(--text-muted);
+      font-size: 13.5px;
+      font-weight: 500;
+      transition: var(--transition-smooth);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+    }
+
+    .nav-menu a:hover, .nav-menu a.active {
+      color: var(--primary);
+      background: rgba(22, 75, 59, 0.05);
+      font-weight: 600;
+    }
+
+    .nav-user-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(22, 75, 59, 0.06);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .btn-outline-sm {
+      padding: 6px 12px;
+      border: 1px solid var(--border-medium);
+      background: #FFFFFF;
+      border-radius: var(--radius-sm);
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-main);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--transition-smooth);
+      text-decoration: none;
+    }
+    .btn-outline-sm:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--text-muted);
+    }
+
+    /* Main Container */
+    .main-layout {
+      max-width: 800px;
+      margin: 36px auto;
+      padding: 0 24px;
+      width: 100%;
+      flex: 1;
+    }
+
+    .card-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 28px 32px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .page-title {
+      font-family: var(--font-heading);
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+
+    .page-subtitle {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+
+    .field-group { margin-bottom: 18px; }
+    .field-label { display: block; font-size: 13px; font-weight: 600; color: var(--text-main); margin-bottom: 6px; }
+    .field-input, .field-select {
+      width: 100%; height: 44px; border: 1px solid var(--border-medium); border-radius: var(--radius-sm);
+      padding: 0 14px; font-size: 13.5px; font-family: inherit; color: var(--text-main);
+    }
+    .field-input:focus, .field-select:focus {
+      outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(22, 75, 59, 0.12);
+    }
+
+    .btn-submit {
+      width: 100%; height: 46px; background: var(--primary); color: #fff; border: none;
+      border-radius: var(--radius-sm); font-size: 14.5px; font-weight: 600; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 24px;
+    }
+    .btn-submit:hover { background: var(--primary-hover); }
+
+    /* Toast */
+    #toast-rack {
+      position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 10px; z-index: 9999;
+    }
+    .toast-item {
+      background: #FFFFFF; border: 1px solid var(--border-subtle); box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      border-radius: var(--radius-md); padding: 12px 18px; font-size: 13.5px; display: flex; align-items: center; gap: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="top-header">
+    <div class="nav-container">
+      <a href="booking.html" class="brand-left">
+        <div class="brand-logo-emblem">P</div>
+        <div>
+          <span style="font-family: var(--font-heading); font-size: 17px; font-weight: 700; display: block; line-height: 1.2;">PrivateHire Cars</span>
+          <span style="font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; font-family: var(--font-mono);">London Minicab Service</span>
+        </div>
+      </a>
+
+      <nav>
+        <ul class="nav-menu">
+          <li><a href="booking.html"><i data-lucide="calendar-plus" style="width: 15px; height: 15px;"></i> Book a Minicab</a></li>
+          <li><a href="my-bookings.html"><i data-lucide="clock" style="width: 15px; height: 15px;"></i> My Bookings</a></li>
+          <li><a href="offers.html"><i data-lucide="tag" style="width: 15px; height: 15px;"></i> Offers</a></li>
+          <li><a href="enquiries.html" class="active"><i data-lucide="help-circle" style="width: 15px; height: 15px;"></i> Support</a></li>
+          <li><a href="notifications.html"><i data-lucide="bell" style="width: 15px; height: 15px;"></i> Alerts</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-user-actions">
+        <div id="user-display" class="user-pill" style="display: none;">
+          <i data-lucide="user" style="width: 14px; height: 14px;"></i>
+          <span id="user-name-text">Customer</span>
+        </div>
+        <a href="profile.html" id="btn-profile" class="btn-outline-sm" style="display: none;">
+          <i data-lucide="settings" style="width: 14px; height: 14px;"></i> Profile
+        </a>
+        <button id="btn-auth-action" onclick="handleAuthAction()" class="btn-outline-sm">
+          <i data-lucide="log-in" style="width: 14px; height: 14px;"></i> <span>Log In</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Layout -->
+  <main class="main-layout">
+    <div class="card-panel">
+      <h1 class="page-title">Customer Enquiries &amp; Support (SCRUM-9)</h1>
+      <p class="page-subtitle">Submit a general question or inquire about an existing chauffeured journey. Our Call Centre staff will respond directly to your contact email.</p>
+
+      <form id="enquiry-form" onsubmit="event.preventDefault(); submitEnquiry();">
+        
+        <div class="field-group">
+          <label class="field-label">Enquiry Category *</label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <label style="border: 1px solid var(--border-medium); border-radius: var(--radius-sm); padding: 12px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+              <input type="radio" name="enq-type" value="GENERAL" checked onchange="toggleEnquiryType()" />
+              <div>
+                <strong style="font-size: 13.5px; display: block;">General Enquiry</strong>
+                <span style="font-size: 11.5px; color: var(--text-muted);">Services, rates, fleet (open to all)</span>
+              </div>
+            </label>
+            <label style="border: 1px solid var(--border-medium); border-radius: var(--radius-sm); padding: 12px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+              <input type="radio" name="enq-type" value="TRIP_SPECIFIC" onchange="toggleEnquiryType()" />
+              <div>
+                <strong style="font-size: 13.5px; display: block;">Trip-Specific Enquiry</strong>
+                <span style="font-size: 11.5px; color: var(--text-muted);">Inquire about your own booking</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div id="booking-selector-group" class="field-group" style="display: none;">
+          <label class="field-label" for="enq-booking">Select Your Journey *</label>
+          <select id="enq-booking" class="field-select">
+            <option value="">-- Choose your booking --</option>
+          </select>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="enq-name">Your Name *</label>
+          <input type="text" id="enq-name" class="field-input" placeholder="Enter your full name" required />
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="enq-email">Reply Email Address *</label>
+          <input type="email" id="enq-email" class="field-input" placeholder="e.g. yourname@example.com" required />
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="enq-message">Enquiry Message *</label>
+          <textarea id="enq-message" class="field-input" style="height: 110px; padding: 12px;" placeholder="Please describe your question or journey details..." required></textarea>
+        </div>
+
+        <button type="submit" id="btn-submit-enquiry" class="btn-submit">
+          <i data-lucide="send" style="width: 16px; height: 16px;"></i>
+          <span>Submit Enquiry Ticket</span>
+        </button>
+      </form>
+
+      <div id="enquiry-success-box" style="display: none; background: rgba(58,139,104,0.1); border: 1px solid rgba(58,139,104,0.3); border-radius: var(--radius-md); padding: 18px; margin-top: 20px; text-align: center;">
+        <i data-lucide="check-circle" style="width: 32px; height: 32px; color: var(--accent-emerald); margin-bottom: 8px;"></i>
+        <h3 style="font-family: var(--font-heading); font-size: 17px; font-weight: 700; color: #0F5132;">Enquiry Submitted Successfully</h3>
+        <p style="font-size: 13.5px; color: var(--text-muted); margin-top: 4px;">Your tracking reference is: <strong id="enq-ref-number" style="font-family: var(--font-mono); color: var(--primary);">ENQ-XXXXXX</strong></p>
+      </div>
+
+    </div>
+  </main>
+
+  <div id="toast-rack"></div>
+
+  <script>
+    const API_BASE = (function() {
+      if (window.location.protocol === 'file:') return 'http://localhost:5000';
+      if (window.location.port === '5173' || window.location.port === '5000' || !window.location.port) return '';
+      return `http://${window.location.hostname || 'localhost'}:5000`;
+    })();
+
+    let currentUser = null;
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const saved = localStorage.getItem('currentUser');
+      if (saved) {
+        try {
+          currentUser = JSON.parse(saved);
+          document.getElementById('user-display').style.display = 'flex';
+          document.getElementById('user-name-text').textContent = currentUser.name || 'Customer';
+          document.getElementById('btn-profile').style.display = 'inline-flex';
+          document.getElementById('enq-name').value = currentUser.name || '';
+          document.getElementById('enq-email').value = currentUser.email || '';
+          const authBtn = document.getElementById('btn-auth-action');
+          authBtn.innerHTML = `<i data-lucide="log-out" style="width: 14px; height: 14px;"></i> <span>Log Out</span>`;
+        } catch (_) {}
+      }
+      lucide.createIcons();
+    });
+
+    function handleAuthAction() {
+      if (currentUser) {
+        localStorage.removeItem('currentUser');
+        localStorage.removeItem('sessionToken');
+        window.location.href = "login.html";
+      } else {
+        window.location.href = "login.html";
+      }
+    }
+
+    async function toggleEnquiryType() {
+      const type = document.querySelector('input[name="enq-type"]:checked').value;
+      const group = document.getElementById('booking-selector-group');
+      if (type === 'TRIP_SPECIFIC') {
+        if (!currentUser) {
+          triggerToast("Trip-specific enquiries require signing in to access your bookings (SCRUM-9 AC3).", "error");
+          document.querySelector('input[name="enq-type"][value="GENERAL"]').checked = true;
+          return;
+        }
+        group.style.display = 'block';
+        loadCustomerBookings();
+      } else {
+        group.style.display = 'none';
+      }
+    }
+
+    async function loadCustomerBookings() {
+      const sel = document.getElementById('enq-booking');
+      try {
+        const res = await fetch(`${API_BASE}/api/bookings/my-bookings`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('sessionToken') || ''}` }
+        });
+        const data = await res.json();
+        if (res.ok && data.success && data.bookings) {
+          sel.innerHTML = '<option value="">-- Choose your booking --</option>' + 
+            data.bookings.map(b => `<option value="${b.id}">${b.booking_code} — ${b.service_name} (${b.status})</option>`).join('');
+        }
+      } catch (_) {}
+    }
+
+    async function submitEnquiry() {
+      const type = document.querySelector('input[name="enq-type"]:checked').value;
+      const name = document.getElementById('enq-name').value.trim();
+      const email = document.getElementById('enq-email').value.trim();
+      const message = document.getElementById('enq-message').value.trim();
+      const bookingId = document.getElementById('enq-booking').value;
+
+      if (type === 'TRIP_SPECIFIC' && !bookingId) {
+        triggerToast("Please select one of your bookings for a trip-specific enquiry.", "error");
+        return;
+      }
+
+      const btn = document.getElementById('btn-submit-enquiry');
+      btn.disabled = true;
+      btn.innerHTML = `<span>Submitting...</span>`;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/enquiries`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('sessionToken') || ''}`
+          },
+          body: JSON.stringify({
+            enquiryType: type,
+            name,
+            email,
+            message,
+            bookingId: type === 'TRIP_SPECIFIC' ? bookingId : null
+          })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          document.getElementById('enquiry-form').style.display = 'none';
+          document.getElementById('enq-ref-number').textContent = data.reference || data.enquiryCode || 'ENQ-RECEIVED';
+          document.getElementById('enquiry-success-box').style.display = 'block';
+          triggerToast("Enquiry submitted successfully!");
+          lucide.createIcons();
+        } else {
+          triggerToast(data.message || "Failed to submit enquiry.", "error");
+          btn.disabled = false;
+          btn.innerHTML = `<i data-lucide="send" style="width: 16px; height: 16px;"></i> <span>Submit Enquiry Ticket</span>`;
+        }
+      } catch (err) {
+        triggerToast("Network error submitting enquiry.", "error");
+        btn.disabled = false;
+        btn.innerHTML = `<i data-lucide="send" style="width: 16px; height: 16px;"></i> <span>Submit Enquiry Ticket</span>`;
+      }
+    }
+
+    function triggerToast(msg, type = "info") {
+      const rack = document.getElementById('toast-rack');
+      const toast = document.createElement('div');
+      toast.className = 'toast-item';
+      let iconColor = type === 'error' ? '#B94A48' : '#3A8B68';
+      let iconName = type === 'error' ? 'alert-circle' : 'check-circle';
+      toast.innerHTML = `<i data-lucide="${iconName}" style="width:16px;height:16px;color:${iconColor};"></i> <span>${msg}</span>`;
+      rack.appendChild(toast);
+      lucide.createIcons();
+      setTimeout(() => { toast.remove(); }, 3500);
+    }
+  </script>
+</body>
+</html>

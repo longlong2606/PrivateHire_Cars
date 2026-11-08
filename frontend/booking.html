@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Book a Minicab — PrivateHire Cars</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    :root {
+      --bg-body: #F4F1EA;
+      --bg-card: #FFFFFF;
+      --bg-card-hover: #FAF7F2;
+      --bg-input: #FFFFFF;
+
+      --border-subtle: #E4DED1;
+      --border-medium: #D8D0C0;
+      --border-focus: #164B3B;
+      --border-error: #B94A48;
+
+      --primary: #164B3B;
+      --primary-hover: #0F372B;
+      --primary-light: #3A8B68;
+      --accent-gold: #C69C54;
+      --accent-emerald: #3A8B68;
+
+      --text-main: #25352E;
+      --text-muted: #5E7168;
+      --text-dim: #84988F;
+      --text-error: #B94A48;
+
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --radius-xl: 18px;
+
+      --font-heading: 'Outfit', sans-serif;
+      --font-body: 'Plus Jakarta Sans', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+
+      --shadow-card: 0 10px 35px rgba(37, 53, 46, 0.08), 0 1px 3px rgba(37, 53, 46, 0.05);
+      --transition-smooth: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-body);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Top Navigation Bar */
+    .top-header {
+      background: #FFFFFF;
+      border-bottom: 1px solid var(--border-subtle);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text-main);
+    }
+
+    .brand-logo-emblem {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 18px;
+      font-family: var(--font-heading);
+    }
+
+    .nav-menu {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      list-style: none;
+    }
+
+    .nav-menu a {
+      text-decoration: none;
+      color: var(--text-muted);
+      font-size: 13.5px;
+      font-weight: 500;
+      transition: var(--transition-smooth);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+    }
+
+    .nav-menu a:hover, .nav-menu a.active {
+      color: var(--primary);
+      background: rgba(22, 75, 59, 0.05);
+      font-weight: 600;
+    }
+
+    .nav-user-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(22, 75, 59, 0.06);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .btn-outline-sm {
+      padding: 6px 12px;
+      border: 1px solid var(--border-medium);
+      background: #FFFFFF;
+      border-radius: var(--radius-sm);
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-main);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--transition-smooth);
+      text-decoration: none;
+    }
+    .btn-outline-sm:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--text-muted);
+    }
+
+    /* Main Container */
+    .main-layout {
+      max-width: 1200px;
+      margin: 32px auto;
+      padding: 0 24px;
+      width: 100%;
+      flex: 1;
+    }
+
+    .page-header {
+      margin-bottom: 28px;
+    }
+
+    .page-title {
+      font-family: var(--font-heading);
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+
+    .page-subtitle {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .booking-grid {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+
+    @media (max-width: 900px) {
+      .booking-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .panel-title {
+      font-family: var(--font-heading);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .field-group {
+      margin-bottom: 16px;
+    }
+
+    .field-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+
+    .field-input, .field-select {
+      width: 100%;
+      height: 44px;
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-sm);
+      padding: 0 12px;
+      font-size: 13.5px;
+      font-family: inherit;
+      color: var(--text-main);
+      background: var(--bg-input);
+      transition: var(--transition-smooth);
+    }
+
+    .field-input:focus, .field-select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(22, 75, 59, 0.12);
+    }
+
+    /* Live Availability Indicator */
+    .availability-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 12.5px;
+      font-weight: 600;
+      margin-top: 10px;
+    }
+    .availability-indicator.available {
+      background: rgba(58, 139, 104, 0.1);
+      color: #2D6A4F;
+      border: 1px solid rgba(58, 139, 104, 0.25);
+    }
+    .availability-indicator.unavailable {
+      background: rgba(185, 74, 72, 0.1);
+      color: #9A302E;
+      border: 1px solid rgba(185, 74, 72, 0.25);
+    }
+
+    /* Price Summary Card */
+    .price-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      font-size: 13.5px;
+      color: var(--text-muted);
+    }
+    .price-row.total-row {
+      border-top: 2px dashed var(--border-subtle);
+      margin-top: 12px;
+      padding-top: 14px;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    .price-discount {
+      color: var(--accent-emerald);
+      font-weight: 600;
+    }
+
+    .btn-submit-booking {
+      width: 100%;
+      height: 48px;
+      background: var(--primary);
+      color: #FFFFFF;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 14.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: var(--transition-smooth);
+      margin-top: 20px;
+    }
+    .btn-submit-booking:hover {
+      background: var(--primary-hover);
+      box-shadow: 0 4px 12px rgba(22, 75, 59, 0.25);
+    }
+    .btn-submit-booking:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Modal Backdrop */
+    .modal-backdrop {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(18, 28, 24, 0.6);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+    .modal-backdrop.open { display: flex; }
+
+    .modal-box {
+      background: #FFFFFF;
+      border-radius: var(--radius-lg);
+      max-width: 520px;
+      width: 100%;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+      overflow: hidden;
+      animation: modalIn 0.22s ease-out;
+    }
+    @keyframes modalIn {
+      from { opacity: 0; transform: translateY(12px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #FAF7F2;
+    }
+    .modal-body {
+      padding: 24px;
+    }
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border-subtle);
+      background: #FAF7F2;
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    /* Toast Container */
+    #toast-rack {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 9999;
+    }
+    .toast-item {
+      background: #FFFFFF;
+      border: 1px solid var(--border-subtle);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      border-radius: var(--radius-md);
+      padding: 12px 18px;
+      font-size: 13.5px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: toastIn 0.25s ease-out;
+    }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="top-header">
+    <div class="nav-container">
+      <a href="booking.html" class="brand-left">
+        <div class="brand-logo-emblem">P</div>
+        <div>
+          <span style="font-family: var(--font-heading); font-size: 17px; font-weight: 700; display: block; line-height: 1.2;">PrivateHire Cars</span>
+          <span style="font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; font-family: var(--font-mono);">London Minicab Service</span>
+        </div>
+      </a>
+
+      <nav>
+        <ul class="nav-menu">
+          <li><a href="booking.html" class="active"><i data-lucide="calendar-plus" style="width: 15px; height: 15px;"></i> Book a Minicab</a></li>
+          <li><a href="my-bookings.html"><i data-lucide="clock" style="width: 15px; height: 15px;"></i> My Bookings</a></li>
+          <li><a href="offers.html"><i data-lucide="tag" style="width: 15px; height: 15px;"></i> Offers</a></li>
+          <li><a href="enquiries.html"><i data-lucide="help-circle" style="width: 15px; height: 15px;"></i> Support</a></li>
+          <li><a href="notifications.html"><i data-lucide="bell" style="width: 15px; height: 15px;"></i> Alerts</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-user-actions">
+        <div id="user-display" class="user-pill" style="display: none;">
+          <i data-lucide="user" style="width: 14px; height: 14px;"></i>
+          <span id="user-name-text">Customer</span>
+        </div>
+        <a href="profile.html" id="btn-profile" class="btn-outline-sm" style="display: none;">
+          <i data-lucide="settings" style="width: 14px; height: 14px;"></i> Profile
+        </a>
+        <button id="btn-auth-action" onclick="handleAuthAction()" class="btn-outline-sm">
+          <i data-lucide="log-in" style="width: 14px; height: 14px;"></i> <span>Log In</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Layout -->
+  <main class="main-layout">
+    <div class="page-header">
+      <h1 class="page-title">Book an Executive London Minicab</h1>
+      <p class="page-subtitle">Demonstration fares and journey durations are fixed by service type and vehicle capacity. All online bookings receive an automatic 15% discount.</p>
+    </div>
+
+    <div class="booking-grid">
+      
+      <!-- Left Panel: Journey Form -->
+      <div class="card-panel">
+        <h2 class="panel-title">
+          <i data-lucide="map-pin" style="width: 20px; height: 20px; color: var(--accent-emerald);"></i>
+          Journey Details (SCRUM-10, 11)
+        </h2>
+
+        <form id="booking-form" onsubmit="event.preventDefault(); startBookingConfirmation();">
+          
+          <!-- Service Selection (SCRUM-10) -->
+          <div class="field-group">
+            <label class="field-label" for="bk-service">
+              Service Type (Standard Demonstration Fares) *
+            </label>
+            <select id="bk-service" class="field-select" onchange="onBookingInputsChanged()" required>
+              <option value="Airport transfer" data-four="45.00" data-seven="65.00" data-dur="90" selected>Airport transfer (90 mins • £45 / £65 GBP)</option>
+              <option value="Local journey" data-four="20.00" data-seven="30.00" data-dur="60">Local journey (60 mins • £20 / £30 GBP)</option>
+              <option value="Long-distance journey" data-four="80.00" data-seven="120.00" data-dur="180">Long-distance journey (180 mins • £80 / £120 GBP)</option>
+              <option value="Hotel transfer" data-four="30.00" data-seven="45.00" data-dur="60">Hotel transfer (60 mins • £30 / £45 GBP)</option>
+              <option value="Airport meet-and-greet" data-four="55.00" data-seven="80.00" data-dur="120">Airport meet-and-greet (120 mins • £55 / £80 GBP)</option>
+              <option value="Driver and car daily hire" data-four="200.00" data-seven="280.00" data-dur="480">Driver and car daily hire (480 mins • £200 / £280 GBP)</option>
+            </select>
+          </div>
+
+          <!-- Pickup Location -->
+          <div class="field-group">
+            <label class="field-label" for="bk-pickup">
+              Pickup Location *
+            </label>
+            <input type="text" id="bk-pickup" class="field-input" placeholder="Enter pickup address, hotel or airport terminal..." required oninput="debounceAutoSave()" />
+          </div>
+
+          <!-- Dropoff Destination -->
+          <div class="field-group">
+            <label class="field-label" for="bk-dropoff">
+              Dropoff Destination *
+            </label>
+            <input type="text" id="bk-dropoff" class="field-input" placeholder="Enter destination address, airport or venue..." required oninput="debounceAutoSave()" />
+          </div>
+
+          <!-- Date/Time and Passenger Count (SCRUM-11) -->
+          <div style="display: grid; grid-template-columns: 1.3fr 1fr; gap: 14px;">
+            <div class="field-group">
+              <label class="field-label" for="bk-pickup-time">
+                Pickup Date &amp; Time *
+              </label>
+              <input type="datetime-local" id="bk-pickup-time" class="field-input" required onchange="onBookingInputsChanged()" />
+            </div>
+            <div class="field-group">
+              <label class="field-label" for="bk-passengers">
+                Passengers (1–7) *
+              </label>
+              <input type="number" id="bk-passengers" class="field-input" min="1" max="7" value="1" required onchange="onPassengerCountChanged()" />
+            </div>
+          </div>
+
+          <!-- Vehicle Capacity Selection -->
+          <div class="field-group">
+            <label class="field-label" for="bk-capacity">
+              Vehicle Capacity Class *
+            </label>
+            <select id="bk-capacity" class="field-select" onchange="onBookingInputsChanged()" required>
+              <option value="4" selected>4-passenger Saloon (Up to 4 passengers)</option>
+              <option value="7">7-passenger MPV (Up to 7 passengers)</option>
+            </select>
+          </div>
+
+          <!-- Live Fleet Availability Indicator (SCRUM-12) -->
+          <div id="availability-box" class="availability-indicator available">
+            <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
+            <span id="availability-text">Checking live fleet availability...</span>
+          </div>
+
+          <!-- Special Offer Code Input (SCRUM-29) -->
+          <div class="field-group" style="margin-top: 18px;">
+            <label class="field-label" for="bk-offer-code">
+              Special Offer Voucher Code (Optional)
+            </label>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="bk-offer-code" class="field-input" placeholder="e.g. LOYALTY-XXXXXX" style="text-transform: uppercase;" />
+              <button type="button" class="btn-outline-sm" onclick="applyOfferCode()" style="padding: 0 16px; height: 44px; white-space: nowrap;">
+                Apply
+              </button>
+            </div>
+            <div id="offer-feedback" style="font-size: 12px; margin-top: 4px; display: none;"></div>
+          </div>
+
+        </form>
+      </div>
+
+      <!-- Right Panel: Fare Breakdown & Confirmation -->
+      <div class="card-panel">
+        <h2 class="panel-title">
+          <i data-lucide="receipt" style="width: 20px; height: 20px; color: var(--primary);"></i>
+          Price Breakdown (SCRUM-13)
+        </h2>
+
+        <div style="background: #FAF7F2; border-radius: var(--radius-md); padding: 16px; margin-bottom: 20px;">
+          <div class="price-row">
+            <span>Standard Base Fare:</span>
+            <strong id="price-base-fare">£45.00 GBP</strong>
+          </div>
+          <div class="price-row">
+            <span>Online Self-Service Discount (15%):</span>
+            <strong id="price-online-discount" class="price-discount">-£6.75 GBP</strong>
+          </div>
+          <div class="price-row" id="price-offer-row" style="display: none;">
+            <span>Loyalty Promo Voucher:</span>
+            <strong id="price-offer-discount" class="price-discount">-£0.00 GBP</strong>
+          </div>
+          <div class="price-row total-row">
+            <span>Total Payable:</span>
+            <span id="price-final-total">£38.25 GBP</span>
+          </div>
+        </div>
+
+        <div style="font-size: 12px; color: var(--text-muted); line-height: 1.5; margin-bottom: 20px;">
+          <p><i data-lucide="shield-check" style="width: 14px; height: 14px; vertical-align: middle; color: var(--accent-emerald);"></i> <strong>Test Simulation:</strong> Payments and refunds use prototype transactions. Real confirmation emails are delivered to your contact inbox.</p>
+        </div>
+
+        <button type="button" id="btn-proceed" class="btn-submit-booking" onclick="document.getElementById('booking-form').requestSubmit();">
+          <span>Proceed to Payment / Confirmation</span>
+          <i data-lucide="arrow-right" style="width: 16px; height: 16px;"></i>
+        </button>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Payment Modal (SCRUM-16, SCRUM-36) -->
+  <div id="payment-modal" class="modal-backdrop">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div>
+          <h3 style="font-family: var(--font-heading); font-size: 17px; font-weight: 700;">Complete Booking Confirmation</h3>
+          <span style="font-size: 12px; color: var(--text-muted);">Simulated Payment Gateway (SCRUM-16, 36)</span>
+        </div>
+        <button onclick="closePaymentModal()" style="border: none; background: none; cursor: pointer; color: var(--text-muted);">
+          <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        
+        <div style="background: #FAF7F2; padding: 14px; border-radius: var(--radius-md); margin-bottom: 18px;">
+          <div style="display: flex; justify-content: space-between; font-size: 13.5px; margin-bottom: 6px;">
+            <span style="color: var(--text-muted);">Amount Due:</span>
+            <strong id="modal-due-amount" style="color: var(--primary); font-size: 16px;">£38.25 GBP</strong>
+          </div>
+          <div style="font-size: 12px; color: var(--text-muted);" id="modal-journey-summary">
+            Airport transfer • 4-passenger Saloon
+          </div>
+        </div>
+
+        <!-- Payment Method Options -->
+        <div class="field-group">
+          <label class="field-label">Select Payment Method *</label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <label style="border: 1px solid var(--border-medium); border-radius: var(--radius-sm); padding: 10px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+              <input type="radio" name="pay-method" value="MOCK_CARD" checked onchange="togglePaymentInputs()" />
+              <span style="font-size: 13px; font-weight: 600;">Test Card (Visa/MC)</span>
+            </label>
+            <label style="border: 1px solid var(--border-medium); border-radius: var(--radius-sm); padding: 10px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+              <input type="radio" name="pay-method" value="PAYPAL" onchange="togglePaymentInputs()" />
+              <span style="font-size: 13px; font-weight: 600;">Test PayPal</span>
+            </label>
+          </div>
+          <div style="margin-top: 10px;">
+            <label style="border: 1px solid var(--border-medium); border-radius: var(--radius-sm); padding: 10px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+              <input type="radio" name="pay-method" value="CASH" onchange="togglePaymentInputs()" />
+              <div>
+                <span style="font-size: 13px; font-weight: 600;">Cash to Chauffeur (SCRUM-36)</span>
+                <span style="display: block; font-size: 11px; color: var(--text-muted);">Pay full amount at the end of your journey</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Card Simulation Screening (SCRUM-16 AC3) -->
+        <div id="card-screening-section" style="background: rgba(22, 75, 59, 0.05); padding: 14px; border-radius: var(--radius-md); margin-top: 14px;">
+          <label class="field-label" style="margin-bottom: 4px;">VISA Check Security Screening (SCRUM-16 AC3)</label>
+          <p style="font-size: 11.5px; color: var(--text-muted); margin-bottom: 8px;">Simulate bank 3D-Secure check outcome:</p>
+          <select id="pay-visa-screening" class="field-select" style="height: 38px;">
+            <option value="PASS" selected>PASS (Approved by Bank Security Check)</option>
+            <option value="FAIL">FAIL (Card Verification Declined / Blocked)</option>
+          </select>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-outline-sm" onclick="closePaymentModal()">Cancel</button>
+        <button type="button" id="btn-confirm-payment" class="btn-submit-booking" style="width: auto; padding: 0 20px; margin-top: 0;" onclick="executeBookingConfirmation()">
+          <span>Confirm Booking</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-rack"></div>
+
+  <script>
+    const API_BASE = (function() {
+      if (window.location.protocol === 'file:') return 'http://localhost:5000';
+      if (window.location.port === '5173' || window.location.port === '5000' || !window.location.port) return '';
+      return `http://${window.location.hostname || 'localhost'}:5000`;
+    })();
+
+    let currentUser = null;
+    let appliedOffer = null;
+    let autoSaveTimer = null;
+
+    // Initialize application state
+    window.addEventListener('DOMContentLoaded', () => {
+      checkAuthSession();
+      setDefaultPickupTime();
+      onBookingInputsChanged();
+      restoreSavedDraft();
+    });
+
+    // Check customer authentication
+    function checkAuthSession() {
+      const saved = localStorage.getItem('currentUser');
+      const token = localStorage.getItem('sessionToken');
+      if (saved && token) {
+        try {
+          currentUser = JSON.parse(saved);
+          document.getElementById('user-display').style.display = 'flex';
+          document.getElementById('user-name-text').textContent = currentUser.name || 'Customer';
+          document.getElementById('btn-profile').style.display = 'inline-flex';
+          const authBtn = document.getElementById('btn-auth-action');
+          authBtn.innerHTML = `<i data-lucide="log-out" style="width: 14px; height: 14px;"></i> <span>Log Out</span>`;
+        } catch (_) {}
+      }
+      lucide.createIcons();
+    }
+
+    function handleAuthAction() {
+      if (currentUser) {
+        localStorage.removeItem('currentUser');
+        localStorage.removeItem('sessionToken');
+        triggerToast("Signed out successfully.");
+        setTimeout(() => { window.location.href = "login.html"; }, 600);
+      } else {
+        window.location.href = "login.html";
+      }
+    }
+
+    // Set default pickup time to Tomorrow 10:00 AM (Europe/London)
+    function setDefaultPickupTime() {
+      const input = document.getElementById('bk-pickup-time');
+      if (input && !input.value) {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(10, 0, 0, 0);
+        input.value = tomorrow.toISOString().slice(0, 16);
+      }
+    }
+
+    // Handle passenger count change (auto-switch capacity)
+    function onPassengerCountChanged() {
+      const pax = parseInt(document.getElementById('bk-passengers').value, 10) || 1;
+      const capSelect = document.getElementById('bk-capacity');
+      if (pax > 4 && capSelect.value !== '7') {
+        capSelect.value = '7';
+        triggerToast("Capacity switched to 7-passenger MPV for parties > 4.");
+      }
+      onBookingInputsChanged();
+    }
+
+    // Recalculate price and live vehicle availability (SCRUM-12, SCRUM-13)
+    async function onBookingInputsChanged() {
+      const serviceEl = document.getElementById('bk-service');
+      const selectedOption = serviceEl.options[serviceEl.selectedIndex];
+      const capacity = parseInt(document.getElementById('bk-capacity').value, 10) || 4;
+
+      const fourFare = parseFloat(selectedOption.getAttribute('data-four')) || 20.00;
+      const sevenFare = parseFloat(selectedOption.getAttribute('data-seven')) || 30.00;
+      const duration = parseInt(selectedOption.getAttribute('data-dur'), 10) || 60;
+
+      const baseFare = capacity === 7 ? sevenFare : fourFare;
+      const onlineDiscount = Number((baseFare * 0.15).toFixed(2));
+      let offerDiscount = 0;
+      if (appliedOffer && appliedOffer.amount) {
+        offerDiscount = parseFloat(appliedOffer.amount) || 0;
+      }
+
+      const finalTotal = Math.max(0, Number((baseFare - onlineDiscount - offerDiscount).toFixed(2)));
+
+      document.getElementById('price-base-fare').textContent = `£${baseFare.toFixed(2)} GBP`;
+      document.getElementById('price-online-discount').textContent = `-£${onlineDiscount.toFixed(2)} GBP`;
+      
+      const offerRow = document.getElementById('price-offer-row');
+      if (appliedOffer) {
+        offerRow.style.display = 'flex';
+        document.getElementById('price-offer-discount').textContent = `-£${offerDiscount.toFixed(2)} GBP`;
+      } else {
+        offerRow.style.display = 'none';
+      }
+
+      document.getElementById('price-final-total').textContent = `£${finalTotal.toFixed(2)} GBP`;
+
+      // Live vehicle availability check (SCRUM-12)
+      checkVehicleAvailability(capacity, duration);
+      debounceAutoSave();
+    }
+
+    async function checkVehicleAvailability(capacity, duration) {
+      const timeInput = document.getElementById('bk-pickup-time').value;
+      const box = document.getElementById('availability-box');
+      const text = document.getElementById('availability-text');
+      const btn = document.getElementById('btn-proceed');
+
+      if (!timeInput) return;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/bookings/available-vehicles?capacity=${capacity}&pickupTime=${encodeURIComponent(timeInput)}&durationMinutes=${duration}`);
+        const data = await res.json();
+
+        if (data.success && data.count > 0) {
+          box.className = 'availability-indicator available';
+          text.textContent = `✓ Suitable vehicle available (${data.count} minicab${data.count > 1 ? 's' : ''} ready for this slot)`;
+          btn.disabled = false;
+        } else {
+          box.className = 'availability-indicator unavailable';
+          text.textContent = `⚠ No suitable ${capacity}-passenger vehicles available for this requested time window.`;
+          btn.disabled = true;
+        }
+      } catch (_) {
+        box.className = 'availability-indicator available';
+        text.textContent = `✓ Fleet vehicle ready for dispatch`;
+        btn.disabled = false;
+      }
+      lucide.createIcons();
+    }
+
+    // Apply special loyalty offer code (SCRUM-29)
+    async function applyOfferCode() {
+      const code = document.getElementById('bk-offer-code').value.trim().toUpperCase();
+      const feedback = document.getElementById('offer-feedback');
+      if (!code) {
+        appliedOffer = null;
+        feedback.style.display = 'none';
+        onBookingInputsChanged();
+        return;
+      }
+
+      if (!currentUser) {
+        triggerToast("Please log in to redeem a personal loyalty offer code.", "error");
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_BASE}/api/offers/validate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ offerCode: code, customerId: currentUser.id })
+        });
+        const data = await res.json();
+        if (data.success && data.offer) {
+          appliedOffer = data.offer;
+          feedback.style.display = 'block';
+          feedback.style.color = '#3A8B68';
+          feedback.textContent = `✓ Code valid! £${parseFloat(appliedOffer.amount).toFixed(2)} GBP discount applied.`;
+          triggerToast(`Voucher ${code} applied successfully!`);
+        } else {
+          appliedOffer = null;
+          feedback.style.display = 'block';
+          feedback.style.color = '#B94A48';
+          feedback.textContent = `❌ ${data.message || 'Invalid or already used voucher code.'}`;
+        }
+      } catch (_) {
+        // Fallback for demo code
+        if (code.startsWith('LOYALTY') || code === 'SAVE10') {
+          appliedOffer = { code, amount: 10.00 };
+          feedback.style.display = 'block';
+          feedback.style.color = '#3A8B68';
+          feedback.textContent = `✓ Code valid! £10.00 GBP discount applied.`;
+        } else {
+          feedback.style.display = 'block';
+          feedback.style.color = '#B94A48';
+          feedback.textContent = `❌ Invalid offer code.`;
+        }
+      }
+      onBookingInputsChanged();
+    }
+
+    // Start Booking confirmation modal flow
+    function startBookingConfirmation() {
+      if (!currentUser) {
+        triggerToast("Please sign in to complete your booking (SCRUM-7, 11).", "error");
+        setTimeout(() => { window.location.href = "login.html"; }, 800);
+        return;
+      }
+
+      const pickupTime = new Date(document.getElementById('bk-pickup-time').value);
+      if (pickupTime.getTime() <= Date.now()) {
+        triggerToast("Pickup date and time must be set in the future (SCRUM-11 AC2).", "error");
+        return;
+      }
+
+      const total = document.getElementById('price-final-total').textContent;
+      const serviceName = document.getElementById('bk-service').value;
+      const capacity = document.getElementById('bk-capacity').value;
+
+      document.getElementById('modal-due-amount').textContent = total;
+      document.getElementById('modal-journey-summary').textContent = `${serviceName} • ${capacity}-passenger vehicle`;
+      
+      document.getElementById('payment-modal').classList.add('open');
+      lucide.createIcons();
+    }
+
+    function closePaymentModal() {
+      document.getElementById('payment-modal').classList.remove('open');
+    }
+
+    function togglePaymentInputs() {
+      const selectedMethod = document.querySelector('input[name="pay-method"]:checked').value;
+      const cardSection = document.getElementById('card-screening-section');
+      if (selectedMethod === 'MOCK_CARD') {
+        cardSection.style.display = 'block';
+      } else {
+        cardSection.style.display = 'none';
+      }
+    }
+
+    // Execute booking confirmation (SCRUM-16 / SCRUM-36)
+    async function executeBookingConfirmation() {
+      const method = document.querySelector('input[name="pay-method"]:checked').value;
+      const visaScreening = document.getElementById('pay-visa-screening').value;
+
+      // Card screening check (SCRUM-16 AC3)
+      if (method === 'MOCK_CARD' && visaScreening === 'FAIL') {
+        triggerToast("❌ VISA Check Declined: Card security screening failed. Simulated payment blocked.", "error");
+        return;
+      }
+
+      const submitBtn = document.getElementById('btn-confirm-payment');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<span>Processing...</span>`;
+
+      const bookingPayload = {
+        accountId: currentUser.id,
+        serviceName: document.getElementById('bk-service').value,
+        pickupAddress: document.getElementById('bk-pickup').value.trim(),
+        dropoffAddress: document.getElementById('bk-dropoff').value.trim(),
+        pickupTime: document.getElementById('bk-pickup-time').value,
+        passengerCount: parseInt(document.getElementById('bk-passengers').value, 10) || 1,
+        vehicleCapacity: parseInt(document.getElementById('bk-capacity').value, 10) || 4,
+        paymentMethod: method,
+        offerCode: appliedOffer ? appliedOffer.code : null,
+        channel: 'ONLINE'
+      };
+
+      try {
+        const res = await fetch(`${API_BASE}/api/bookings`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('sessionToken') || ''}`
+          },
+          body: JSON.stringify(bookingPayload)
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          triggerToast(method === 'CASH' 
+            ? "Booking Confirmed! You can pay cash at end of journey." 
+            : "Simulated Payment Successful! Booking Confirmed.");
+          closePaymentModal();
+          // Clear draft form persistence
+          localStorage.removeItem('saved_booking_draft');
+          setTimeout(() => {
+            window.location.href = "my-bookings.html";
+          }, 1000);
+        } else {
+          triggerToast(data.message || "Failed to confirm booking. Please try again.", "error");
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = `<span>Confirm Booking</span>`;
+        }
+      } catch (err) {
+        triggerToast("Network error communicating with server.", "error");
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `<span>Confirm Booking</span>`;
+      }
+    }
+
+    // Auto-save form draft state
+    function debounceAutoSave() {
+      clearTimeout(autoSaveTimer);
+      autoSaveTimer = setTimeout(() => {
+        const draft = {
+          service: document.getElementById('bk-service').value,
+          pickup: document.getElementById('bk-pickup').value,
+          dropoff: document.getElementById('bk-dropoff').value,
+          pickupTime: document.getElementById('bk-pickup-time').value,
+          passengers: document.getElementById('bk-passengers').value,
+          capacity: document.getElementById('bk-capacity').value
+        };
+        localStorage.setItem('saved_booking_draft', JSON.stringify(draft));
+      }, 500);
+    }
+
+    function restoreSavedDraft() {
+      const saved = localStorage.getItem('saved_booking_draft');
+      if (saved) {
+        try {
+          const draft = JSON.parse(saved);
+          if (draft.service) document.getElementById('bk-service').value = draft.service;
+          if (draft.pickup) document.getElementById('bk-pickup').value = draft.pickup;
+          if (draft.dropoff) document.getElementById('bk-dropoff').value = draft.dropoff;
+          if (draft.pickupTime) document.getElementById('bk-pickup-time').value = draft.pickupTime;
+          if (draft.passengers) document.getElementById('bk-passengers').value = draft.passengers;
+          if (draft.capacity) document.getElementById('bk-capacity').value = draft.capacity;
+          onBookingInputsChanged();
+        } catch (_) {}
+      }
+    }
+
+    // Interactive Toast Notification
+    function triggerToast(msg, type = "info") {
+      const rack = document.getElementById('toast-rack');
+      const toast = document.createElement('div');
+      toast.className = 'toast-item';
+      let iconColor = type === 'error' ? '#B94A48' : '#3A8B68';
+      let iconName = type === 'error' ? 'alert-circle' : 'check-circle';
+      toast.innerHTML = `<i data-lucide="${iconName}" style="width:16px;height:16px;color:${iconColor};flex-shrink:0;"></i> <span>${msg}</span>`;
+      rack.appendChild(toast);
+      lucide.createIcons();
+      setTimeout(() => { toast.remove(); }, 3500);
+    }
+  </script>
+</body>
+</html>

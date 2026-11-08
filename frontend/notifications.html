@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notifications &amp; Alerts — PrivateHire Cars</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    :root {
+      --bg-body: #F4F1EA;
+      --bg-card: #FFFFFF;
+      --bg-card-hover: #FAF7F2;
+      --bg-input: #FFFFFF;
+
+      --border-subtle: #E4DED1;
+      --border-medium: #D8D0C0;
+      --border-focus: #164B3B;
+      --border-error: #B94A48;
+
+      --primary: #164B3B;
+      --primary-hover: #0F372B;
+      --primary-light: #3A8B68;
+      --accent-gold: #C69C54;
+      --accent-emerald: #3A8B68;
+
+      --text-main: #25352E;
+      --text-muted: #5E7168;
+      --text-dim: #84988F;
+      --text-error: #B94A48;
+
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --radius-xl: 18px;
+
+      --font-heading: 'Outfit', sans-serif;
+      --font-body: 'Plus Jakarta Sans', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+
+      --shadow-card: 0 10px 35px rgba(37, 53, 46, 0.08), 0 1px 3px rgba(37, 53, 46, 0.05);
+      --transition-smooth: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-body);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Top Navigation Bar */
+    .top-header {
+      background: #FFFFFF;
+      border-bottom: 1px solid var(--border-subtle);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text-main);
+    }
+
+    .brand-logo-emblem {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 18px;
+      font-family: var(--font-heading);
+    }
+
+    .nav-menu {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      list-style: none;
+    }
+
+    .nav-menu a {
+      text-decoration: none;
+      color: var(--text-muted);
+      font-size: 13.5px;
+      font-weight: 500;
+      transition: var(--transition-smooth);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: var(--radius-sm);
+    }
+
+    .nav-menu a:hover, .nav-menu a.active {
+      color: var(--primary);
+      background: rgba(22, 75, 59, 0.05);
+      font-weight: 600;
+    }
+
+    .nav-user-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(22, 75, 59, 0.06);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .btn-outline-sm {
+      padding: 6px 12px;
+      border: 1px solid var(--border-medium);
+      background: #FFFFFF;
+      border-radius: var(--radius-sm);
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-main);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--transition-smooth);
+      text-decoration: none;
+    }
+    .btn-outline-sm:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--text-muted);
+    }
+
+    /* Main Container */
+    .main-layout {
+      max-width: 800px;
+      margin: 36px auto;
+      padding: 0 24px;
+      width: 100%;
+      flex: 1;
+    }
+
+    .page-title {
+      font-family: var(--font-heading);
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+
+    .page-subtitle {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+
+    .notification-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow-card);
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      transition: var(--transition-smooth);
+    }
+    .notification-card:hover {
+      border-color: var(--accent-emerald);
+    }
+
+    .notif-icon-box {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(58,139,104,0.12);
+      color: var(--accent-emerald);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .notif-content { flex: 1; }
+    .notif-title { font-size: 14.5px; font-weight: 700; color: var(--text-main); margin-bottom: 4px; }
+    .notif-body { font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 8px; }
+    .notif-time { font-size: 11.5px; color: var(--text-dim); }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="top-header">
+    <div class="nav-container">
+      <a href="booking.html" class="brand-left">
+        <div class="brand-logo-emblem">P</div>
+        <div>
+          <span style="font-family: var(--font-heading); font-size: 17px; font-weight: 700; display: block; line-height: 1.2;">PrivateHire Cars</span>
+          <span style="font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; font-family: var(--font-mono);">London Minicab Service</span>
+        </div>
+      </a>
+
+      <nav>
+        <ul class="nav-menu">
+          <li><a href="booking.html"><i data-lucide="calendar-plus" style="width: 15px; height: 15px;"></i> Book a Minicab</a></li>
+          <li><a href="my-bookings.html"><i data-lucide="clock" style="width: 15px; height: 15px;"></i> My Bookings</a></li>
+          <li><a href="offers.html"><i data-lucide="tag" style="width: 15px; height: 15px;"></i> Offers</a></li>
+          <li><a href="enquiries.html"><i data-lucide="help-circle" style="width: 15px; height: 15px;"></i> Support</a></li>
+          <li><a href="notifications.html" class="active"><i data-lucide="bell" style="width: 15px; height: 15px;"></i> Alerts</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-user-actions">
+        <div id="user-display" class="user-pill">
+          <i data-lucide="user" style="width: 14px; height: 14px;"></i>
+          <span id="user-name-text">Customer</span>
+        </div>
+        <a href="profile.html" id="btn-profile" class="btn-outline-sm">
+          <i data-lucide="settings" style="width: 14px; height: 14px;"></i> Profile
+        </a>
+        <button onclick="handleLogout()" class="btn-outline-sm">
+          <i data-lucide="log-out" style="width: 14px; height: 14px;"></i> <span>Log Out</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Layout -->
+  <main class="main-layout">
+    <h1 class="page-title">Approaching Vehicle Alerts (SCRUM-15)</h1>
+    <p class="page-subtitle">Real-time persistent web notifications triggered when your assigned minicab is en route (~10–15 minutes before pickup).</p>
+
+    <div id="notifications-list">
+      <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+        <i data-lucide="bell-off" style="width: 36px; height: 36px; color: var(--text-dim); margin-bottom: 8px;"></i>
+        <p>No active alerts right now.</p>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const API_BASE = (function() {
+      if (window.location.protocol === 'file:') return 'http://localhost:5000';
+      if (window.location.port === '5173' || window.location.port === '5000' || !window.location.port) return '';
+      return `http://${window.location.hostname || 'localhost'}:5000`;
+    })();
+
+    let currentUser = null;
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const saved = localStorage.getItem('currentUser');
+      const token = localStorage.getItem('sessionToken');
+      if (!saved || !token) {
+        window.location.href = "login.html";
+        return;
+      }
+      try {
+        currentUser = JSON.parse(saved);
+        document.getElementById('user-name-text').textContent = currentUser.name || 'Customer';
+        fetchNotifications();
+      } catch (_) {
+        window.location.href = "login.html";
+      }
+      lucide.createIcons();
+    });
+
+    function handleLogout() {
+      localStorage.removeItem('currentUser');
+      localStorage.removeItem('sessionToken');
+      window.location.href = "login.html";
+    }
+
+    async function fetchNotifications() {
+      const container = document.getElementById('notifications-list');
+      try {
+        const res = await fetch(`${API_BASE}/api/notifications`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('sessionToken') || ''}` }
+        });
+        const data = await res.json();
+        if (res.ok && data.success && data.notifications && data.notifications.length > 0) {
+          container.innerHTML = data.notifications.map(n => `
+            <div class="notification-card">
+              <div class="notif-icon-box">
+                <i data-lucide="car" style="width: 20px; height: 20px;"></i>
+              </div>
+              <div class="notif-content">
+                <div class="notif-title">Minicab Approaching — ${n.title || 'Your Chauffeur Is En Route'}</div>
+                <div class="notif-body">${n.message}</div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <span class="notif-time">${new Date(n.created_at).toLocaleString('en-GB')}</span>
+                  ${n.booking_id ? `<a href="my-bookings.html" class="btn-outline-sm" style="font-size: 11.5px; padding: 4px 8px;">View Booking</a>` : ''}
+                </div>
+              </div>
+            </div>
+          `).join('');
+          lucide.createIcons();
+        }
+      } catch (_) {}
+    }
+  </script>
+</body>
+</html>

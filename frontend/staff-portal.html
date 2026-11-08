@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Call Centre Staff Operations — PrivateHire Cars</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    :root {
+      --bg-body: #F4F1EA;
+      --bg-card: #FFFFFF;
+      --bg-card-hover: #FAF7F2;
+      --bg-input: #FFFFFF;
+
+      --border-subtle: #E4DED1;
+      --border-medium: #D8D0C0;
+      --border-focus: #164B3B;
+      --border-error: #B94A48;
+
+      --primary: #164B3B;
+      --primary-hover: #0F372B;
+      --primary-light: #3A8B68;
+      --accent-gold: #C69C54;
+      --accent-emerald: #3A8B68;
+
+      --text-main: #25352E;
+      --text-muted: #5E7168;
+      --text-dim: #84988F;
+      --text-error: #B94A48;
+
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --radius-xl: 18px;
+
+      --font-heading: 'Outfit', sans-serif;
+      --font-body: 'Plus Jakarta Sans', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+
+      --shadow-card: 0 10px 35px rgba(37, 53, 46, 0.08), 0 1px 3px rgba(37, 53, 46, 0.05);
+      --transition-smooth: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-body);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Top Navigation Bar */
+    .top-header {
+      background: #164B3B;
+      color: #FFFFFF;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-container {
+      max-width: 1300px;
+      margin: 0 auto;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: #FFFFFF;
+    }
+
+    .brand-badge {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      background: #C69C54;
+      color: #164B3B;
+      padding: 2px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .main-layout {
+      max-width: 1300px;
+      margin: 28px auto;
+      padding: 0 24px;
+      width: 100%;
+      flex: 1;
+    }
+
+    /* Tabs Bar */
+    .tabs-bar {
+      display: flex;
+      gap: 8px;
+      background: #FFFFFF;
+      padding: 6px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+      margin-bottom: 24px;
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      padding: 9px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      border: none;
+      background: transparent;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      transition: var(--transition-smooth);
+    }
+    .tab-btn.active {
+      background: var(--primary);
+      color: #FFFFFF;
+    }
+
+    .card-panel {
+      background: #FFFFFF;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-card);
+      margin-bottom: 20px;
+    }
+
+    .panel-title {
+      font-family: var(--font-heading);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .table-container {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th {
+      background: #FAF7F2;
+      text-align: left;
+      padding: 10px 14px;
+      font-weight: 700;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border-subtle);
+      color: var(--text-main);
+    }
+
+    .field-group { margin-bottom: 16px; }
+    .field-label { display: block; font-size: 13px; font-weight: 600; color: var(--text-main); margin-bottom: 6px; }
+    .field-input, .field-select {
+      width: 100%; height: 42px; border: 1px solid var(--border-medium); border-radius: var(--radius-sm);
+      padding: 0 12px; font-size: 13.5px; font-family: inherit; color: var(--text-main);
+    }
+
+    .btn-action {
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid var(--border-medium);
+      background: #FFFFFF;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .btn-action:hover { background: var(--bg-card-hover); }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #FFFFFF;
+      border: none;
+    }
+    .btn-primary:hover { background: var(--primary-hover); }
+
+    /* Modal Backdrop */
+    .modal-backdrop {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(18, 28, 24, 0.6);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+    .modal-backdrop.open { display: flex; }
+
+    .modal-box {
+      background: #FFFFFF;
+      border-radius: var(--radius-lg);
+      max-width: 520px;
+      width: 100%;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+      overflow: hidden;
+    }
+    .modal-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #FAF7F2;
+    }
+    .modal-body { padding: 24px; }
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid var(--border-subtle);
+      background: #FAF7F2;
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    /* Toast */
+    #toast-rack {
+      position: fixed; bottom: 24px; right: 24px; display: flex; flex-direction: column; gap: 10px; z-index: 9999;
+    }
+    .toast-item {
+      background: #FFFFFF; border: 1px solid var(--border-subtle); box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      border-radius: var(--radius-md); padding: 12px 18px; font-size: 13.5px; display: flex; align-items: center; gap: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="top-header">
+    <div class="nav-container">
+      <div class="brand-left">
+        <span style="font-family: var(--font-heading); font-size: 18px; font-weight: 700;">PrivateHire Cars</span>
+        <span class="brand-badge">Call Centre Operations</span>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <span style="font-size: 13px; color: #E8E2D5;">Authorised Staff: <strong>London Dispatch Desk</strong></span>
+        <a href="booking.html" class="btn-action" style="font-size: 12px;">Go to Customer Web</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-layout">
+    
+    <!-- Tab Controls -->
+    <div class="tabs-bar">
+      <button class="tab-btn active" onclick="switchTab('dispatch')"><i data-lucide="radio" style="width: 15px; height: 15px;"></i> Active Dispatch &amp; Journeys (SCRUM-26)</button>
+      <button class="tab-btn" onclick="switchTab('assisted')"><i data-lucide="phone-call" style="width: 15px; height: 15px;"></i> Phone Booking Desk (SCRUM-21, 23)</button>
+      <button class="tab-btn" onclick="switchTab('availability')"><i data-lucide="search" style="width: 15px; height: 15px;"></i> Availability Tool (SCRUM-22)</button>
+      <button class="tab-btn" onclick="switchTab('fleet')"><i data-lucide="car" style="width: 15px; height: 15px;"></i> Fleet &amp; Chauffeurs (SCRUM-25, 26)</button>
+      <button class="tab-btn" onclick="switchTab('refunds')"><i data-lucide="rotate-ccw" style="width: 15px; height: 15px;"></i> Refund Queue (SCRUM-19)</button>
+      <button class="tab-btn" onclick="switchTab('enquiries')"><i data-lucide="mail" style="width: 15px; height: 15px;"></i> Customer Enquiries (SCRUM-24)</button>
+      <button class="tab-btn" onclick="switchTab('insights')"><i data-lucide="bar-chart-2" style="width: 15px; height: 15px;"></i> Popularity &amp; Loyalty (SCRUM-27)</button>
+    </div>
+
+    <!-- 1. Dispatch & Journey Operations Tab -->
+    <section id="tab-dispatch" class="tab-content">
+      <div class="card-panel">
+        <h2 class="panel-title">
+          <i data-lucide="compass" style="width: 20px; height: 20px; color: var(--primary);"></i>
+          Live Bookings Queue &amp; Journey Simulation Controls (SCRUM-26)
+        </h2>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Booking Ref</th>
+                <th>Service &amp; Vehicle</th>
+                <th>Pickup Route</th>
+                <th>Scheduled Time</th>
+                <th>Booking Status</th>
+                <th>Payment Status</th>
+                <th>Dispatch Actions</th>
+              </tr>
+            </thead>
+            <tbody id="dispatch-table-body">
+              <tr><td colspan="7" style="text-align: center; padding: 30px;">Loading bookings...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. Phone Assisted Booking Tab (SCRUM-21, 23) -->
+    <section id="tab-assisted" class="tab-content" style="display: none;">
+      <div class="card-panel">
+        <h2 class="panel-title">
+          <i data-lucide="user-check" style="width: 20px; height: 20px; color: var(--accent-emerald);"></i>
+          Caller Verification &amp; Assisted Booking (SCRUM-21, 23)
+        </h2>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+          <div>
+            <h3 style="font-size: 14px; font-weight: 700; margin-bottom: 12px;">Step 1: Lookup &amp; Verify Existing Caller (SCRUM-21)</h3>
+            <div class="field-group">
+              <label class="field-label">Search by Email or Telephone *</label>
+              <div style="display: flex; gap: 8px;">
+                <input type="text" id="caller-search-query" class="field-input" placeholder="e.g. 0712345678 or john@example.com" />
+                <button type="button" class="btn-action btn-primary" onclick="lookupCaller()">Lookup</button>
+              </div>
+            </div>
+            <div id="caller-verification-box" style="display: none; background: #FAF7F2; padding: 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); margin-top: 14px;">
+              <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">Match supplied Name &amp; Phone before assisted booking:</p>
+              <div style="font-size: 13.5px; font-weight: 600;" id="caller-matched-info"></div>
+              <button type="button" class="btn-action btn-primary" style="margin-top: 10px;" onclick="confirmCallerVerified()">Verify &amp; Start Assisted Booking</button>
+            </div>
+          </div>
+
+          <div>
+            <h3 style="font-size: 14px; font-weight: 700; margin-bottom: 12px;">Step 2: Create Booking (No 15% Online Discount)</h3>
+            <form id="assisted-booking-form" onsubmit="event.preventDefault(); submitAssistedBooking();">
+              <input type="hidden" id="asst-customer-id" />
+              <div class="field-group">
+                <label class="field-label">Selected Customer</label>
+                <input type="text" id="asst-customer-label" class="field-input" readonly placeholder="Please verify caller in Step 1" style="background: #FAF7F2;" />
+              </div>
+              <div class="field-group">
+                <label class="field-label">Channel *</label>
+                <select id="asst-channel" class="field-select">
+                  <option value="TELEPHONE" selected>Telephone Booking</option>
+                  <option value="IN_PERSON">In-Person Booking</option>
+                </select>
+              </div>
+              <div class="field-group">
+                <label class="field-label">Service Type *</label>
+                <select id="asst-service" class="field-select">
+                  <option value="Airport transfer" selected>Airport transfer (£45 / £65 GBP)</option>
+                  <option value="Local journey">Local journey (£20 / £30 GBP)</option>
+                  <option value="Long-distance journey">Long-distance journey (£80 / £120 GBP)</option>
+                  <option value="Hotel transfer">Hotel transfer (£30 / £45 GBP)</option>
+                  <option value="Airport meet-and-greet">Airport meet-and-greet (£55 / £80 GBP)</option>
+                  <option value="Driver and car daily hire">Driver and car daily hire (£200 / £280 GBP)</option>
+                </select>
+              </div>
+              <div class="field-group">
+                <label class="field-label">Pickup &amp; Destination *</label>
+                <input type="text" id="asst-pickup" class="field-input" placeholder="Pickup Address" required style="margin-bottom: 6px;" />
+                <input type="text" id="asst-dropoff" class="field-input" placeholder="Dropoff Destination" required />
+              </div>
+              <button type="submit" class="btn-action btn-primary" style="width: 100%; height: 42px; justify-content: center;">
+                Create Assisted Booking (SCRUM-23)
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Availability Tool Tab (SCRUM-22) -->
+    <section id="tab-availability" class="tab-content" style="display: none;">
+      <div class="card-panel">
+        <h2 class="panel-title">
+          <i data-lucide="calendar" style="width: 20px; height: 20px; color: var(--primary);"></i>
+          Live Vehicle &amp; Driver Availability Search (SCRUM-22)
+        </h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 20px;">
+          <div>
+            <label class="field-label">Pickup Date &amp; Time *</label>
+            <input type="datetime-local" id="srch-pickup-time" class="field-input" />
+          </div>
+          <div>
+            <label class="field-label">Service Type *</label>
+            <select id="srch-service" class="field-select">
+              <option value="Airport transfer" data-dur="90">Airport transfer (90 min)</option>
+              <option value="Local journey" data-dur="60">Local journey (60 min)</option>
+              <option value="Long-distance journey" data-dur="180">Long-distance journey (180 min)</option>
+              <option value="Hotel transfer" data-dur="60">Hotel transfer (60 min)</option>
+              <option value="Airport meet-and-greet" data-dur="120">Airport meet-and-greet (120 min)</option>
+              <option value="Driver and car daily hire" data-dur="480">Driver and car daily hire (480 min)</option>
+            </select>
+          </div>
+          <div>
+            <label class="field-label">Passenger Count *</label>
+            <input type="number" id="srch-passengers" class="field-input" min="1" max="7" value="2" />
+          </div>
+          <div style="display: flex; align-items: flex-end;">
+            <button type="button" class="btn-action btn-primary" style="height: 42px; width: 100%; justify-content: center;" onclick="runStaffAvailabilitySearch()">
+              Search Availability
+            </button>
+          </div>
+        </div>
+        <div id="srch-results-box" style="padding: 18px; background: #FAF7F2; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+          <p style="color: var(--text-muted); font-size: 13.5px;">Click "Search Availability" to evaluate non-conflicting vehicles and drivers for the specified window.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Fleet & Chauffeurs Tab (SCRUM-25, 26) -->
+    <section id="tab-fleet" class="tab-content" style="display: none;">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+        <div class="card-panel">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <h2 class="panel-title" style="margin-bottom: 0;">Executive Fleet (SCRUM-25)</h2>
+            <button class="btn-action btn-primary" onclick="openAddVehicleModal()">+ Add Vehicle</button>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Reg</th>
+                  <th>Make</th>
+                  <th>Colour</th>
+                  <th>Capacity</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="fleet-table-body">
+                <tr><td colspan="5">Loading vehicles...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card-panel">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <h2 class="panel-title" style="margin-bottom: 0;">Licensed Chauffeurs (SCRUM-26)</h2>
+            <button class="btn-action btn-primary" onclick="openAddDriverModal()">+ Add Chauffeur</button>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Ref</th>
+                  <th>Name</th>
+                  <th>Phone</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="driver-table-body">
+                <tr><td colspan="4">Loading chauffeurs...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. Refund Queue Tab (SCRUM-19) -->
+    <section id="tab-refunds" class="tab-content" style="display: none;">
+      <div class="card-panel">
+        <h2 class="panel-title">
+          <i data-lucide="rotate-ccw" style="width: 20px; height: 20px; color: var(--accent-emerald);"></i>
+          Customer Refund Queue (SCRUM-19)
+        </h2>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Booking Ref</th>
+                <th>Reason</th>
+                <th>Amount Requested</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="refunds-table-body">
+              <tr><td colspan="5" style="text-align: center; padding: 20px;">No pending refund requests.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. Enquiries Tab (SCRUM-24) -->
+    <section id="tab-enquiries" class="tab-content" style="display: none;">
+      <div class="card-panel">
+        <h2 class="panel-title">
+          <i data-lucide="mail" style="width: 20px; height: 20px; color: var(--primary);"></i>
+          Customer Enquiries &amp; Email Replies (SCRUM-24)
+        </h2>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Ref</th>
+                <th>Type</th>
+                <th>Sender</th>
+                <th>Message</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="enquiries-table-body">
+              <tr><td colspan="6" style="text-align: center; padding: 20px;">Loading enquiries...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. Insights Tab (SCRUM-27) -->
+    <section id="tab-insights" class="tab-content" style="display: none;">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+        <div class="card-panel">
+          <h2 class="panel-title">Vehicle Popularity (Completed Trips)</h2>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Vehicle</th>
+                  <th>Capacity</th>
+                  <th>Completed Bookings</th>
+                </tr>
+              </thead>
+              <tbody id="popular-vehicles-body">
+                <tr><td colspan="3">Loading metrics...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card-panel">
+          <h2 class="panel-title">Customer Loyalty (Completed Trips)</h2>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Customer Name</th>
+                  <th>Email</th>
+                  <th>Completed Bookings</th>
+                </tr>
+              </thead>
+              <tbody id="loyal-customers-body">
+                <tr><td colspan="3">Loading metrics...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Driver Assignment Modal (SCRUM-26) -->
+  <div id="assign-driver-modal" class="modal-backdrop">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 style="font-family: var(--font-heading); font-size: 16px; font-weight: 700;">Assign Chauffeur (SCRUM-26)</h3>
+        <button onclick="closeAssignDriverModal()" style="border: none; background: none; cursor: pointer;">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="assign-booking-id" />
+        <div class="field-group">
+          <label class="field-label">Select Available Active Chauffeur *</label>
+          <select id="assign-driver-select" class="field-select"></select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-action" onclick="closeAssignDriverModal()">Cancel</button>
+        <button type="button" class="btn-action btn-primary" onclick="confirmDriverAssignment()">Confirm Assignment</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-rack"></div>
+
+  <script>
+    const API_BASE = (function() {
+      if (window.location.protocol === 'file:') return 'http://localhost:5000';
+      if (window.location.port === '5173' || window.location.port === '5000' || !window.location.port) return '';
+      return `http://${window.location.hostname || 'localhost'}:5000`;
+    })();
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadDispatchQueue();
+      loadFleetAndDrivers();
+      loadRefundQueue();
+      loadEnquiriesQueue();
+      loadInsightsMetrics();
+      lucide.createIcons();
+    });
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+      event.currentTarget.classList.add('active');
+      document.getElementById(`tab-${tabId}`).style.display = 'block';
+      lucide.createIcons();
+    }
+
+    // 1. Dispatch Queue & Journey State Simulation
+    async function loadDispatchQueue() {
+      const tbody = document.getElementById('dispatch-table-body');
+      try {
+        const res = await fetch(`${API_BASE}/api/staff/bookings`);
+        const data = await res.json();
+        if (res.ok && data.success && data.bookings) {
+          tbody.innerHTML = data.bookings.map(b => {
+            const bStatus = (b.status || 'PENDING').toUpperCase();
+            const pStatus = (b.payment_status || 'UNPAID').toUpperCase();
+
+            let actionBtns = '';
+            if (bStatus === 'CONFIRMED') {
+              actionBtns = `<button class="btn-action btn-primary" onclick="openAssignDriverModal(${b.id})">Assign Driver</button>`;
+            } else if (bStatus === 'ASSIGNED') {
+              actionBtns = `<button class="btn-action" onclick="progressJourney(${b.id}, 'ENROUTE')">Set EnRoute</button>`;
+            } else if (bStatus === 'ENROUTE') {
+              actionBtns = `
+                <button class="btn-action" style="color: var(--accent-emerald);" onclick="sendApproachingAlert(${b.id})">Notify Customer (SCRUM-15)</button>
+                <button class="btn-action btn-primary" onclick="progressJourney(${b.id}, 'COMPLETED')">Complete Journey</button>
+              `;
+            } else if (bStatus === 'COMPLETED' && pStatus === 'UNPAID') {
+              actionBtns = `<button class="btn-action btn-primary" onclick="confirmCashCollected(${b.id}, ${b.fare_amount})">Confirm Cash Received (£${parseFloat(b.fare_amount).toFixed(2)})</button>`;
+            } else {
+              actionBtns = `<span style="font-size: 11.5px; color: var(--text-dim);">Finalized</span>`;
+            }
+
+            return `
+              <tr>
+                <td><strong>${b.booking_code}</strong></td>
+                <td>${b.service_name || 'Standard'}<br><span style="font-size: 11px; color: var(--text-dim);">${b.car_type || 'Saloon'}</span></td>
+                <td>${b.pickup_address} → ${b.dropoff_address}</td>
+                <td>${new Date(b.pickup_time).toLocaleString('en-GB')}</td>
+                <td><span style="font-weight: 700; font-size: 11px;">${bStatus}</span></td>
+                <td><span style="font-weight: 700; font-size: 11px;">${pStatus}</span></td>
+                <td>${actionBtns}</td>
+              </tr>
+            `;
+          }).join('');
+        }
+      } catch (_) {}
+    }
+
+    async function progressJourney(bookingId, nextStatus) {
+      try {
+        const res = await fetch(`${API_BASE}/api/staff/bookings/${bookingId}/status`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: nextStatus, staffId: 1 })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          triggerToast(`Journey updated to ${nextStatus}!`);
+          loadDispatchQueue();
+        }
+      } catch (_) {}
+    }
+
+    async function sendApproachingAlert(bookingId) {
+      try {
+        const res = await fetch(`${API_BASE}/api/staff/bookings/${bookingId}/approaching-alert`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ staffId: 1 })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          triggerToast("Approaching alert sent to customer account (SCRUM-15)!");
+        } else {
+          triggerToast(data.message || "Failed to send alert.", "error");
+        }
+      } catch (_) {}
+    }
+
+    async function confirmCashCollected(bookingId, amount) {
+      if (!confirm(`Confirm cash receipt of £${parseFloat(amount).toFixed(2)} GBP for booking?`)) return;
+      try {
+        const res = await fetch(`${API_BASE}/api/staff/bookings/${bookingId}/collect-cash`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ staffId: 1 })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          triggerToast("Cash payment recorded! Booking marked as Paid.");
+          loadDispatchQueue();
+        }
+      } catch (_) {}
+    }
+
+    // Driver Assignment Modal
+    let driversList = [];
+    async function loadFleetAndDrivers() {
+      try {
+        const res = await fetch(`${API_BASE}/api/staff/fleet`);
+        const data = await res.json();
+        if (res.ok && data.success) {
+          document.getElementById('fleet-table-body').innerHTML = data.vehicles.map(v => `
+            <tr>
+              <td><strong>${v.registration_number}</strong></td>
+              <td>${v.make} ${v.model || ''}</td>
+              <td>${v.colour}</td>
+              <td>${v.capacity} Pax</td>
+              <td>${v.status}</td>
+            </tr>
+          `).join('');
+
+          driversList = data.drivers || [];
+          document.getElementById('driver-table-body').innerHTML = driversList.map(d => `
+            <tr>
+              <td><strong>${d.driver_code}</strong></td>
+              <td>${d.name}</td>
+              <td>${d.phone}</td>
+              <td>${d.status}</td>
+            </tr>
+          `).join('');
+        }
+      } catch (_) {}
+    }
+
+    function openAssignDriverModal(bookingId) {
+      document.getElementById('assign-booking-id').value = bookingId;
+      const sel = document.getElementById('assign-driver-select');
+      sel.innerHTML = driversList.filter(d => d.status === 'ACTIVE').map(d => `
+        <option value="${d.id}">${d.name} (${d.driver_code})</option>
+      `).join('');
+      document.getElementById('assign-driver-modal').classList.add('open');
+    }
+    function closeAssignDriverModal() {
+      document.getElementById('assign-driver-modal').classList.remove('open');
+    }
+    async function confirmDriverAssignment() {
+      const bId = document.getElementById('assign-booking-id').value;
+      const dId = document.getElementById('assign-driver-select').value;
+      try {
+        const res = await fetch(`${API_BASE}/api/staff/bookings/${bId}/status`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'ASSIGNED', driverId: dId, staffId: 1 })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          triggerToast("Driver assigned successfully!");
+          closeAssignDriverModal();
+          loadDispatchQueue();
+        }
+      } catch (_) {}
+    }
+
+    // Caller Lookup (SCRUM-21)
+    let verifiedCustomer = null;
+    async function lookupCaller() {
+      const q = document.getElementById('caller-search-query').value.trim();
+      if (!q) return;
+      try {
+        const res = await fetch(`${API_BASE}/api/staff/caller-lookup?query=${encodeURIComponent(q)}`);
+        const data = await res.json();
+        if (res.ok && data.success && data.customer) {
+          verifiedCustomer = data.customer;
+          document.getElementById('caller-matched-info').textContent = `Account: ${verifiedCustomer.name} (${verifiedCustomer.telephone}) — ${verifiedCustomer.email}`;
+          document.getElementById('caller-verification-box').style.display = 'block';
+        } else {
+          triggerToast("Caller not found in database.", "error");
+        }
+      } catch (_) {}
+    }
+    function confirmCallerVerified() {
+      if (!verifiedCustomer) return;
+      document.getElementById('asst-customer-id').value = verifiedCustomer.id;
+      document.getElementById('asst-customer-label').value = `${verifiedCustomer.name} (${verifiedCustomer.email})`;
+      triggerToast("Caller verified! Ready for assisted booking.");
+    }
+    async function submitAssistedBooking() {
+      const cId = document.getElementById('asst-customer-id').value;
+      if (!cId) {
+        triggerToast("Please verify caller first (SCRUM-21).", "error");
+        return;
+      }
+      const payload = {
+        accountId: cId,
+        serviceName: document.getElementById('asst-service').value,
+        pickupAddress: document.getElementById('asst-pickup').value.trim(),
+        dropoffAddress: document.getElementById('asst-dropoff').value.trim(),
+        channel: document.getElementById('asst-channel').value,
+        staffId: 1
+      };
+      try {
+        const res = await fetch(`${API_BASE}/api/staff/bookings`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          triggerToast("Assisted booking created successfully! Added to dispatch queue.");
+          loadDispatchQueue();
+        }
+      } catch (_) {}
+    }
+
+    // Availability Search (SCRUM-22)
+    async function runStaffAvailabilitySearch() {
+      const pTime = document.getElementById('srch-pickup-time').value;
+      const service = document.getElementById('srch-service').value;
+      const pax = document.getElementById('srch-passengers').value;
+      const box = document.getElementById('srch-results-box');
+
+      if (!pTime) {
+        triggerToast("Please select pickup time.", "error");
+        return;
+      }
+      try {
+        const res = await fetch(`${API_BASE}/api/staff/availability?pickupTime=${encodeURIComponent(pTime)}&serviceName=${encodeURIComponent(service)}&passengers=${pax}`);
+        const data = await res.json();
+        if (res.ok && data.success) {
+          box.innerHTML = `
+            <div style="font-size: 14px; line-height: 1.8;">
+              <strong style="color: var(--primary);">Standard Quote:</strong> £${parseFloat(data.baseFare).toFixed(2)} GBP (No Online Discount for Phone)<br>
+              <strong>Available Suitable Vehicles:</strong> ${data.availableVehicles.length} vehicles available<br>
+              <strong>Available Chauffeurs:</strong> ${data.availableDrivers.length} chauffeurs free during this window<br>
+              <span style="font-size: 12px; color: var(--text-dim);">(Note: Resources are not reserved at search stage - SCRUM-22 AC5)</span>
+            </div>
+          `;
+        }
+      } catch (_) {}
+    }
+
+    // Refunds Queue (SCRUM-19)
+    async function loadRefundQueue() {
+      const tbody = document.getElementById('refunds-table-body');
+      try {
+        const res = await fetch(`${API_BASE}/api/staff/refunds`);
+        const data = await res.json();
+        if (res.ok && data.success && data.refunds && data.refunds.length > 0) {
+          tbody.innerHTML = data.refunds.map(r => `
+            <tr>
+              <td><strong>${r.booking_code}</strong></td>
+              <td>${r.reason}</td>
+              <td>£${parseFloat(r.amount).toFixed(2)} GBP</td>
+              <td><span style="font-weight: 700;">${r.status}</span></td>
+              <td>
+                ${r.status === 'PENDING' ? `
+                  <button class="btn-action btn-primary" onclick="processRefund(${r.id})">Process Refund</button>
+                ` : 'Processed'}
+              </td>
+            </tr>
+          `).join('');
+        }
+      } catch (_) {}
+    }
+    async function processRefund(refundId) {
+      if (!confirm("Confirm refund processing?")) return;
+      try {
+        const res = await fetch(`${API_BASE}/api/staff/refunds/${refundId}/process`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ staffId: 1 })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          triggerToast("Refund processed successfully (SCRUM-19)!");
+          loadRefundQueue();
+        }
+      } catch (_) {}
+    }
+
+    // Enquiries Queue (SCRUM-24)
+    async function loadEnquiriesQueue() {
+      const tbody = document.getElementById('enquiries-table-body');
+      try {
+        const res = await fetch(`${API_BASE}/api/staff/enquiries`);
+        const data = await res.json();
+        if (res.ok && data.success && data.enquiries) {
+          tbody.innerHTML = data.enquiries.map(e => `
+            <tr>
+              <td><strong>${e.enquiry_code || `ENQ-${e.id}`}</strong></td>
+              <td>${e.enquiry_type || 'GENERAL'}</td>
+              <td>${e.customer_name || 'Guest'}<br><span style="font-size: 11px; color: var(--text-dim);">${e.reply_email}</span></td>
+              <td>${e.message}</td>
+              <td>${e.status || 'NEW'}</td>
+              <td>
+                <button class="btn-action" onclick="replyEnquiry(${e.id}, '${e.reply_email}')">Email Reply (SCRUM-24)</button>
+              </td>
+            </tr>
+          `).join('');
+        }
+      } catch (_) {}
+    }
+    async function replyEnquiry(enquiryId, email) {
+      const replyMsg = prompt(`Enter reply to be sent via real email to ${email}:`);
+      if (!replyMsg) return;
+      try {
+        const res = await fetch(`${API_BASE}/api/staff/enquiries/${enquiryId}/reply`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ replyMessage: replyMsg, staffId: 1 })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          triggerToast("Reply saved and email sent to customer!");
+          loadEnquiriesQueue();
+        }
+      } catch (_) {}
+    }
+
+    // Insights Metrics (SCRUM-27)
+    async function loadInsightsMetrics() {
+      try {
+        const res = await fetch(`${API_BASE}/api/staff/reports/popularity-loyalty`);
+        const data = await res.json();
+        if (res.ok && data.success) {
+          document.getElementById('popular-vehicles-body').innerHTML = (data.popularVehicles || []).map(v => `
+            <tr>
+              <td><strong>${v.make} (${v.registration_number})</strong></td>
+              <td>${v.capacity} Pax</td>
+              <td><strong>${v.completed_trips || 0}</strong> trips</td>
+            </tr>
+          `).join('') || '<tr><td colspan="3">No completed trips yet.</td></tr>';
+
+          document.getElementById('loyal-customers-body').innerHTML = (data.loyalCustomers || []).map(c => `
+            <tr>
+              <td><strong>${c.name}</strong></td>
+              <td>${c.email}</td>
+              <td><strong>${c.completed_trips || 0}</strong> trips</td>
+            </tr>
+          `).join('') || '<tr><td colspan="3">No completed trips yet.</td></tr>';
+        }
+      } catch (_) {}
+    }
+
+    function triggerToast(msg, type = "info") {
+      const rack = document.getElementById('toast-rack');
+      const toast = document.createElement('div');
+      toast.className = 'toast-item';
+      let iconColor = type === 'error' ? '#B94A48' : '#3A8B68';
+      let iconName = type === 'error' ? 'alert-circle' : 'check-circle';
+      toast.innerHTML = `<i data-lucide="${iconName}" style="width:16px;height:16px;color:${iconColor};"></i> <span>${msg}</span>`;
+      rack.appendChild(toast);
+      lucide.createIcons();
+      setTimeout(() => { toast.remove(); }, 3500);
+    }
+  </script>
+</body>
+</html>
