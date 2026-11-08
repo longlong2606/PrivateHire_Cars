@@ -1177,3 +1177,146 @@ body[data-user-role="STAFF"] .staff-portal-btn {
   padding: 10px 0;
   margin-bottom: 20px;
 }
+
+/* ==========================================================================
+   GLOBAL APP FOOTER STYLES (Customer & Staff Portals)
+   ========================================================================== */
+.app-footer {
+  background: #091C16;
+  color: #A9C2B5;
+  padding: 60px 0 28px;
+  font-size: 13.5px;
+  margin-top: auto;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  width: 100%;
+}
+
+[data-theme="dark"] .app-footer {
+  background: #061410;
+  border-top-color: rgba(255, 255, 255, 0.05);
+}
+
+.app-footer .container,
+.app-footer .footer-container {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr 1.2fr;
+  gap: 36px;
+  margin-bottom: 45px;
+}
+
+.footer-col-title {
+  font-family: var(--font-heading, "Playfair Display", Georgia, serif);
+  font-size: 15.5px;
+  font-weight: 700;
+  color: #FFFFFF;
+  margin-bottom: 16px;
+  letter-spacing: 0.2px;
+}
+
+.footer-links-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-links-list a {
+  color: #8BA89B;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  display: inline-block;
+  font-size: 13px;
+}
+
+.footer-links-list a:hover {
+  color: var(--accent-gold-light, #E0B354);
+  transform: translateX(3px);
+}
+
+.footer-contact-item {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+  line-height: 1.5;
+  font-size: 13px;
+  color: #8BA89B;
+}
+
+.footer-contact-item i {
+  color: var(--accent-gold, #C5A059);
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+.footer-contact-item a {
+  color: #FFFFFF;
+  text-decoration: none;
+}
+
+.footer-contact-item a:hover {
+  color: var(--accent-gold, #C5A059);
+}
+
+.footer-bottom-bar {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  font-size: 12px;
+  color: #718479;
+}
+
+.footer-bottom-bar a {
+  color: #718479;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.footer-bottom-bar a:hover {
+  color: var(--accent-gold-light, #E0B354);
+}
+
+/* Staff Portal specialized footer */
+.staff-footer {
+  background: #081611;
+  padding: 36px 0 20px;
+}
+.staff-footer .footer-grid {
+  grid-template-columns: 1.3fr 1fr 1fr 1fr;
+  gap: 28px;
+  margin-bottom: 28px;
+}
+
+@media (max-width: 1024px) {
+  .footer-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 28px;
+  }
+}
+
+@media (max-width: 640px) {
+  .footer-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .app-footer {
+    padding: 45px 0 22px;
+  }
+  .footer-bottom-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+}

@@ -1123,6 +1123,86 @@
     </section>
 
   </main>
+
+    <!-- ===================================================================
+         STAFF & OPERATIONS FOOTER
+         =================================================================== -->
+    <footer class="app-footer staff-footer">
+      <div class="footer-container" style="padding: 0 32px;">
+        <div class="footer-grid">
+          <!-- Col 1: System Info -->
+          <div>
+            <div class="brand-logo" style="margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+              <div class="brand-shield" style="width: 30px; height: 30px; border-radius: 6px; background: rgba(255, 255, 255, 0.1); display: flex; align-items: center; justify-content: center;">
+                <i data-lucide="shield" style="width: 17px; height: 17px; color: var(--accent-gold, #C5A059);"></i>
+              </div>
+              <div>
+                <div style="font-family: var(--font-heading); font-size: 15px; font-weight: 700; color: #FFFFFF;">PrivateHire Operations</div>
+                <div style="font-size: 10.5px; font-weight: 600; color: var(--accent-gold, #C5A059); text-transform: uppercase;">Dispatch Terminal v2.6.4</div>
+              </div>
+            </div>
+            <p style="font-size: 12.5px; line-height: 1.5; color: #8BA89B; margin-bottom: 12px;">
+              Authorised Transport for London Private Hire Operations Desk. Real-time fleet tracking, chauffeur allocation, automated receipt generation, and customer dispute management.
+            </p>
+            <div style="font-size: 11.5px; color: #718479;">
+              Connected: <strong style="color: #4ADE80;">Render Cloud PostgreSQL</strong> &bull; Node.js REST API
+            </div>
+          </div>
+
+          <!-- Col 2: Dispatch Quick Links -->
+          <div>
+            <h4 class="footer-col-title">Operations Control</h4>
+            <ul class="footer-links-list">
+              <li><a href="javascript:void(0)" onclick="switchTab('dispatch'); window.scrollTo({top: 0, behavior: 'smooth'});">Live Dispatch Board</a></li>
+              <li><a href="javascript:void(0)" onclick="switchTab('assisted'); window.scrollTo({top: 0, behavior: 'smooth'});">Call Centre Phone Booking</a></li>
+              <li><a href="javascript:void(0)" onclick="switchTab('availability'); window.scrollTo({top: 0, behavior: 'smooth'});">Vehicle &amp; Chauffeur Search</a></li>
+              <li><a href="javascript:void(0)" onclick="switchTab('fleet'); window.scrollTo({top: 0, behavior: 'smooth'});">Active Fleet &amp; Drivers (150)</a></li>
+              <li><a href="javascript:void(0)" onclick="switchTab('refunds'); window.scrollTo({top: 0, behavior: 'smooth'});">Refund &amp; Cancellation Queue</a></li>
+            </ul>
+          </div>
+
+          <!-- Col 3: System & Insights -->
+          <div>
+            <h4 class="footer-col-title">Analytics &amp; Data</h4>
+            <ul class="footer-links-list">
+              <li><a href="javascript:void(0)" onclick="switchTab('insights'); window.scrollTo({top: 0, behavior: 'smooth'});">Demand &amp; Loyalty Metrics</a></li>
+              <li><a href="javascript:void(0)" onclick="switchTab('database'); window.scrollTo({top: 0, behavior: 'smooth'});">Staff Database Inspector</a></li>
+              <li><a href="database-viewer.html" target="_blank">Full-Screen DB Inspector &nearr;</a></li>
+              <li><a href="javascript:void(0)" onclick="switchTab('enquiries'); window.scrollTo({top: 0, behavior: 'smooth'});">Customer Enquiries Queue</a></li>
+              <li><a href="home.html" target="_blank">Public Customer Website &nearr;</a></li>
+            </ul>
+          </div>
+
+          <!-- Col 4: Incident Support -->
+          <div>
+            <h4 class="footer-col-title">Duty Manager Support</h4>
+            <div class="footer-contact-item">
+              <i data-lucide="phone-call" style="width: 15px; height: 15px;"></i>
+              <span>Internal Hotline: <strong style="color: #FFFFFF;">Ext 4091 / +44 20 7946 0991</strong></span>
+            </div>
+            <div class="footer-contact-item">
+              <i data-lucide="radio" style="width: 15px; height: 15px;"></i>
+              <span>Channel 1: TfL Flight Tracking &amp; Airport Liaison</span>
+            </div>
+            <div class="footer-contact-item">
+              <i data-lucide="shield-check" style="width: 15px; height: 15px;"></i>
+              <span>SSL / TLS Encrypted Operations Console</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer-bottom-bar" style="padding-top: 18px;">
+          <div>
+            &copy; 2026 PrivateHire Cars London Ltd. Restricted to Authorised Personnel Only.
+          </div>
+          <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+            <a href="javascript:void(0)" onclick="switchTab('insights')">System Audit</a>
+            <a href="javascript:void(0)" onclick="fetchStats()">Health Check</a>
+            <a href="database-viewer.html">System Schema</a>
+          </div>
+        </div>
+      </div>
+    </footer>
   </div>
 
   <!-- Driver Assignment Modal -->
