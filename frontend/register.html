@@ -107,14 +107,23 @@
       padding: 0 28px 70px 28px;
     }
 
-    /* Top Navigation Bar */
-    .top-navbar {
+    /* Top Navigation Bar (Full Width across viewport) */
+    .top-navbar-wrapper {
+      width: 100%;
+      background: #FFFFFF;
+      border-bottom: 1px solid var(--border-subtle);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .top-navbar-inner {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 16px 28px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 20px 0;
-      border-bottom: 1px solid var(--border-subtle);
-      margin-bottom: 38px;
     }
 
     .brand-group {
@@ -873,7 +882,7 @@
     }
 
     @media (max-width: 640px) {
-      .top-navbar {
+      .top-navbar-inner {
         padding: 12px 16px;
         flex-wrap: wrap;
         gap: 8px;
@@ -913,9 +922,12 @@
       -webkit-text-fill-color: transparent !important;
     }
 
+    [data-theme="dark"] .top-navbar-wrapper,
     [data-theme="dark"] .top-navbar {
-      background: transparent !important;
-      border-bottom-color: #1F362C !important;
+      background-color: #12211A !important;
+      background: #12211A !important;
+      border-bottom: 1px solid #1F362C !important;
+      width: 100% !important;
     }
 
     [data-theme="dark"] .nav-btn {
@@ -1163,11 +1175,10 @@
   <div class="ambient-glow-top"></div>
   <div class="ambient-glow-bottom"></div>
 
-  <div class="app-container">
-
-    <!-- Top Navigation Bar -->
-    <header class="top-navbar">
-      <a href="index.html" class="brand-group">
+  <!-- Top Navigation Bar (Full Width across viewport) -->
+  <header class="top-navbar-wrapper">
+    <div class="top-navbar-inner">
+      <a href="home.html" class="brand-group">
         <div class="brand-emblem">
           <i data-lucide="shield" style="width: 22px; height: 22px;"></i>
         </div>
@@ -1190,7 +1201,10 @@
           <span>Log in</span>
         </a>
       </div>
-    </header>
+    </div>
+  </header>
+
+  <div class="app-container" style="padding-top: 24px;">
 
     <!-- Breadcrumbs -->
     <nav class="breadcrumb-nav" aria-label="Breadcrumb" style="margin: 14px 0 16px 0;">

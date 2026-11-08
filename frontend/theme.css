@@ -53,14 +53,18 @@ html[data-theme="dark"] body {
 
 /* 3. Navigation Headers, Topbars & Sidebars */
 [data-theme="dark"] .top-header,
+[data-theme="dark"] .top-navbar-wrapper,
 [data-theme="dark"] .app-header,
 [data-theme="dark"] .main-topbar,
 [data-theme="dark"] .top-bar,
 [data-theme="dark"] .top-navbar,
 [data-theme="dark"] header.top-header,
+[data-theme="dark"] header.top-navbar-wrapper,
 [data-theme="dark"] header.app-header,
 [data-theme="dark"] header.top-bar,
 [data-theme="dark"] header.top-navbar {
+  width: 100% !important;
+  max-width: 100% !important;
   background-color: #12211A !important;
   background: #12211A !important;
   border-bottom: 1px solid #1F362C !important;
