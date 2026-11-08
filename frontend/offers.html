@@ -13,6 +13,10 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
+  <!-- Dark / Light Theme System -->
+  <link rel="stylesheet" href="theme.css">
+  <script src="theme.js"></script>
+
   <style>
     :root {
       --bg-body: #F4F1EA;
@@ -252,6 +256,10 @@
       </nav>
 
       <div class="nav-user-actions">
+        <button type="button" class="theme-toggle-btn btn-outline-sm" onclick="toggleTheme()" title="Switch Theme">
+          <i data-lucide="moon" class="theme-toggle-icon" style="width: 14px; height: 14px;"></i>
+          <span class="theme-toggle-label">Dark</span>
+        </button>
         <a href="staff.html" class="btn-outline-sm" style="color: var(--primary); font-weight: 700;"><i data-lucide="shield" style="width: 14px; height: 14px;"></i> Staff Portal</a>
         <div id="user-display" class="user-pill">
           <i data-lucide="user" style="width: 14px; height: 14px;"></i>

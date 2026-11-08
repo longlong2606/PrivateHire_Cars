@@ -13,6 +13,10 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
+  <!-- Dark / Light Theme System -->
+  <link rel="stylesheet" href="theme.css">
+  <script src="theme.js"></script>
+
   <style>
     :root {
       --bg-body: #F4F1EA;
@@ -564,6 +568,10 @@
     </nav>
 
     <div class="sidebar-footer">
+      <button type="button" onclick="toggleTheme()" class="sidebar-link theme-toggle-btn" style="border:none; background:transparent; width:100%; text-align:left; cursor:pointer;" title="Switch Theme">
+        <i data-lucide="moon" class="theme-toggle-icon" style="width: 14px; height: 14px;"></i>
+        <span>Theme: <strong class="theme-toggle-label">Dark</strong></span>
+      </button>
       <a href="database-viewer.html" target="_blank" class="sidebar-link" title="Open Standalone Database Inspector">
         <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
         <span>DB Inspector (DataGrip)</span>
@@ -587,6 +595,10 @@
         <h1 class="topbar-title" id="page-current-title">Active Dispatch &amp; Journey Simulation</h1>
       </div>
       <div class="topbar-right">
+        <button type="button" class="theme-toggle-btn btn-action" onclick="toggleTheme()" title="Switch Theme">
+          <i data-lucide="moon" class="theme-toggle-icon" style="width: 14px; height: 14px;"></i>
+          <span class="theme-toggle-label">Dark</span>
+        </button>
         <div class="status-pill">
           <span class="status-dot"></span> PostgreSQL Active
         </div>

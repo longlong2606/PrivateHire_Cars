@@ -16,6 +16,10 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
+  <!-- Dark / Light Theme System -->
+  <link rel="stylesheet" href="theme.css">
+  <script src="theme.js"></script>
+
   <style>
     :root {
       --bg-body: #F8F5EE;
@@ -904,6 +908,10 @@
       </a>
 
       <div class="nav-actions" style="display: flex; align-items: center; gap: 10px;">
+        <button type="button" class="theme-toggle-btn nav-btn" onclick="toggleTheme()" title="Switch Theme">
+          <i data-lucide="moon" class="theme-toggle-icon" style="width: 14px; height: 14px;"></i>
+          <span class="theme-toggle-label">Dark</span>
+        </button>
         <a href="staff.html" class="nav-btn" style="border: 1px solid var(--primary); color: var(--primary);" title="Call Centre Staff Portal">
           <i data-lucide="shield" style="width: 14px; height: 14px;"></i>
           <span>Staff Portal</span>

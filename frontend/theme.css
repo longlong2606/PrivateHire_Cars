@@ -1,0 +1,292 @@
+/* ==========================================================================
+   PrivateHire Cars — Luxury British Chauffeur Dark Theme
+   Seamless Dark / Light Mode Toggle System
+   ========================================================================== */
+
+[data-theme="dark"] {
+  --bg-body: #0A1410;
+  --bg-surface: #12211A;
+  --bg-card: #12211A;
+  --bg-card-hover: #192D24;
+  --bg-input: #0E1A14;
+
+  --border-subtle: #1F362C;
+  --border-medium: #2B483B;
+  --border-focus: #52B788;
+  --border-error: #E57373;
+
+  --primary: #2D6A4F;
+  --primary-hover: #1B4332;
+  --primary-light: #52B788;
+  --accent-gold: #D4AF37;
+  --accent-emerald: #4ADE80;
+
+  --text-main: #F2F7F4;
+  --text-muted: #A3BCB0;
+  --text-dim: #718D80;
+  --text-error: #FF8A80;
+
+  --shadow-card: 0 10px 35px rgba(0, 0, 0, 0.45), 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Base Body Overrides in Dark Mode */
+[data-theme="dark"] body {
+  background-color: var(--bg-body);
+  color: var(--text-main);
+}
+
+/* Headers and Topbars */
+[data-theme="dark"] .top-header,
+[data-theme="dark"] .main-topbar,
+[data-theme="dark"] .top-bar,
+[data-theme="dark"] .top-navbar,
+[data-theme="dark"] header.top-header,
+[data-theme="dark"] header.top-bar,
+[data-theme="dark"] header.top-navbar {
+  background: var(--bg-surface) !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
+}
+
+[data-theme="dark"] .brand-left,
+[data-theme="dark"] .brand-left span,
+[data-theme="dark"] .brand-text h1,
+[data-theme="dark"] .brand-title {
+  color: var(--text-main) !important;
+}
+
+/* Card Panels and Containers */
+[data-theme="dark"] .card-panel,
+[data-theme="dark"] .card,
+[data-theme="dark"] .booking-card,
+[data-theme="dark"] .metric-card,
+[data-theme="dark"] .stat-card,
+[data-theme="dark"] .offer-card,
+[data-theme="dark"] .auth-box,
+[data-theme="dark"] .auth-card,
+[data-theme="dark"] .auth-glass-card,
+[data-theme="dark"] .profile-card,
+[data-theme="dark"] .receipt-card,
+[data-theme="dark"] .kpi-card,
+[data-theme="dark"] .content-card,
+[data-theme="dark"] .email-item,
+[data-theme="dark"] .services-box,
+[data-theme="dark"] .sim-test-bar,
+[data-theme="dark"] .tab-content > div {
+  background-color: var(--bg-card) !important;
+  border-color: var(--border-subtle) !important;
+  color: var(--text-main);
+}
+
+[data-theme="dark"] .dropdown-menu-list,
+[data-theme="dark"] .dropdown-trigger-btn {
+  background-color: var(--bg-input) !important;
+  border-color: var(--border-medium) !important;
+  color: var(--text-main) !important;
+}
+
+[data-theme="dark"] .dropdown-item {
+  color: var(--text-main) !important;
+}
+
+[data-theme="dark"] .dropdown-item:hover {
+  background-color: var(--bg-card-hover) !important;
+}
+
+[data-theme="dark"] .sim-btn-pill {
+  background-color: var(--bg-input) !important;
+  border-color: var(--border-medium) !important;
+  color: var(--text-main) !important;
+}
+
+[data-theme="dark"] .nav-btn {
+  background-color: var(--bg-card) !important;
+  border-color: var(--border-medium) !important;
+  color: var(--text-main) !important;
+}
+
+[data-theme="dark"] .email-item pre {
+  background-color: var(--bg-input) !important;
+  border-color: var(--border-subtle) !important;
+  color: var(--text-muted) !important;
+}
+
+/* Headings and Typography */
+[data-theme="dark"] .page-title,
+[data-theme="dark"] .panel-title,
+[data-theme="dark"] .brand-title,
+[data-theme="dark"] .topbar-title,
+[data-theme="dark"] .card-title,
+[data-theme="dark"] h1, 
+[data-theme="dark"] h2, 
+[data-theme="dark"] h3, 
+[data-theme="dark"] h4 {
+  color: var(--text-main) !important;
+}
+
+[data-theme="dark"] .page-subtitle,
+[data-theme="dark"] .panel-subtitle,
+[data-theme="dark"] .field-hint,
+[data-theme="dark"] .topbar-breadcrumb,
+[data-theme="dark"] .receipt-meta {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .field-label {
+  color: var(--text-muted) !important;
+}
+
+/* Form Inputs, Selects, and Textareas */
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea,
+[data-theme="dark"] .field-input,
+[data-theme="dark"] .field-select {
+  background-color: var(--bg-input) !important;
+  border-color: var(--border-medium) !important;
+  color: var(--text-main) !important;
+}
+
+[data-theme="dark"] input:focus,
+[data-theme="dark"] select:focus,
+[data-theme="dark"] textarea:focus,
+[data-theme="dark"] .field-input:focus,
+[data-theme="dark"] .field-select:focus {
+  border-color: var(--border-focus) !important;
+  box-shadow: 0 0 0 3px rgba(82, 183, 136, 0.2) !important;
+}
+
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+  color: var(--text-dim) !important;
+}
+
+/* Buttons and Action Elements */
+[data-theme="dark"] .btn-outline-sm,
+[data-theme="dark"] .btn-action,
+[data-theme="dark"] .btn-secondary,
+[data-theme="dark"] .btn-ghost {
+  background: var(--bg-card) !important;
+  border-color: var(--border-medium) !important;
+  color: var(--text-main) !important;
+}
+
+[data-theme="dark"] .btn-outline-sm:hover,
+[data-theme="dark"] .btn-action:hover,
+[data-theme="dark"] .btn-secondary:hover {
+  background: var(--bg-card-hover) !important;
+  border-color: var(--border-focus) !important;
+  color: #FFFFFF !important;
+}
+
+/* Table Styling */
+[data-theme="dark"] table {
+  color: var(--text-main) !important;
+}
+
+[data-theme="dark"] th {
+  background: var(--bg-card-hover) !important;
+  color: var(--text-muted) !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
+}
+
+[data-theme="dark"] td {
+  border-bottom: 1px solid var(--border-subtle) !important;
+  color: var(--text-main) !important;
+}
+
+[data-theme="dark"] tr:hover td {
+  background: rgba(255, 255, 255, 0.03) !important;
+}
+
+/* Modal Dialogs */
+[data-theme="dark"] .modal-box {
+  background: var(--bg-surface) !important;
+  border: 1px solid var(--border-subtle) !important;
+  color: var(--text-main) !important;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6) !important;
+}
+
+[data-theme="dark"] .modal-header {
+  background: var(--bg-card-hover) !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
+  color: var(--text-main) !important;
+}
+
+[data-theme="dark"] .modal-footer {
+  background: var(--bg-surface) !important;
+  border-top: 1px solid var(--border-subtle) !important;
+}
+
+/* Toast Notifications */
+[data-theme="dark"] .toast-item {
+  background: var(--bg-surface) !important;
+  border-color: var(--border-medium) !important;
+  color: var(--text-main) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Navigation Menu */
+[data-theme="dark"] .nav-menu a {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .nav-menu a:hover,
+[data-theme="dark"] .nav-menu a.active {
+  color: #FFFFFF !important;
+  background: rgba(45, 106, 79, 0.35) !important;
+}
+
+[data-theme="dark"] .user-pill {
+  background: rgba(45, 106, 79, 0.3) !important;
+  color: #74C69D !important;
+}
+
+/* Availability search side boxes in staff portal */
+[data-theme="dark"] #srch-tables-container > div {
+  background: var(--bg-card) !important;
+  border-color: var(--border-subtle) !important;
+}
+
+[data-theme="dark"] #staff-auth-banner {
+  background: #252014 !important;
+  border-color: #5C4B18 !important;
+  color: #F8E4A0 !important;
+}
+
+[data-theme="dark"] #staff-auth-banner span {
+  color: #F8E4A0 !important;
+}
+
+/* Theme Toggle Button Styling */
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  user-select: none;
+  font-weight: 600;
+  border-radius: var(--radius-sm, 6px);
+  padding: 6px 12px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  font-size: 12.5px;
+  border: 1px solid var(--border-medium);
+  background: var(--bg-card, #FFFFFF);
+  color: var(--text-main);
+  text-decoration: none;
+}
+
+.theme-toggle-btn:hover {
+  background: var(--bg-card-hover, #FAF7F2);
+  border-color: var(--accent-gold);
+}
+
+[data-theme="dark"] .theme-toggle-btn {
+  background: #172B22 !important;
+  border-color: #2D4E40 !important;
+  color: #F2F7F4 !important;
+}
+
+[data-theme="dark"] .theme-toggle-btn:hover {
+  background: #213C30 !important;
+  border-color: #D4AF37 !important;
+}

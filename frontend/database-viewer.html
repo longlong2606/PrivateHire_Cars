@@ -16,6 +16,10 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
+  <!-- Dark / Light Theme System -->
+  <link rel="stylesheet" href="theme.css">
+  <script src="theme.js"></script>
+
   <style>
     :root {
       --bg-body: #F4F6F4;
@@ -394,6 +398,10 @@
     </div>
 
     <div class="top-controls">
+      <button type="button" class="theme-toggle-btn btn-outline" onclick="toggleTheme()" title="Switch Theme">
+        <i data-lucide="moon" class="theme-toggle-icon" style="width: 14px; height: 14px;"></i>
+        <span class="theme-toggle-label">Dark</span>
+      </button>
       <span id="last-refreshed-text" style="font-size: 12px; color: var(--text-dim); font-family: var(--font-mono);">Last updated: Just now</span>
       <button class="btn btn-primary" onclick="loadAllData()">
         <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i> Refresh Live

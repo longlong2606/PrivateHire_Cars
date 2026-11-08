@@ -16,6 +16,10 @@
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
+  <!-- Dark / Light Theme System -->
+  <link rel="stylesheet" href="theme.css">
+  <script src="theme.js"></script>
+
   <style>
     :root {
       --bg-body: #F4F1EA;
@@ -418,6 +422,10 @@
     </a>
 
     <div class="header-right-action" style="display: flex; align-items: center; gap: 12px;">
+      <button type="button" class="theme-toggle-btn btn-outline-sm" onclick="toggleTheme()" title="Switch Theme">
+        <i data-lucide="moon" class="theme-toggle-icon" style="width: 14px; height: 14px;"></i>
+        <span class="theme-toggle-label">Dark</span>
+      </button>
       <a href="staff.html" style="font-size: 13px; font-weight: 600; color: #164B3B; text-decoration: none; padding: 6px 12px; border: 1px solid #164B3B; border-radius: 6px;">Staff Portal</a>
       <a href="register.html">Create an account</a>
     </div>
