@@ -261,14 +261,19 @@
       display: flex;
       align-items: center;
       list-style: none;
-      gap: 22px;
+      gap: 18px;
     }
     .nav-link {
       font-size: 13.5px;
       font-weight: 600;
       color: var(--text-muted);
       position: relative;
-      padding: 6px 2px;
+      padding: 6px 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      text-decoration: none;
+      transition: color 0.2s ease;
     }
     .nav-link:hover, .nav-link.active {
       color: var(--primary);
@@ -977,7 +982,7 @@
       }
     }
 
-    @media (max-width: 1180px) {
+    @media (max-width: 1080px) {
       .mobile-hamburger-btn {
         display: inline-flex !important;
         align-items: center;
@@ -1007,7 +1012,9 @@
       .nav-menu .nav-link {
         font-size: 15px;
         padding: 10px 14px;
-        display: block;
+        display: flex;
+        align-items: center;
+        gap: 8px;
         width: 100%;
         border-radius: var(--radius-sm);
       }
@@ -1069,14 +1076,12 @@
 
       <nav>
         <ul class="nav-menu">
-          <li><a href="home.html" class="nav-link active">Home</a></li>
-          <li><a href="#services" class="nav-link">Services</a></li>
-          <li><a href="#fleet" class="nav-link">Fleet (150)</a></li>
-          <li><a href="#why-us" class="nav-link">Why Choose Us</a></li>
-          <li><a href="#how-it-works" class="nav-link">How It Works</a></li>
-          <li><a href="#reviews" class="nav-link">Reviews</a></li>
-          <li><a href="booking.html" class="nav-link" style="color: var(--primary); font-weight: 700;">Book a Car</a></li>
-          <li><a href="my-bookings.html" class="nav-link">My Bookings</a></li>
+          <li><a href="home.html" class="nav-link active"><i data-lucide="home" style="width: 15px; height: 15px;"></i> Home</a></li>
+          <li><a href="booking.html" class="nav-link" style="color: var(--primary); font-weight: 700;"><i data-lucide="calendar-plus" style="width: 15px; height: 15px;"></i> Book a Minicab</a></li>
+          <li><a href="my-bookings.html" class="nav-link"><i data-lucide="clock" style="width: 15px; height: 15px;"></i> My Bookings</a></li>
+          <li><a href="offers.html" class="nav-link"><i data-lucide="tag" style="width: 15px; height: 15px;"></i> Offers</a></li>
+          <li><a href="enquiries.html" class="nav-link"><i data-lucide="help-circle" style="width: 15px; height: 15px;"></i> Support</a></li>
+          <li><a href="notifications.html" class="nav-link"><i data-lucide="bell" style="width: 15px; height: 15px;"></i> Alerts</a></li>
         </ul>
       </nav>
 
