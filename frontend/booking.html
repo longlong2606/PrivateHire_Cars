@@ -575,18 +575,68 @@
             <span id="availability-text">Checking live fleet availability...</span>
           </div>
 
-          <!-- Special Offer Code Input -->
-          <div class="field-group" style="margin-top: 18px;">
-            <label class="field-label" for="bk-offer-code">
-              Special Offer Voucher Code (Optional)
+          <!-- Special Offer Voucher Code Section -->
+          <div class="field-group" style="margin-top: 18px;" id="voucher-selection-section">
+            <label class="field-label" for="bk-offer-select" style="display: flex; justify-content: space-between; align-items: center;">
+              <span>Special Offer Voucher Code (Mã ưu đãi)</span>
+              <span id="voucher-status-badge" style="display: none; font-size: 11px; padding: 2px 8px; border-radius: 12px; font-weight: 700;"></span>
             </label>
-            <div style="display: flex; gap: 8px;">
-              <input type="text" id="bk-offer-code" class="field-input" placeholder="e.g. LOYALTY-XXXXXX" style="text-transform: uppercase;" />
-              <button type="button" class="btn-outline-sm" onclick="applyOfferCode()" style="padding: 0 16px; height: 44px; white-space: nowrap;">
-                Apply
-              </button>
+
+            <!-- Loading State -->
+            <div id="voucher-loading-state" style="font-size: 13px; color: var(--text-muted); padding: 8px 0;">
+              <i data-lucide="loader" style="width: 14px; height: 14px; animation: spin 1s linear infinite; vertical-align: middle;"></i> Đang kiểm tra mã ưu đãi của bạn...
             </div>
-            <div id="offer-feedback" style="font-size: 12px; margin-top: 4px; display: none;"></div>
+
+            <!-- Droplist Container (When logged in with available offers) -->
+            <div id="voucher-dropdown-container" style="display: none;">
+              <select id="bk-offer-select" class="field-input" onchange="handleOfferSelectChange()" style="cursor: pointer; font-weight: 600;">
+                <!-- Populated dynamically by loadCustomerOffers() -->
+              </select>
+              <div id="offer-dropdown-feedback" style="font-size: 12px; margin-top: 6px; display: none;"></div>
+            </div>
+
+            <!-- Milestone Progress Notice (When logged in but NO available vouchers) -->
+            <div id="voucher-empty-notice" style="display: none; background: rgba(198, 156, 84, 0.08); border: 1px solid rgba(198, 156, 84, 0.25); border-radius: var(--radius-sm); padding: 12px 14px; margin-top: 4px;">
+              <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: #8F6B27;">
+                <i data-lucide="award" style="width: 16px; height: 16px; flex-shrink: 0;"></i>
+                <span id="voucher-empty-title">Tài khoản hiện chưa có mã ưu đãi khả dụng</span>
+              </div>
+              <div id="voucher-milestone-text" style="font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.5;">
+                Bạn cần hoàn thành thêm chuyến đi để nhận mã ưu đãi £10.00 GBP.
+              </div>
+              <div style="margin-top: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
+                <a href="offers.html" style="font-size: 11.5px; color: var(--primary); font-weight: 600; text-decoration: underline;">
+                  Xem trang Offers &amp; Rewards
+                </a>
+                <button type="button" onclick="toggleManualVoucherMode(true)" style="background: none; border: none; font-size: 11.5px; color: var(--primary); text-decoration: underline; font-weight: 600; cursor: pointer; padding: 0;">
+                  Nhập mã thủ công?
+                </button>
+              </div>
+            </div>
+
+            <!-- Guest State (When not logged in) -->
+            <div id="voucher-guest-notice" style="display: none; font-size: 12.5px; color: var(--text-muted); background: var(--bg-card-hover, #FAF7F2); border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 10px 14px; margin-top: 4px;">
+              <span>Đăng nhập để tự động chọn các mã ưu đãi của bạn, hoặc </span>
+              <button type="button" onclick="toggleManualVoucherMode(true)" style="background: none; border: none; color: var(--primary); text-decoration: underline; font-weight: 600; cursor: pointer; padding: 0;">
+                nhập mã thủ công
+              </button>.
+            </div>
+
+            <!-- Manual Voucher Input Container (Hidden by default or toggled) -->
+            <div id="voucher-manual-container" style="display: none; margin-top: 8px;">
+              <div style="display: flex; gap: 8px;">
+                <input type="text" id="bk-offer-code" class="field-input" placeholder="e.g. SAVE10 hoặc VIP10" style="text-transform: uppercase;" />
+                <button type="button" class="btn-outline-sm" onclick="applyManualOfferCode()" style="padding: 0 16px; height: 44px; white-space: nowrap; font-weight: 600;">
+                  Apply
+                </button>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+                <div id="offer-feedback" style="font-size: 12px; display: none;"></div>
+                <button type="button" id="btn-back-to-select" onclick="toggleManualVoucherMode(false)" style="display: none; background: none; border: none; font-size: 11.5px; color: var(--text-dim); text-decoration: underline; cursor: pointer;">
+                  ← Quay lại chọn từ danh sách
+                </button>
+              </div>
+            </div>
           </div>
 
         </form>
@@ -805,25 +855,14 @@
     let appliedOffer = null;
     let autoSaveTimer = null;
 
+    let userAvailableOffers = [];
+
     // Initialize application state
     window.addEventListener('DOMContentLoaded', () => {
       checkAuthSession();
       setDefaultPickupTime();
       onBookingInputsChanged();
       restoreSavedDraft();
-
-      // Check query param for prefilled promo code
-      try {
-        const urlParams = new URLSearchParams(window.location.search);
-        const promoParam = urlParams.get('promo') || urlParams.get('code') || urlParams.get('offerCode');
-        if (promoParam) {
-          const input = document.getElementById('bk-offer-code');
-          if (input) {
-            input.value = promoParam.trim().toUpperCase();
-            setTimeout(() => { applyOfferCode(); }, 350);
-          }
-        }
-      } catch (_) {}
     });
 
     // Check customer authentication
@@ -843,6 +882,7 @@
       } else {
         if (window.syncHeroCTA) window.syncHeroCTA();
       }
+      loadCustomerOffers();
       lucide.createIcons();
     }
 
@@ -945,19 +985,185 @@
       lucide.createIcons();
     }
 
-    // Apply special loyalty offer code
-    async function applyOfferCode() {
-      const code = document.getElementById('bk-offer-code').value.trim().toUpperCase();
-      const feedback = document.getElementById('offer-feedback');
-      if (!code) {
+    // Load customer personal loyalty offers into droplist
+    async function loadCustomerOffers() {
+      const loadingState = document.getElementById('voucher-loading-state');
+      const dropdownContainer = document.getElementById('voucher-dropdown-container');
+      const emptyNotice = document.getElementById('voucher-empty-notice');
+      const guestNotice = document.getElementById('voucher-guest-notice');
+      const select = document.getElementById('bk-offer-select');
+
+      if (!currentUser) {
+        if (loadingState) loadingState.style.display = 'none';
+        if (dropdownContainer) dropdownContainer.style.display = 'none';
+        if (emptyNotice) emptyNotice.style.display = 'none';
+        if (guestNotice) guestNotice.style.display = 'block';
+        return;
+      }
+
+      if (guestNotice) guestNotice.style.display = 'none';
+      if (loadingState) loadingState.style.display = 'block';
+
+      try {
+        const token = localStorage.getItem('sessionToken') || '';
+        const res = await fetch(`${API_BASE}/api/offers/my`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (loadingState) loadingState.style.display = 'none';
+
+        const rawOffers = (data && data.offers) || (data && data.offer ? [data.offer] : []);
+        userAvailableOffers = rawOffers.filter(o => !o.is_used);
+        const completedCount = (data && typeof data.completedCount === 'number') ? data.completedCount : 0;
+        const remainingTrips = Math.max(0, 3 - completedCount);
+
+        // Check if there is prefilled promo in URL or storage
+        const urlParams = new URLSearchParams(window.location.search);
+        const promoParam = (urlParams.get('promo') || urlParams.get('code') || urlParams.get('offerCode') || '').trim().toUpperCase();
+
+        if (userAvailableOffers.length > 0) {
+          if (emptyNotice) emptyNotice.style.display = 'none';
+          if (dropdownContainer) dropdownContainer.style.display = 'block';
+
+          let optionsHtml = `<option value="">-- Chọn mã ưu đãi của bạn (Tùy chọn) --</option>`;
+          userAvailableOffers.forEach(o => {
+            const amount = parseFloat(o.discount_amount || o.amount || 10.00).toFixed(2);
+            optionsHtml += `<option value="${escapeHtml(o.code)}" data-amount="${amount}">🏷️ ${escapeHtml(o.code)} — Giảm £${amount} GBP (Khả dụng)</option>`;
+          });
+          optionsHtml += `<option value="__MANUAL__">✍️ Nhập mã khuyến mãi khác thủ công...</option>`;
+          select.innerHTML = optionsHtml;
+
+          // If promoParam matches one of our available offers, auto-select it!
+          if (promoParam && userAvailableOffers.some(o => o.code.toUpperCase() === promoParam)) {
+            select.value = promoParam;
+            handleOfferSelectChange();
+          } else if (promoParam) {
+            // It's a manual code (e.g. SAVE10)
+            select.value = '__MANUAL__';
+            toggleManualVoucherMode(true);
+            const manualInput = document.getElementById('bk-offer-code');
+            if (manualInput) {
+              manualInput.value = promoParam;
+              applyManualOfferCode();
+            }
+          }
+        } else {
+          // Account has 0 available offers: Show how many trips left!
+          if (dropdownContainer) dropdownContainer.style.display = 'none';
+          if (emptyNotice) {
+            emptyNotice.style.display = 'block';
+            document.getElementById('voucher-empty-title').textContent = 'Tài khoản chưa có mã ưu đãi khả dụng';
+            document.getElementById('voucher-milestone-text').innerHTML = `
+              Bạn đã hoàn thành <strong>${completedCount}/3</strong> chuyến đi. Còn thiếu <strong>${remainingTrips} chuyến nữa</strong> để nhận mã giảm giá <strong>£10.00 GBP</strong>!
+            `;
+          }
+
+          if (promoParam) {
+            toggleManualVoucherMode(true);
+            const manualInput = document.getElementById('bk-offer-code');
+            if (manualInput) {
+              manualInput.value = promoParam;
+              applyManualOfferCode();
+            }
+          }
+        }
+      } catch (err) {
+        if (loadingState) loadingState.style.display = 'none';
+        if (guestNotice) guestNotice.style.display = 'block';
+      }
+      lucide.createIcons();
+    }
+
+    function handleOfferSelectChange() {
+      const select = document.getElementById('bk-offer-select');
+      const feedback = document.getElementById('offer-dropdown-feedback');
+      const badge = document.getElementById('voucher-status-badge');
+
+      if (!select) return;
+      const val = select.value;
+
+      if (!val) {
         appliedOffer = null;
-        feedback.style.display = 'none';
+        if (feedback) feedback.style.display = 'none';
+        if (badge) badge.style.display = 'none';
         onBookingInputsChanged();
         return;
       }
 
-      if (!currentUser) {
-        triggerToast("Please log in to redeem a personal loyalty offer code.", "error");
+      if (val === '__MANUAL__') {
+        toggleManualVoucherMode(true);
+        return;
+      }
+
+      const selectedOpt = select.options[select.selectedIndex];
+      const amount = parseFloat(selectedOpt.getAttribute('data-amount') || 10.00);
+
+      appliedOffer = {
+        code: val,
+        amount: amount,
+        discountAmount: amount,
+      };
+
+      if (feedback) {
+        feedback.style.display = 'block';
+        feedback.style.color = '#3A8B68';
+        feedback.innerHTML = `✓ Đã chọn mã <strong>${escapeHtml(val)}</strong>: Giảm -£${amount.toFixed(2)} GBP!`;
+      }
+      if (badge) {
+        badge.style.display = 'inline-block';
+        badge.style.background = 'rgba(58, 139, 104, 0.15)';
+        badge.style.color = '#3A8B68';
+        badge.textContent = `-£${amount.toFixed(2)} Applied`;
+      }
+
+      triggerToast(`Mã ưu đãi ${val} (-£${amount.toFixed(2)}) đã được áp dụng!`);
+      onBookingInputsChanged();
+    }
+
+    function toggleManualVoucherMode(showManual) {
+      const manualContainer = document.getElementById('voucher-manual-container');
+      const btnBack = document.getElementById('btn-back-to-select');
+      const dropdownContainer = document.getElementById('voucher-dropdown-container');
+      const emptyNotice = document.getElementById('voucher-empty-notice');
+      const guestNotice = document.getElementById('voucher-guest-notice');
+
+      if (showManual) {
+        if (manualContainer) manualContainer.style.display = 'block';
+        if (btnBack) btnBack.style.display = (userAvailableOffers && userAvailableOffers.length > 0) ? 'inline-block' : 'none';
+        if (dropdownContainer) dropdownContainer.style.display = 'none';
+        if (emptyNotice) emptyNotice.style.display = 'none';
+        if (guestNotice) guestNotice.style.display = 'none';
+        const input = document.getElementById('bk-offer-code');
+        if (input) input.focus();
+      } else {
+        if (manualContainer) manualContainer.style.display = 'none';
+        if (userAvailableOffers && userAvailableOffers.length > 0) {
+          if (dropdownContainer) dropdownContainer.style.display = 'block';
+        } else if (currentUser) {
+          if (emptyNotice) emptyNotice.style.display = 'block';
+        } else {
+          if (guestNotice) guestNotice.style.display = 'block';
+        }
+        const select = document.getElementById('bk-offer-select');
+        if (select) {
+          select.value = '';
+          handleOfferSelectChange();
+        }
+      }
+      lucide.createIcons();
+    }
+
+    // Apply manual promo voucher code
+    async function applyManualOfferCode() {
+      const code = document.getElementById('bk-offer-code').value.trim().toUpperCase();
+      const feedback = document.getElementById('offer-feedback');
+      const badge = document.getElementById('voucher-status-badge');
+
+      if (!code) {
+        appliedOffer = null;
+        if (feedback) feedback.style.display = 'none';
+        if (badge) badge.style.display = 'none';
+        onBookingInputsChanged();
         return;
       }
 
@@ -966,43 +1172,78 @@
         const headers = { 'Content-Type': 'application/json' };
         if (token) headers['Authorization'] = `Bearer ${token}`;
 
+        const customerId = currentUser ? currentUser.id : null;
         const res = await fetch(`${API_BASE}/api/offers/validate`, {
           method: 'POST',
           headers,
-          body: JSON.stringify({ offerCode: code, code, customerId: currentUser.id })
+          body: JSON.stringify({ offerCode: code, code, customerId })
         });
         const data = await res.json();
         if (data.success && (data.offer || data.discountAmount)) {
           const discountVal = parseFloat((data.offer && (data.offer.amount || data.offer.discount_amount)) || data.discountAmount || 10.00);
           appliedOffer = {
             code: (data.offer && data.offer.code) || data.code || code,
-            amount: discountVal
+            amount: discountVal,
+            discountAmount: discountVal,
           };
-          feedback.style.display = 'block';
-          feedback.style.color = '#3A8B68';
-          feedback.textContent = `✓ Code valid! £${discountVal.toFixed(2)} GBP discount applied.`;
+          if (feedback) {
+            feedback.style.display = 'block';
+            feedback.style.color = '#3A8B68';
+            feedback.textContent = `✓ Code valid! £${discountVal.toFixed(2)} GBP discount applied.`;
+          }
+          if (badge) {
+            badge.style.display = 'inline-block';
+            badge.style.background = 'rgba(58, 139, 104, 0.15)';
+            badge.style.color = '#3A8B68';
+            badge.textContent = `-£${discountVal.toFixed(2)} Applied`;
+          }
           triggerToast(`Voucher ${appliedOffer.code} applied successfully!`);
         } else {
           appliedOffer = null;
-          feedback.style.display = 'block';
-          feedback.style.color = '#B94A48';
-          feedback.textContent = `❌ ${data.message || 'Invalid or already used voucher code.'}`;
+          if (badge) badge.style.display = 'none';
+          if (feedback) {
+            feedback.style.display = 'block';
+            feedback.style.color = '#B94A48';
+            feedback.textContent = `❌ ${data.message || 'Invalid or already used voucher code.'}`;
+          }
         }
       } catch (_) {
         // Fallback for demo code
         if (code.startsWith('LOYALTY') || code === 'SAVE10' || code === 'VIP10') {
-          appliedOffer = { code, amount: 10.00 };
-          feedback.style.display = 'block';
-          feedback.style.color = '#3A8B68';
-          feedback.textContent = `✓ Code valid! £10.00 GBP discount applied.`;
+          appliedOffer = { code, amount: 10.00, discountAmount: 10.00 };
+          if (feedback) {
+            feedback.style.display = 'block';
+            feedback.style.color = '#3A8B68';
+            feedback.textContent = `✓ Code valid! £10.00 GBP discount applied.`;
+          }
+          if (badge) {
+            badge.style.display = 'inline-block';
+            badge.style.background = 'rgba(58, 139, 104, 0.15)';
+            badge.style.color = '#3A8B68';
+            badge.textContent = `-£10.00 Applied`;
+          }
         } else {
           appliedOffer = null;
-          feedback.style.display = 'block';
-          feedback.style.color = '#B94A48';
-          feedback.textContent = `❌ Invalid offer code.`;
+          if (badge) badge.style.display = 'none';
+          if (feedback) {
+            feedback.style.display = 'block';
+            feedback.style.color = '#B94A48';
+            feedback.textContent = `❌ Invalid offer code.`;
+          }
         }
       }
       onBookingInputsChanged();
+    }
+    const applyOfferCode = applyManualOfferCode;
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
     }
 
     // Start Booking confirmation modal flow
