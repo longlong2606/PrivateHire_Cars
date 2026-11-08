@@ -102,10 +102,15 @@ class BookingModel {
 
   static async findByAccountId(accountId) {
     const sql = `
-      SELECT b.*, v.reg_number AS vehicle_reg, v.make_model AS vehicle_model, d.name AS driver_name, d.telephone AS driver_phone
+      SELECT b.*, 
+             v.reg_number AS vehicle_reg, v.make_model AS vehicle_model, 
+             d.name AS driver_name, d.telephone AS driver_phone,
+             r.id AS review_id, r.journey_rating, r.vehicle_rating, r.driver_rating, 
+             r.review_text, r.created_at AS review_created_at
       FROM bookings b
       LEFT JOIN vehicles v ON b.vehicle_id = v.id
       LEFT JOIN drivers d ON b.driver_id = d.id
+      LEFT JOIN reviews r ON b.id = r.booking_id
       WHERE b.account_id = $1 
       ORDER BY b.created_at DESC
     `;
@@ -115,10 +120,15 @@ class BookingModel {
 
   static async findById(id) {
     const sql = `
-      SELECT b.*, v.reg_number AS vehicle_reg, v.make_model AS vehicle_model, d.name AS driver_name, d.telephone AS driver_phone
+      SELECT b.*, 
+             v.reg_number AS vehicle_reg, v.make_model AS vehicle_model, 
+             d.name AS driver_name, d.telephone AS driver_phone,
+             r.id AS review_id, r.journey_rating, r.vehicle_rating, r.driver_rating, 
+             r.review_text, r.created_at AS review_created_at
       FROM bookings b
       LEFT JOIN vehicles v ON b.vehicle_id = v.id
       LEFT JOIN drivers d ON b.driver_id = d.id
+      LEFT JOIN reviews r ON b.id = r.booking_id
       WHERE b.id = $1
     `;
     const result = await db.query(sql, [id]);
@@ -127,10 +137,15 @@ class BookingModel {
 
   static async findByCode(bookingCode) {
     const sql = `
-      SELECT b.*, v.reg_number AS vehicle_reg, v.make_model AS vehicle_model, d.name AS driver_name, d.telephone AS driver_phone
+      SELECT b.*, 
+             v.reg_number AS vehicle_reg, v.make_model AS vehicle_model, 
+             d.name AS driver_name, d.telephone AS driver_phone,
+             r.id AS review_id, r.journey_rating, r.vehicle_rating, r.driver_rating, 
+             r.review_text, r.created_at AS review_created_at
       FROM bookings b
       LEFT JOIN vehicles v ON b.vehicle_id = v.id
       LEFT JOIN drivers d ON b.driver_id = d.id
+      LEFT JOIN reviews r ON b.id = r.booking_id
       WHERE b.booking_code = $1
     `;
     const result = await db.query(sql, [bookingCode.trim()]);
