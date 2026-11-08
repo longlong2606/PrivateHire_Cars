@@ -374,6 +374,55 @@
     }
   };
 
+  // 7. Dynamic Hero CTA Switcher based on Authentication State
+  window.syncHeroCTA = function () {
+    var savedUser = null;
+    try {
+      var saved = localStorage.getItem('currentUser');
+      var token = localStorage.getItem('sessionToken');
+      if (saved && token) savedUser = JSON.parse(saved);
+    } catch (_) {}
+
+    var heroGuest = document.getElementById('hero-cta-guest');
+    var heroUser = document.getElementById('hero-cta-user');
+    var heroWelcome = document.getElementById('hero-user-welcome');
+    var heroWelcomeName = document.getElementById('hero-user-welcome-name');
+    var bookingHeroGuest = document.getElementById('booking-hero-guest');
+
+    if (savedUser) {
+      if (heroGuest) heroGuest.style.setProperty('display', 'none', 'important');
+      if (heroUser) {
+        heroUser.style.removeProperty('display');
+        heroUser.style.display = 'flex';
+      }
+      if (heroWelcome) {
+        heroWelcome.style.removeProperty('display');
+        heroWelcome.style.display = 'block';
+      }
+      if (heroWelcomeName) {
+        heroWelcomeName.textContent = savedUser.name || 'Customer';
+      }
+      if (bookingHeroGuest) {
+        bookingHeroGuest.style.setProperty('display', 'none', 'important');
+      }
+    } else {
+      if (heroGuest) {
+        heroGuest.style.removeProperty('display');
+        heroGuest.style.display = 'flex';
+      }
+      if (heroUser) heroUser.style.setProperty('display', 'none', 'important');
+      if (heroWelcome) heroWelcome.style.setProperty('display', 'none', 'important');
+      if (bookingHeroGuest) {
+        bookingHeroGuest.style.removeProperty('display');
+        bookingHeroGuest.style.display = 'flex';
+      }
+    }
+
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
+    }
+  };
+
   function syncDomTheme() {
     var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
     if (isDark && document.body) {
@@ -384,9 +433,12 @@
     if (typeof window.initUserProfileDropdown === 'function') {
       window.initUserProfileDropdown();
     }
+    if (typeof window.syncHeroCTA === 'function') {
+      window.syncHeroCTA();
+    }
   }
 
-  // 7. Update UI once DOM is ready
+  // 8. Update UI once DOM is ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', syncDomTheme);
   } else {

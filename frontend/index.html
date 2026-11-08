@@ -1111,6 +1111,10 @@
           <i data-lucide="award" style="width: 14px; height: 14px;"></i>
           LONDON'S PREMIER EXECUTIVE MINICAB &amp; CHAUFFEUR SERVICE
         </div>
+        <div id="hero-user-welcome" style="display: none; margin-bottom: 12px; font-size: 14.5px; color: var(--accent-gold); font-weight: 600;">
+          <i data-lucide="sparkles" style="width: 15px; height: 15px; display: inline-block; vertical-align: middle;"></i>
+          Welcome back, <span id="hero-user-welcome-name">Customer</span>! Automatic 15% online discount active.
+        </div>
         <h1 class="hero-headline">
           Arrive in Distinction,
           <span>Travel in Absolute Comfort.</span>
@@ -1120,14 +1124,27 @@
           150 TfL licensed professional chauffeurs, an immaculate executive fleet, transparent Table 8 fixed fares, and an automatic <strong>15% online booking discount</strong>.
         </p>
 
-        <div class="hero-cta-group">
+        <!-- CTA for Visitors / Non-logged in users: Register Account -->
+        <div id="hero-cta-guest" class="hero-cta-group">
+          <a href="register.html" class="btn btn-gold" style="padding: 14px 28px; font-size: 15px;">
+            <i data-lucide="user-plus" style="width: 18px; height: 18px;"></i>
+            Register Account (Save 15%)
+          </a>
+          <a href="login.html" class="btn btn-outline-white" style="padding: 14px 22px; font-size: 15px;">
+            <i data-lucide="log-in" style="width: 18px; height: 18px;"></i>
+            Sign In to Book
+          </a>
+        </div>
+
+        <!-- CTA for Authenticated / Logged-in users: Book Journey -->
+        <div id="hero-cta-user" class="hero-cta-group" style="display: none;">
           <a href="booking.html" class="btn btn-gold" style="padding: 14px 28px; font-size: 15px;">
-            <i data-lucide="calendar" style="width: 18px; height: 18px;"></i>
+            <i data-lucide="calendar-plus" style="width: 18px; height: 18px;"></i>
             Book Journey Online (Save 15%)
           </a>
-          <a href="#fleet" class="btn btn-outline-white" style="padding: 14px 22px; font-size: 15px;">
-            <i data-lucide="car" style="width: 18px; height: 18px;"></i>
-            Explore 150 Fleet Cars
+          <a href="my-bookings.html" class="btn btn-outline-white" style="padding: 14px 22px; font-size: 15px;">
+            <i data-lucide="clock" style="width: 18px; height: 18px;"></i>
+            My Bookings &amp; Status
           </a>
         </div>
 
@@ -1882,7 +1899,10 @@
           if (btnLogin) btnLogin.style.display = 'none';
           if (btnLogout) btnLogout.style.display = 'inline-flex';
           if (window.initUserProfileDropdown) window.initUserProfileDropdown();
+          if (window.syncHeroCTA) window.syncHeroCTA();
         } catch (_) {}
+      } else {
+        if (window.syncHeroCTA) window.syncHeroCTA();
       }
 
       if (window.lucide && typeof window.lucide.createIcons === 'function') {
