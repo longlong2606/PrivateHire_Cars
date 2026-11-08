@@ -57,86 +57,319 @@
       font-family: var(--font-body);
       min-height: 100vh;
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       line-height: 1.5;
       -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
     }
 
-    /* Top Navigation Bar */
-    .top-header {
-      background: #164B3B;
-      color: #FFFFFF;
+    /* Modern Executive Sidebar */
+    .app-sidebar {
+      width: 270px;
+      min-width: 270px;
+      height: 100vh;
       position: sticky;
       top: 0;
+      background: #143F33;
+      color: #FFFFFF;
+      display: flex;
+      flex-direction: column;
       z-index: 100;
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 4px 0 25px rgba(0, 0, 0, 0.05);
     }
 
-    .nav-container {
-      max-width: 1300px;
-      margin: 0 auto;
-      padding: 12px 24px;
+    .sidebar-header {
+      padding: 20px 20px 16px 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
 
-    .brand-left {
+    .brand-cluster {
       display: flex;
       align-items: center;
-      gap: 12px;
-      text-decoration: none;
+      gap: 10px;
+    }
+
+    .brand-logo-icon {
+      width: 36px;
+      height: 36px;
+      background: rgba(198, 156, 84, 0.2);
+      border: 1px solid var(--accent-gold);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent-gold);
+    }
+
+    .brand-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-title {
+      font-family: var(--font-heading);
+      font-size: 17px;
+      font-weight: 700;
       color: #FFFFFF;
+      line-height: 1.2;
     }
 
     .brand-badge {
       font-family: var(--font-mono);
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 700;
-      background: #C69C54;
-      color: #164B3B;
-      padding: 2px 8px;
-      border-radius: 4px;
+      color: var(--accent-gold);
       text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
-    .main-layout {
-      max-width: 1300px;
-      margin: 28px auto;
-      padding: 0 24px;
-      width: 100%;
-      flex: 1;
-    }
-
-    /* Tabs Bar */
-    .tabs-bar {
-      display: flex;
-      gap: 8px;
-      background: #FFFFFF;
-      padding: 6px;
+    .sidebar-user-card {
+      margin: 14px 16px 8px 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: var(--radius-md);
-      border: 1px solid var(--border-subtle);
-      margin-bottom: 24px;
-      overflow-x: auto;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      background: rgba(58, 139, 104, 0.25);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #5EDBA2;
+      flex-shrink: 0;
+    }
+
+    .user-details {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .user-name {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #FFFFFF;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-role {
+      font-size: 11px;
+      color: #A9C2B5;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      background: #4ADE80;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    /* Sidebar Navigation Menu */
+    .sidebar-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 14px 14px 14px;
+    }
+
+    .nav-section-title {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: rgba(255, 255, 255, 0.4);
+      padding: 14px 10px 6px 10px;
     }
 
     .tab-btn {
-      padding: 9px 16px;
+      width: 100%;
+      padding: 10px 12px;
       font-size: 13px;
-      font-weight: 600;
-      color: var(--text-muted);
+      font-weight: 500;
+      color: #C0D3CA;
       border: none;
       background: transparent;
       border-radius: var(--radius-sm);
       cursor: pointer;
-      display: inline-flex;
+      display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 10px;
+      text-align: left;
+      transition: var(--transition-smooth);
+      margin-bottom: 3px;
+    }
+
+    .tab-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #FFFFFF;
+    }
+
+    .tab-btn.active {
+      background: #C69C54;
+      color: #164B3B;
+      font-weight: 700;
+      box-shadow: 0 4px 14px rgba(198, 156, 84, 0.25);
+    }
+
+    .tab-btn.active i {
+      color: #164B3B;
+    }
+
+    .tab-btn-text {
+      flex: 1;
       white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .nav-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 1px 7px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.15);
+      color: #FFFFFF;
+    }
+
+    .tab-btn.active .nav-badge {
+      background: rgba(22, 75, 59, 0.2);
+      color: #164B3B;
+    }
+
+    .nav-badge.gold {
+      background: rgba(198, 156, 84, 0.25);
+      color: var(--accent-gold);
+    }
+
+    .tab-btn.active .nav-badge.gold {
+      background: rgba(22, 75, 59, 0.25);
+      color: #164B3B;
+    }
+
+    /* Sidebar Footer */
+    .sidebar-footer {
+      padding: 14px 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #A9C2B5;
+      text-decoration: none;
+      padding: 6px 8px;
+      border-radius: var(--radius-sm);
       transition: var(--transition-smooth);
     }
-    .tab-btn.active {
-      background: var(--primary);
+
+    .sidebar-link:hover {
+      background: rgba(255, 255, 255, 0.08);
       color: #FFFFFF;
+    }
+
+    /* Main Area */
+    .app-main {
+      flex: 1;
+      min-width: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .main-topbar {
+      background: #FFFFFF;
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 16px 32px;
+      position: sticky;
+      top: 0;
+      z-index: 90;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .topbar-left {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar-breadcrumb {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-dim);
+    }
+
+    .topbar-title {
+      font-family: var(--font-heading);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-top: 2px;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .status-pill {
+      font-size: 12px;
+      font-weight: 600;
+      color: #2E7D32;
+      background: rgba(46, 125, 50, 0.1);
+      border: 1px solid rgba(46, 125, 50, 0.2);
+      border-radius: 20px;
+      padding: 4px 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .main-body-container {
+      padding: 24px 32px 60px 32px;
+      width: 100%;
+      flex: 1;
+    }
+
+    @media (max-width: 992px) {
+      body {
+        flex-direction: column;
+      }
+      .app-sidebar {
+        width: 100%;
+        min-width: 100%;
+        height: auto;
+        position: relative;
+      }
+      .main-topbar {
+        padding: 14px 20px;
+      }
+      .main-body-container {
+        padding: 16px 20px 40px 20px;
+      }
     }
 
     .card-panel {
@@ -264,50 +497,121 @@
 </head>
 <body>
 
-  <!-- Top Navigation Header -->
-  <header class="top-header">
-    <div class="nav-container">
-      <div class="brand-left">
-        <span style="font-family: var(--font-heading); font-size: 18px; font-weight: 700;">PrivateHire Cars</span>
-        <span class="brand-badge">Call Centre Operations</span>
+  <!-- Modern Executive Sidebar -->
+  <aside class="app-sidebar">
+    <div class="sidebar-header">
+      <div class="brand-cluster">
+        <div class="brand-logo-icon">
+          <i data-lucide="shield-check" style="width: 20px; height: 20px;"></i>
+        </div>
+        <div class="brand-info">
+          <span class="brand-title">PrivateHire</span>
+          <span class="brand-badge">Call Centre Staff</span>
+        </div>
       </div>
+    </div>
 
-      <div style="display: flex; align-items: center; gap: 12px;">
-        <span style="font-size: 13px; color: #E8E2D5;">Authorised Staff: <strong id="staff-user-name">London Dispatch Desk</strong></span>
-        <a href="database-viewer.html" target="_blank" class="btn-action" style="font-size: 12px; background: rgba(198, 156, 84, 0.2); border: 1px solid var(--accent-gold); color: #FFFFFF; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;" title="Open Standalone Database Inspector">
-          <i data-lucide="database" style="width: 14px; height: 14px;"></i> Open DB Inspector
+    <div class="sidebar-user-card">
+      <div class="user-avatar">
+        <i data-lucide="user-check" style="width: 18px; height: 18px;"></i>
+      </div>
+      <div class="user-details">
+        <div class="user-name" id="staff-user-name">London Dispatch Desk</div>
+        <div class="user-role"><span class="status-dot"></span> Operations Desk</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-title">Core Operations</div>
+      <button class="tab-btn active" data-tab="dispatch" onclick="switchTab('dispatch', this)">
+        <i data-lucide="radio" style="width: 16px; height: 16px;"></i>
+        <span class="tab-btn-text">Active Dispatch</span>
+      </button>
+      <button class="tab-btn" data-tab="assisted" onclick="switchTab('assisted', this)">
+        <i data-lucide="phone-call" style="width: 16px; height: 16px;"></i>
+        <span class="tab-btn-text">Phone Booking Desk</span>
+      </button>
+      <button class="tab-btn" data-tab="availability" onclick="switchTab('availability', this)">
+        <i data-lucide="search" style="width: 16px; height: 16px;"></i>
+        <span class="tab-btn-text">Availability Tool</span>
+      </button>
+
+      <div class="nav-section-title">Fleet &amp; Service</div>
+      <button class="tab-btn" data-tab="fleet" onclick="switchTab('fleet', this)">
+        <i data-lucide="car" style="width: 16px; height: 16px;"></i>
+        <span class="tab-btn-text">Fleet &amp; Chauffeurs</span>
+        <span class="nav-badge" id="sidebar-fleet-badge">150</span>
+      </button>
+      <button class="tab-btn" data-tab="refunds" onclick="switchTab('refunds', this)">
+        <i data-lucide="rotate-ccw" style="width: 16px; height: 16px;"></i>
+        <span class="tab-btn-text">Refund Queue</span>
+      </button>
+      <button class="tab-btn" data-tab="enquiries" onclick="switchTab('enquiries', this)">
+        <i data-lucide="mail" style="width: 16px; height: 16px;"></i>
+        <span class="tab-btn-text">Customer Enquiries</span>
+      </button>
+
+      <div class="nav-section-title">Analytics &amp; System</div>
+      <button class="tab-btn" data-tab="insights" onclick="switchTab('insights', this)">
+        <i data-lucide="bar-chart-2" style="width: 16px; height: 16px;"></i>
+        <span class="tab-btn-text">Demand &amp; Loyalty</span>
+      </button>
+      <button class="tab-btn" data-tab="database" onclick="switchTab('database', this)">
+        <i data-lucide="database" style="width: 16px; height: 16px;"></i>
+        <span class="tab-btn-text">Database &amp; Accounts</span>
+        <span class="nav-badge gold" id="staff-tab-db-count">0</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="database-viewer.html" target="_blank" class="sidebar-link" title="Open Standalone Database Inspector">
+        <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
+        <span>DB Inspector (DataGrip)</span>
+      </a>
+      <a href="booking.html" class="sidebar-link" title="Customer Booking Web Portal">
+        <i data-lucide="globe" style="width: 14px; height: 14px;"></i>
+        <span>Customer Web Portal</span>
+      </a>
+      <button type="button" onclick="autoLoginStaff(true)" class="sidebar-link" style="border:none; background:transparent; width:100%; text-align:left; cursor:pointer;" title="Re-authenticate session">
+        <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i>
+        <span>Refresh Staff Auth</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content Container -->
+  <div class="app-main">
+    <header class="main-topbar">
+      <div class="topbar-left">
+        <span class="topbar-breadcrumb" id="page-breadcrumb">Operations / Active Dispatch</span>
+        <h1 class="topbar-title" id="page-current-title">Active Dispatch &amp; Journey Simulation</h1>
+      </div>
+      <div class="topbar-right">
+        <div class="status-pill">
+          <span class="status-dot"></span> PostgreSQL Active
+        </div>
+        <button class="btn-action" onclick="refreshAllStaffData()" title="Reload all operational tables">
+          <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i> Refresh
+        </button>
+        <a href="database-viewer.html" target="_blank" class="btn-action" style="background: rgba(198, 156, 84, 0.15); border: 1px solid var(--accent-gold); color: #164B3B; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+          <i data-lucide="database" style="width: 14px; height: 14px;"></i> DB Inspector
         </a>
-        <a href="booking.html" class="btn-action" style="font-size: 12px;">Go to Customer Web</a>
+        <a href="booking.html" class="btn-action" style="font-size: 12px;">Customer Web</a>
       </div>
-    </div>
-  </header>
+    </header>
 
-  <main class="main-layout">
-    
-    <!-- Auth Status Banner -->
-    <div id="staff-auth-banner" style="display: none; background: #FFF8E1; border: 1px solid #FFE082; border-radius: var(--radius-sm); padding: 12px 18px; margin-bottom: 20px; align-items: center; justify-content: space-between; gap: 12px;">
-      <div style="display: flex; align-items: center; gap: 10px;">
-        <i data-lucide="shield-alert" style="width: 20px; height: 20px; color: #F57F17;"></i>
-        <span style="font-size: 13.5px; color: #3E2723;"><strong>Staff Session Required:</strong> To query protected bookings and dispatch data, please authenticate with Call Centre credentials.</span>
+    <main class="main-body-container">
+      
+      <!-- Auth Status Banner -->
+      <div id="staff-auth-banner" style="display: none; background: #FFF8E1; border: 1px solid #FFE082; border-radius: var(--radius-sm); padding: 12px 18px; margin-bottom: 20px; align-items: center; justify-content: space-between; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <i data-lucide="shield-alert" style="width: 20px; height: 20px; color: #F57F17;"></i>
+          <span style="font-size: 13.5px; color: #3E2723;"><strong>Staff Session Required:</strong> To query protected bookings and dispatch data, please authenticate with Call Centre credentials.</span>
+        </div>
+        <button onclick="autoLoginStaff(true)" class="btn-action btn-primary" style="font-size: 12px; white-space: nowrap;">
+          <i data-lucide="key" style="width: 14px; height: 14px;"></i> 1-Click Dispatcher Sign-In
+        </button>
       </div>
-      <button onclick="autoLoginStaff(true)" class="btn-action btn-primary" style="font-size: 12px; white-space: nowrap;">
-        <i data-lucide="key" style="width: 14px; height: 14px;"></i> 1-Click Dispatcher Sign-In
-      </button>
-    </div>
-
-    <!-- Tab Controls -->
-    <div class="tabs-bar">
-      <button class="tab-btn active" onclick="switchTab('dispatch')"><i data-lucide="radio" style="width: 15px; height: 15px;"></i> Active Dispatch &amp; Journeys</button>
-      <button class="tab-btn" onclick="switchTab('assisted')"><i data-lucide="phone-call" style="width: 15px; height: 15px;"></i> Phone Booking Desk</button>
-      <button class="tab-btn" onclick="switchTab('availability')"><i data-lucide="search" style="width: 15px; height: 15px;"></i> Availability Tool</button>
-      <button class="tab-btn" onclick="switchTab('fleet')"><i data-lucide="car" style="width: 15px; height: 15px;"></i> Fleet &amp; Chauffeurs</button>
-      <button class="tab-btn" onclick="switchTab('refunds')"><i data-lucide="rotate-ccw" style="width: 15px; height: 15px;"></i> Refund Queue</button>
-      <button class="tab-btn" onclick="switchTab('enquiries')"><i data-lucide="mail" style="width: 15px; height: 15px;"></i> Customer Enquiries</button>
-      <button class="tab-btn" onclick="switchTab('insights')"><i data-lucide="bar-chart-2" style="width: 15px; height: 15px;"></i> Popularity &amp; Loyalty</button>
-      <button class="tab-btn" onclick="switchTab('database')" style="background: rgba(198, 156, 84, 0.1); border-color: rgba(198, 156, 84, 0.35); color: var(--accent-gold); font-weight: 700;">
-        <i data-lucide="database" style="width: 15px; height: 15px;"></i> Database &amp; Accounts (<span id="staff-tab-db-count">0</span>)
-      </button>
-    </div>
 
     <!-- 1. Dispatch & Journey Operations Tab -->
     <section id="tab-dispatch" class="tab-content">
@@ -663,6 +967,7 @@
     </section>
 
   </main>
+  </div>
 
   <!-- Driver Assignment Modal -->
   <div id="assign-driver-modal" class="modal-backdrop">
@@ -781,12 +1086,32 @@
       lucide.createIcons();
     });
 
-    function switchTab(tabId) {
+    const tabMeta = {
+      dispatch: { breadcrumb: 'Operations / Active Dispatch', title: 'Live Dispatch Queue & Journey Simulation' },
+      assisted: { breadcrumb: 'Operations / Phone Booking', title: 'Caller Verification & Assisted Booking Desk' },
+      availability: { breadcrumb: 'Operations / Availability Tool', title: 'Vehicle & Chauffeur Availability Search' },
+      fleet: { breadcrumb: 'Fleet & Service / Fleet & Chauffeurs', title: 'Executive Fleet & Licensed Chauffeurs' },
+      refunds: { breadcrumb: 'Fleet & Service / Refund Queue', title: 'Customer Refund Queue & Authorisation' },
+      enquiries: { breadcrumb: 'Fleet & Service / Enquiries', title: 'Customer Service Enquiries & Direct Replies' },
+      insights: { breadcrumb: 'Analytics & System / Demand & Loyalty', title: 'Vehicle Popularity & Customer Loyalty Insights' },
+      database: { breadcrumb: 'Analytics & System / Database & Accounts', title: 'Live PostgreSQL Database & Accounts Synchronizer' }
+    };
+
+    function switchTab(tabId, el) {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
-      event.currentTarget.classList.add('active');
+      const btn = el || document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
+      if (btn) btn.classList.add('active');
       const target = document.getElementById(`tab-${tabId}`);
       if (target) target.style.display = 'block';
+
+      if (tabMeta[tabId]) {
+        const bc = document.getElementById('page-breadcrumb');
+        const tt = document.getElementById('page-current-title');
+        if (bc) bc.textContent = tabMeta[tabId].breadcrumb;
+        if (tt) tt.textContent = tabMeta[tabId].title;
+      }
+
       if (tabId === 'database') loadDatabaseRecords();
       lucide.createIcons();
     }
@@ -950,6 +1275,9 @@
 
           const fleetBadge = document.getElementById('fleet-count-badge');
           if (fleetBadge) fleetBadge.textContent = allVehicles.length;
+
+          const sidebarFleetBadge = document.getElementById('sidebar-fleet-badge');
+          if (sidebarFleetBadge) sidebarFleetBadge.textContent = allVehicles.length;
 
           const driverBadge = document.getElementById('driver-count-badge');
           if (driverBadge) driverBadge.textContent = driversList.length;

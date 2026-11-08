@@ -198,3 +198,4 @@ runSeed().catch(err => {
   console.error('Lỗi khi seed xe và tài xế:', err);
   process.exit(1);
 });
+
