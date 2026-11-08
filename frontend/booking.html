@@ -811,6 +811,19 @@
       setDefaultPickupTime();
       onBookingInputsChanged();
       restoreSavedDraft();
+
+      // Check query param for prefilled promo code
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const promoParam = urlParams.get('promo') || urlParams.get('code') || urlParams.get('offerCode');
+        if (promoParam) {
+          const input = document.getElementById('bk-offer-code');
+          if (input) {
+            input.value = promoParam.trim().toUpperCase();
+            setTimeout(() => { applyOfferCode(); }, 350);
+          }
+        }
+      } catch (_) {}
     });
 
     // Check customer authentication

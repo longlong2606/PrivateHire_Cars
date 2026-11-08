@@ -222,6 +222,179 @@
       letter-spacing: 1px;
     }
 
+    /* Loyalty Offers Styles */
+    .offers-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .offers-stat-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      box-shadow: var(--shadow-card);
+    }
+    .offers-stat-val {
+      font-family: var(--font-heading);
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--primary);
+      line-height: 1.1;
+    }
+    .offers-stat-lbl {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 4px;
+    }
+
+    .voucher-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 22px 24px;
+      margin-bottom: 18px;
+      box-shadow: var(--shadow-card);
+      transition: var(--transition-smooth);
+      position: relative;
+    }
+    .voucher-card.available {
+      border-left: 5px solid var(--accent-emerald, #3A8B68);
+      background: linear-gradient(180deg, rgba(58, 139, 104, 0.04) 0%, var(--bg-card) 100%);
+    }
+    .voucher-card.used {
+      border-left: 5px solid var(--text-dim, #84988F);
+      opacity: 0.88;
+      background: var(--bg-card);
+    }
+
+    .voucher-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding-bottom: 14px;
+      border-bottom: 1px dashed var(--border-subtle);
+      margin-bottom: 16px;
+    }
+
+    .badge-voucher-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+    .badge-voucher-status.status-available {
+      background: rgba(58, 139, 104, 0.14);
+      color: #267A50;
+      border: 1px solid rgba(58, 139, 104, 0.35);
+    }
+    .badge-voucher-status.status-used {
+      background: rgba(132, 152, 143, 0.15);
+      color: var(--text-muted);
+      border: 1px solid var(--border-medium);
+    }
+
+    .voucher-body {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 18px;
+    }
+
+    .voucher-amount-tag {
+      font-family: var(--font-heading);
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--primary);
+      line-height: 1.1;
+    }
+    .voucher-amount-tag.used {
+      color: var(--text-muted);
+    }
+
+    .voucher-code-wrapper {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(22, 75, 59, 0.06);
+      border: 1px dashed var(--primary);
+      border-radius: var(--radius-sm);
+      padding: 6px 14px;
+      margin-top: 10px;
+    }
+    .voucher-code-wrapper.used {
+      border: 1px dashed var(--border-medium);
+      background: rgba(132, 152, 143, 0.1);
+    }
+    .voucher-code-text {
+      font-family: var(--font-mono);
+      font-size: 16.5px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      color: var(--primary);
+    }
+    .voucher-code-text.used {
+      color: var(--text-muted);
+      text-decoration: line-through;
+    }
+
+    .btn-copy-code {
+      background: #FFFFFF;
+      border: 1px solid var(--border-medium);
+      color: var(--primary);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 8px;
+      border-radius: var(--radius-sm);
+      transition: var(--transition-smooth);
+    }
+    .btn-copy-code:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--primary);
+    }
+
+    /* Toast Notification */
+    .toast-popup {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #164B3B;
+      color: #FFFFFF;
+      padding: 12px 20px;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13.5px;
+      font-weight: 600;
+      z-index: 9999;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: all 0.25s ease;
+      pointer-events: none;
+    }
+    .toast-popup.show {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
     .rule-card {
       background: var(--bg-card);
       border: 1px solid var(--border-subtle);
@@ -457,41 +630,189 @@
         });
         const data = await res.json();
 
-        if (res.ok && data.success && data.offer) {
-          const off = data.offer;
-          container.innerHTML = `
-            <div class="offer-card">
-              <div>
-                <span style="font-size: 12px; font-weight: 700; color: var(--accent-emerald); text-transform: uppercase; letter-spacing: 0.5px;">✓ Loyalty Privilege Awarded</span>
-                <h3 style="font-family: var(--font-heading); font-size: 20px; font-weight: 700; margin: 4px 0;">£${parseFloat(off.amount || 10).toFixed(2)} GBP Loyalty Voucher</h3>
-                <p style="font-size: 13px; color: var(--text-muted);">Use this code when booking your next executive minicab journey.</p>
-                <div class="offer-code-pill">${off.code || 'LOYALTY-PRESTIGE'}</div>
+        const offers = (data && data.offers) || (data && data.offer ? [data.offer] : []);
+        const completedCount = (data && typeof data.completedCount === 'number') ? data.completedCount : 0;
+
+        if (res.ok && data.success && offers.length > 0) {
+          const availableCount = offers.filter(o => !o.is_used).length;
+          const usedCount = offers.filter(o => o.is_used).length;
+
+          let html = `
+            <!-- Overview Stats Grid -->
+            <div class="offers-stats-grid">
+              <div class="offers-stat-box">
+                <div class="offers-stat-val">${offers.length}</div>
+                <div class="offers-stat-lbl">Vouchers Received (Tổng mã)</div>
               </div>
-              <div>
-                <a href="booking.html" class="btn-outline-sm" style="background: var(--primary); color: #fff; border: none; padding: 12px 20px; font-size: 14px;">
-                  Use Voucher Now
-                </a>
+              <div class="offers-stat-box">
+                <div class="offers-stat-val" style="color: var(--accent-emerald, #3A8B68);">${availableCount}</div>
+                <div class="offers-stat-lbl">Available (Chưa sử dụng)</div>
+              </div>
+              <div class="offers-stat-box">
+                <div class="offers-stat-val" style="color: var(--text-muted);">${usedCount}</div>
+                <div class="offers-stat-lbl">Redeemed (Đã sử dụng)</div>
+              </div>
+              <div class="offers-stat-box">
+                <div class="offers-stat-val" style="color: var(--accent-gold, #C69C54);">${completedCount}</div>
+                <div class="offers-stat-lbl">Completed Trips (Chuyến hoàn thành)</div>
               </div>
             </div>
+
+            <div style="margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between;">
+              <h2 style="font-family: var(--font-heading); font-size: 18px; font-weight: 700; color: var(--text-main);">
+                Your Promotional Vouchers &amp; Rewards (${offers.length})
+              </h2>
+            </div>
           `;
+
+          // Render list of vouchers
+          offers.forEach((off) => {
+            const isUsed = Boolean(off.is_used);
+            const discountAmount = parseFloat(off.discount_amount || off.amount || 10.00).toFixed(2);
+            const code = off.code || 'LOYALTY';
+            const createdDate = off.created_at ? new Date(off.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Milestone Reward';
+            const usedDate = off.used_at ? new Date(off.used_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : null;
+
+            html += `
+              <div class="voucher-card ${isUsed ? 'used' : 'available'}">
+                <div class="voucher-header">
+                  <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <span style="font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: ${isUsed ? 'var(--text-muted)' : 'var(--accent-gold)'}; display: flex; align-items: center; gap: 5px;">
+                      <i data-lucide="${isUsed ? 'tag' : 'crown'}" style="width: 14px; height: 14px;"></i>
+                      Executive Milestone Reward
+                    </span>
+                    <span style="font-size: 12px; color: var(--text-dim);">• Issued: ${createdDate}</span>
+                  </div>
+                  <div>
+                    ${isUsed ? `
+                      <span class="badge-voucher-status status-used">
+                        <i data-lucide="check-circle-2" style="width: 13px; height: 13px;"></i>
+                        Đã sử dụng (Redeemed)${usedDate ? ' • ' + usedDate : ''}
+                      </span>
+                    ` : `
+                      <span class="badge-voucher-status status-available">
+                        <i data-lucide="check-circle" style="width: 13px; height: 13px;"></i>
+                        Chưa sử dụng (Available)
+                      </span>
+                    `}
+                  </div>
+                </div>
+
+                <div class="voucher-body">
+                  <div>
+                    <div class="voucher-amount-tag ${isUsed ? 'used' : ''}">
+                      £${discountAmount} GBP OFF
+                    </div>
+                    <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
+                      ${isUsed ? 'Mã ưu đãi này đã được áp dụng thành công cho chuyến đi của bạn.' : 'Mã giảm giá áp dụng trực tiếp vào tổng thanh toán sau khi trừ 15% đặt trực tuyến.'}
+                    </div>
+
+                    <div class="voucher-code-wrapper ${isUsed ? 'used' : ''}">
+                      <span class="voucher-code-text ${isUsed ? 'used' : ''}">${escapeHtml(code)}</span>
+                      ${!isUsed ? `
+                        <button type="button" class="btn-copy-code" onclick="copyVoucherCode('${escapeHtml(code)}')" title="Sao chép mã vào bộ nhớ tạm">
+                          <i data-lucide="copy" style="width: 13px; height: 13px;"></i> Copy Code
+                        </button>
+                      ` : ''}
+                    </div>
+                  </div>
+
+                  <div style="display: flex; flex-direction: column; gap: 8px; min-width: 160px; text-align: right;">
+                    ${!isUsed ? `
+                      <a href="booking.html?promo=${encodeURIComponent(code)}" class="btn-outline-sm" style="background: var(--primary); color: #FFFFFF; border: none; padding: 10px 18px; font-weight: 700; text-align: center; justify-content: center;">
+                        <i data-lucide="calendar-plus" style="width: 14px; height: 14px;"></i> Apply &amp; Book
+                      </a>
+                    ` : `
+                      <a href="my-bookings.html" class="btn-outline-sm" style="color: var(--text-muted); padding: 8px 14px; text-align: center; justify-content: center;">
+                        <i data-lucide="clock" style="width: 13px; height: 13px;"></i> View in Bookings
+                      </a>
+                    `}
+                  </div>
+                </div>
+              </div>
+            `;
+          });
+
+          container.innerHTML = html;
         } else {
+          const progressPercent = Math.min(100, Math.round((completedCount / 3) * 100));
+          const remaining = Math.max(0, 3 - completedCount);
           container.innerHTML = `
-            <div style="background: #FFFFFF; border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 32px; text-align: center; margin-bottom: 20px;">
-              <i data-lucide="award" style="width: 36px; height: 36px; color: var(--accent-gold); margin-bottom: 10px;"></i>
-              <h3 style="font-family: var(--font-heading); font-size: 17px; font-weight: 700; margin-bottom: 6px;">Loyalty Progress: ${data.completedCount || 0} / 3 Completed Journeys</h3>
-              <p style="font-size: 13.5px; color: var(--text-muted); max-width: 520px; margin: 0 auto 16px auto;">
-                Complete ${Math.max(0, 3 - (data.completedCount || 0))} more journey${Math.max(0, 3 - (data.completedCount || 0)) === 1 ? '' : 's'} to unlock your exclusive £10 GBP loyalty voucher.
+            <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 36px 24px; text-align: center; margin-bottom: 24px; box-shadow: var(--shadow-card);">
+              <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(198, 156, 84, 0.12); color: var(--accent-gold); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto;">
+                <i data-lucide="award" style="width: 32px; height: 32px;"></i>
+              </div>
+              <h3 style="font-family: var(--font-heading); font-size: 20px; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">
+                Loyalty Milestone: ${completedCount} / 3 Completed Journeys
+              </h3>
+              <p style="font-size: 13.5px; color: var(--text-muted); max-width: 520px; margin: 0 auto 18px auto; line-height: 1.6;">
+                Bạn chưa có mã giảm giá nào. Hoàn thành thêm <strong>${remaining} chuyến đi</strong> nữa để nhận ngay mã ưu đãi khách hàng thân thiết trị giá <strong>£10.00 GBP</strong>.
               </p>
-              <a href="booking.html" class="btn-outline-sm" style="background: var(--primary); color: #fff; border: none; padding: 10px 18px;">
-                Book a Journey
+
+              <!-- Visual Progress Bar -->
+              <div style="max-width: 380px; margin: 0 auto 20px auto; background: rgba(22, 75, 59, 0.08); height: 10px; border-radius: 10px; overflow: hidden; position: relative;">
+                <div style="background: linear-gradient(90deg, var(--accent-emerald), var(--primary)); width: ${progressPercent}%; height: 100%; border-radius: 10px; transition: width 0.6s ease;"></div>
+              </div>
+
+              <a href="booking.html" class="btn-outline-sm" style="background: var(--primary); color: #FFFFFF; border: none; padding: 11px 22px; font-weight: 700; font-size: 14px;">
+                <i data-lucide="calendar-plus" style="width: 15px; height: 15px;"></i> Book Your Next Journey
               </a>
             </div>
           `;
         }
       } catch (err) {
-        container.innerHTML = `<p style="color: var(--text-error); text-align: center;">Unable to check loyalty status.</p>`;
+        container.innerHTML = `<p style="color: var(--text-error); text-align: center; padding: 24px;">Không thể tải danh sách ưu đãi. Vui lòng kiểm tra lại kết nối.</p>`;
       }
       lucide.createIcons();
+    }
+
+    function copyVoucherCode(code) {
+      if (!code) return;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(code).then(() => {
+          showToast(`✓ Đã sao chép mã ${code} vào bộ nhớ tạm!`);
+        }).catch(() => {
+          fallbackCopy(code);
+        });
+      } else {
+        fallbackCopy(code);
+      }
+    }
+
+    function fallbackCopy(code) {
+      const tempInput = document.createElement('input');
+      tempInput.value = code;
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      document.execCommand('copy');
+      document.body.removeChild(tempInput);
+      showToast(`✓ Đã sao chép mã ${code} vào bộ nhớ tạm!`);
+    }
+
+    function showToast(message) {
+      let toast = document.getElementById('toast-popup');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'toast-popup';
+        toast.className = 'toast-popup';
+        document.body.appendChild(toast);
+      }
+      toast.innerHTML = `<i data-lucide="check-circle" style="width: 16px; height: 16px;"></i> <span>${escapeHtml(message)}</span>`;
+      toast.classList.add('show');
+      lucide.createIcons();
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 2600);
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
     }
   </script>
 </body>
