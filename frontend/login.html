@@ -435,7 +435,7 @@
         <i data-lucide="moon" class="theme-toggle-icon" style="width: 14px; height: 14px;"></i>
         <span class="theme-toggle-label">Dark</span>
       </button>
-      <a href="staff.html" style="font-size: 13px; font-weight: 600; color: #164B3B; text-decoration: none; padding: 6px 12px; border: 1px solid #164B3B; border-radius: 6px;">Staff Portal</a>
+      <a href="staff.html" class="staff-portal-btn" style="font-size: 13px; font-weight: 600; color: #164B3B; text-decoration: none; padding: 6px 12px; border: 1px solid #164B3B; border-radius: 6px;">Staff Portal</a>
       <a href="register.html">Create an account</a>
     </div>
   </header>
@@ -701,7 +701,10 @@
 
         submitBtn.innerHTML = `<span>LOGIN SUCCESSFUL ✓</span>`;
         setTimeout(() => {
-          if (data.user && (data.user.role === 'STAFF' || (data.user.email && data.user.email.includes('staff')))) {
+          const adminEmails = ['longhvn2006@gmail.com', 'nguyennhanduc20345@gmail.com', 'staff@privatehirecars.com'];
+          const uEmail = data.user && data.user.email ? data.user.email.toLowerCase() : '';
+          const uRole = data.user && data.user.role ? data.user.role.toUpperCase() : '';
+          if (uRole === 'STAFF' || uRole === 'ADMIN' || adminEmails.includes(uEmail)) {
             window.location.href = "staff.html";
           } else {
             window.location.href = "booking.html";

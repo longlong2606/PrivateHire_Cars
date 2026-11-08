@@ -118,15 +118,68 @@
     document.body.style.overflow = '';
   };
 
+  // 5. Staff Portal Visibility Based on User Role & Admin Identity
+  window.updateStaffPortalAccess = function () {
+    var isAdmin = false;
+    try {
+      var saved = localStorage.getItem('currentUser');
+      if (saved) {
+        var user = JSON.parse(saved);
+        if (user) {
+          var role = (user.role || '').toUpperCase().trim();
+          var email = (user.email || '').toLowerCase().trim();
+          var adminEmails = [
+            'longhvn2006@gmail.com',
+            'nguyennhanduc20345@gmail.com',
+            'staff@privatehirecars.com',
+            'staff@privatehirecars.co.uk'
+          ];
+          if (role === 'ADMIN' || role === 'STAFF' || adminEmails.indexOf(email) !== -1) {
+            isAdmin = true;
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Error checking user admin role:', e);
+    }
+
+    if (isAdmin) {
+      document.documentElement.setAttribute('data-user-role', 'ADMIN');
+      if (document.body) document.body.setAttribute('data-user-role', 'ADMIN');
+    } else {
+      document.documentElement.removeAttribute('data-user-role');
+      if (document.body) document.body.removeAttribute('data-user-role');
+    }
+
+    var staffLinks = document.querySelectorAll(
+      'a[href*="staff.html"], a[href*="staff-portal.html"], .staff-portal-btn'
+    );
+
+    staffLinks.forEach(function (el) {
+      // Do not hide elements if already inside staff portal pages
+      var path = window.location.pathname.toLowerCase();
+      if (path.indexOf('staff') !== -1) {
+        return;
+      }
+      if (isAdmin) {
+        el.style.removeProperty('display');
+        el.style.display = 'inline-flex';
+      } else {
+        el.style.setProperty('display', 'none', 'important');
+      }
+    });
+  };
+
   function syncDomTheme() {
     var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
     if (isDark && document.body) {
       document.body.setAttribute('data-theme', 'dark');
     }
     window.updateThemeUI();
+    window.updateStaffPortalAccess();
   }
 
-  // 5. Update UI once DOM is ready
+  // 6. Update UI once DOM is ready
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', syncDomTheme);
   } else {

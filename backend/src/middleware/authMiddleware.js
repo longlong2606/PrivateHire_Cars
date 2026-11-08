@@ -146,7 +146,7 @@ const optionalAuth = async (req, res, next) => {
 
 /**
  * Middleware: requireStaff (P01, P06)
- * Yêu cầu quyền nhân viên (Role: STAFF)
+ * Yêu cầu quyền nhân viên hoặc quản trị viên (Role: STAFF hoặc ADMIN)
  */
 const requireStaff = async (req, res, next) => {
   if (!req.user) {
@@ -156,11 +156,14 @@ const requireStaff = async (req, res, next) => {
       message: 'Staff authentication required.',
     });
   }
-  if (req.user.role !== 'STAFF') {
+  const role = (req.user.role || '').toUpperCase();
+  const email = (req.user.email || '').toLowerCase();
+  const adminEmails = ['longhvn2006@gmail.com', 'nguyennhanduc20345@gmail.com', 'staff@privatehirecars.com'];
+  if (role !== 'STAFF' && role !== 'ADMIN' && !adminEmails.includes(email)) {
     return res.status(403).json({
       success: false,
       code: 'FORBIDDEN_STAFF_ONLY',
-      message: 'Access denied: Staff functions require an authorized staff account.',
+      message: 'Access denied: Staff functions require an authorized staff or admin account.',
     });
   }
   next();

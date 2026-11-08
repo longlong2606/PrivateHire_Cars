@@ -1221,15 +1221,23 @@
 
     window.addEventListener('DOMContentLoaded', async () => {
       const cur = localStorage.getItem('currentUser');
+      const adminEmails = ['longhvn2006@gmail.com', 'nguyennhanduc20345@gmail.com', 'staff@privatehirecars.com'];
+
       if (cur) {
         try {
           const parsed = JSON.parse(cur);
-          if (parsed && parsed.role === 'STAFF') {
+          const role = (parsed && parsed.role ? parsed.role.toUpperCase() : '');
+          const email = (parsed && parsed.email ? parsed.email.toLowerCase() : '');
+
+          if (role === 'STAFF' || role === 'ADMIN' || adminEmails.includes(email)) {
             staffUser = parsed;
             const userElem = document.getElementById('staff-user-name');
             if (userElem) userElem.textContent = staffUser.name;
           } else {
-            await autoLoginStaff(false);
+            // User role is USER or CUSTOMER -> Deny access & redirect to booking
+            alert("Access Denied: The Staff Portal is reserved for Administrators and Staff members only.");
+            window.location.href = "booking.html";
+            return;
           }
         } catch (_) {
           await autoLoginStaff(false);

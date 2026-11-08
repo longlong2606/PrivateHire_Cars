@@ -711,3 +711,20 @@ html[data-theme="dark"] body {
     font-size: 16px !important;
   }
 }
+
+/* ===================================================================
+   6. ROLE-BASED ACCESS CONTROL (RBAC) NAVBAR STYLES
+   Staff Portal button is visible strictly for ADMIN / STAFF roles.
+   Hidden by default for regular customers/visitors.
+   =================================================================== */
+:root:not([data-user-role="ADMIN"]):not([data-user-role="STAFF"]) .staff-portal-btn,
+body:not([data-user-role="ADMIN"]):not([data-user-role="STAFF"]) .staff-portal-btn {
+  display: none !important;
+}
+
+:root[data-user-role="ADMIN"] .staff-portal-btn,
+:root[data-user-role="STAFF"] .staff-portal-btn,
+body[data-user-role="ADMIN"] .staff-portal-btn,
+body[data-user-role="STAFF"] .staff-portal-btn {
+  display: inline-flex !important;
+}
