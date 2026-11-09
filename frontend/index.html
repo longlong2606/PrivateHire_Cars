@@ -201,131 +201,136 @@
     }
 
     /* 1. Header & Navigation */
-    .app-header {
+    .top-header {
       position: sticky;
       top: 0;
       left: 0;
       width: 100%;
-      background: var(--bg-card, #FFFFFF);
-      backdrop-filter: blur(12px);
+      background: #FFFFFF;
       border-bottom: 1px solid var(--border-subtle);
       z-index: 1000;
       transition: var(--transition-smooth);
     }
 
-    [data-theme="dark"] .app-header {
+    [data-theme="dark"] .top-header {
       background: #12211A !important;
       background-color: #12211A !important;
       border-bottom: 1px solid #1F362C !important;
     }
 
-    [data-theme="dark"] .app-header .container,
-    [data-theme="dark"] .header-inner {
+    [data-theme="dark"] .top-header .nav-container {
       background: transparent !important;
       background-color: transparent !important;
     }
 
-    .header-inner {
+    .nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 14px 24px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      height: 72px;
     }
 
-    .brand-logo {
+    .brand-left {
       display: flex;
       align-items: center;
       gap: 12px;
+      text-decoration: none;
+      color: var(--text-main);
     }
-    .brand-shield {
-      width: 38px;
-      height: 38px;
+
+    .brand-logo-emblem {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
       background: var(--primary);
-      border-radius: var(--radius-sm);
+      color: #FFFFFF;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: var(--accent-gold);
-      box-shadow: 0 4px 12px var(--primary-glow);
-    }
-    .brand-text-name {
-      font-family: var(--font-heading);
-      font-size: 19px;
       font-weight: 800;
-      color: var(--primary);
-      letter-spacing: -0.3px;
-      line-height: 1.1;
-    }
-    .brand-text-sub {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--accent-gold);
-      letter-spacing: 1px;
-      text-transform: uppercase;
+      font-size: 18px;
+      font-family: var(--font-heading);
     }
 
     .nav-menu {
       display: flex;
       align-items: center;
-      list-style: none;
       gap: 10px;
+      list-style: none;
     }
-    .nav-link {
+
+    .nav-menu a {
+      text-decoration: none;
+      color: var(--text-muted);
       font-size: 13.5px;
       font-weight: 600;
-      color: var(--text-muted);
-      position: relative;
+      transition: var(--transition-smooth);
+      display: flex;
+      align-items: center;
+      gap: 6px;
       padding: 7px 14px;
       border-radius: 8px;
+    }
+
+    .nav-menu a:hover, .nav-menu a.active {
+      color: var(--primary);
+      background: rgba(22, 75, 59, 0.05);
+      font-weight: 600;
+    }
+
+    .nav-user-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-outline-sm {
+      padding: 6px 12px;
+      border: 1px solid var(--border-medium);
+      background: #FFFFFF;
+      border-radius: 8px;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-main);
+      cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 6px;
       text-decoration: none;
-      transition: all 0.2s ease;
-    }
-    .nav-link:hover {
-      color: var(--primary);
-      background: rgba(22, 75, 59, 0.08);
-      border-radius: 8px;
-    }
-    .nav-link.active {
-      color: #164B3B;
-      background: rgba(22, 75, 59, 0.12);
-      border-radius: 8px;
-      font-weight: 700;
-    }
-    .nav-link.active::after {
-      display: none;
-    }
-
-    .nav-right-actions {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .theme-toggle-btn {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-medium);
-      border-radius: var(--radius-sm);
+      transition: var(--transition-smooth);
       height: 36px;
-      padding: 0 12px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 12.5px;
-      font-weight: 600;
-      cursor: pointer;
-      color: var(--text-main);
+      box-sizing: border-box;
     }
 
-    .mobile-hamburger-btn {
+    .btn-outline-sm:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(22, 75, 59, 0.06);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--primary);
+      height: 36px;
+      box-sizing: border-box;
+    }
+
+    .mobile-nav-toggle {
       display: none;
       background: none;
-      border: none;
+      border: 1px solid var(--border-medium);
+      border-radius: 8px;
+      padding: 7px;
       cursor: pointer;
-      padding: 8px;
-      color: var(--primary);
+      color: var(--text-main);
     }
 
     .user-pill {
@@ -1069,40 +1074,38 @@
 <body>
 
   <!-- ===================================================================
-       1. NAVIGATION BAR (Thanh điều hướng)
+       1. NAVIGATION BAR (Thanh điều hướng đồng bộ)
        =================================================================== -->
-  <header class="app-header top-header">
-    <div class="container header-inner">
-      <a href="home.html" class="brand-logo" title="PrivateHire Cars Homepage">
-        <div class="brand-shield">
-          <i data-lucide="shield" style="width: 20px; height: 20px;"></i>
-        </div>
+  <header class="top-header">
+    <div class="nav-container">
+      <a href="home.html" class="brand-left">
+        <div class="brand-logo-emblem">P</div>
         <div>
-          <div class="brand-text-name">PrivateHire Cars</div>
-          <div class="brand-text-sub">London Chauffeurs</div>
+          <span style="font-family: var(--font-heading); font-size: 17px; font-weight: 700; display: block; line-height: 1.2;">PrivateHire Cars</span>
+          <span style="font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; font-family: var(--font-mono);">London Minicab Service</span>
         </div>
       </a>
 
       <nav>
         <ul class="nav-menu">
-          <li><a href="home.html" class="nav-link active"><i data-lucide="home" style="width: 15px; height: 15px;"></i> Home</a></li>
-          <li><a href="booking.html" class="nav-link" style="color: var(--primary); font-weight: 700;"><i data-lucide="calendar-plus" style="width: 15px; height: 15px;"></i> Book a Minicab</a></li>
-          <li><a href="my-bookings.html" class="nav-link"><i data-lucide="clock" style="width: 15px; height: 15px;"></i> My Bookings</a></li>
-          <li><a href="offers.html" class="nav-link"><i data-lucide="tag" style="width: 15px; height: 15px;"></i> Offers</a></li>
-          <li><a href="enquiries.html" class="nav-link"><i data-lucide="help-circle" style="width: 15px; height: 15px;"></i> Support</a></li>
-          <li><a href="notifications.html" class="nav-link"><i data-lucide="bell" style="width: 15px; height: 15px;"></i> Alerts</a></li>
+          <li><a href="home.html" class="active"><i data-lucide="home" style="width: 15px; height: 15px;"></i> Home</a></li>
+          <li><a href="booking.html"><i data-lucide="calendar-plus" style="width: 15px; height: 15px;"></i> Book a Minicab</a></li>
+          <li><a href="my-bookings.html"><i data-lucide="clock" style="width: 15px; height: 15px;"></i> My Bookings</a></li>
+          <li><a href="offers.html"><i data-lucide="tag" style="width: 15px; height: 15px;"></i> Offers</a></li>
+          <li><a href="enquiries.html"><i data-lucide="help-circle" style="width: 15px; height: 15px;"></i> Support</a></li>
+          <li><a href="notifications.html"><i data-lucide="bell" style="width: 15px; height: 15px;"></i> Alerts</a></li>
         </ul>
       </nav>
 
-      <div class="nav-right-actions">
+      <div class="nav-user-actions">
         <!-- Theme toggle -->
-        <button type="button" class="theme-toggle-btn" onclick="toggleTheme()" title="Switch Theme">
+        <button type="button" class="theme-toggle-btn btn-outline-sm" onclick="toggleTheme()" title="Switch Theme">
           <i data-lucide="moon" class="theme-toggle-icon" style="width: 14px; height: 14px;"></i>
           <span class="theme-toggle-label">Dark</span>
         </button>
 
         <!-- Staff Portal Button: Restricted strictly to ADMIN / STAFF -->
-        <a href="staff.html" class="btn btn-outline staff-portal-btn" style="padding: 7px 14px; font-size: 13px;">
+        <a href="staff.html" class="btn-outline-sm staff-portal-btn" style="color: var(--primary); font-weight: 700;">
           <i data-lucide="shield" style="width: 14px; height: 14px;"></i> Staff Portal
         </a>
 
@@ -1116,18 +1119,17 @@
           <div id="user-profile-dropdown" class="user-profile-dropdown"></div>
         </div>
 
-        <a href="login.html" id="btn-login" class="btn btn-primary" style="padding: 7px 16px; font-size: 13px;">
+        <button id="btn-auth-action" onclick="handleAuthAction()" class="btn-outline-sm">
           <i data-lucide="log-in" style="width: 14px; height: 14px;"></i> <span>Log In</span>
-        </a>
-        <button id="btn-logout" onclick="handleLogout()" class="btn btn-outline" style="display: none; padding: 7px 12px; font-size: 13px;">
-          <i data-lucide="log-out" style="width: 14px; height: 14px;"></i> Logout
         </button>
 
-        <!-- Mobile Menu Hamburger -->
-        <button class="mobile-hamburger-btn mobile-nav-toggle" onclick="toggleMobileNav()" aria-label="Toggle navigation menu" type="button">
-          <i data-lucide="menu" style="width: 22px; height: 22px;"></i>
+        <!-- Mobile Menu Toggle -->
+        <button class="mobile-nav-toggle" onclick="toggleMobileNav()" aria-label="Toggle navigation menu" type="button">
+          <i data-lucide="menu" id="mobile-menu-icon" style="width: 18px; height: 18px;"></i>
         </button>
       </div>
+    </div>
+  </header>
     </div>
   </header>
 
@@ -1928,6 +1930,21 @@
 
   <!-- Script for Dynamic Auth Navbar State -->
   <script>
+    function handleAuthAction() {
+      const savedUser = localStorage.getItem('currentUser');
+      if (savedUser) {
+        localStorage.removeItem('currentUser');
+        localStorage.removeItem('sessionToken');
+        if (typeof triggerToast === 'function') triggerToast("Signed out successfully.");
+        window.location.reload();
+      } else {
+        window.location.href = "login.html";
+      }
+    }
+    function handleLogout() {
+      handleAuthAction();
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
       const savedUser = localStorage.getItem('currentUser');
       const token = localStorage.getItem('sessionToken');
@@ -1937,11 +1954,15 @@
           const user = JSON.parse(savedUser);
           const userDisplay = document.getElementById('user-display');
           const userNameText = document.getElementById('user-name-text');
+          const authBtn = document.getElementById('btn-auth-action');
           const btnLogin = document.getElementById('btn-login');
           const btnLogout = document.getElementById('btn-logout');
 
           if (userDisplay) userDisplay.style.display = 'inline-flex';
           if (userNameText) userNameText.textContent = user.name || 'Customer';
+          if (authBtn) {
+            authBtn.innerHTML = `<i data-lucide="log-out" style="width: 14px; height: 14px;"></i> <span>Log Out</span>`;
+          }
           if (btnLogin) btnLogin.style.display = 'none';
           if (btnLogout) btnLogout.style.display = 'inline-flex';
           if (window.initUserProfileDropdown) window.initUserProfileDropdown();
