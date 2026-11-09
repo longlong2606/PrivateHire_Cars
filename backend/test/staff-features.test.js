@@ -6,6 +6,7 @@ const SpecialOfferModel = require('../src/models/specialOfferModel');
 const RefundModel = require('../src/models/refundModel');
 const BookingModel = require('../src/models/bookingModel');
 const NotificationModel = require('../src/models/notificationModel');
+const BookingController = require('../src/controllers/bookingController');
 
 function createMockRes() {
   return {
@@ -99,6 +100,12 @@ test('Sprint Feature: Phone Booking Desk Step 2 & Staff Account/Role Management'
   });
 
   await t.test('3. Verify Promo Code endpoint validates active voucher', async () => {
+    await SpecialOfferModel.createOffer({
+      code: 'SAVE10',
+      accountId: testCustomer.id,
+      discountAmount: 10.00,
+    });
+
     const validReq = {
       body: { code: 'SAVE10', customerId: testCustomer.id },
     };
@@ -271,5 +278,57 @@ test('Sprint Feature: Phone Booking Desk Step 2 & Staff Account/Role Management'
     assert.ok(refundNotif.message.includes(staffUser.name));
     assert.equal(refundNotif.processed_by_staff_name, staffUser.name);
     assert.equal(refundNotif.staff_notes, 'Approved cancellation refund >=24h policy');
+  });
+
+  await t.test('9. Voucher strict account ownership: Cross-account voucher use is rejected (403) and random code is rejected (400)', async () => {
+    // 1. Create a voucher linked exclusively to Customer A (testCustomer.id)
+    const privateVoucher = 'PRIVATE-VOUCHER-' + Math.floor(1000 + Math.random() * 9000);
+    await SpecialOfferModel.createOffer({
+      code: privateVoucher,
+      accountId: testCustomer.id,
+      discountAmount: 20.00,
+    });
+
+    // 2. Customer B attempts to verify Customer A's voucher via Staff phone booking
+    const crossAccountReq = {
+      body: { code: privateVoucher, customerId: 999999 },
+    };
+    const crossAccountRes = createMockRes();
+    await StaffController.verifyPromoCode(crossAccountReq, crossAccountRes);
+    assert.equal(crossAccountRes.statusCode, 403);
+    assert.equal(crossAccountRes.body.valid, false);
+    assert.equal(crossAccountRes.body.code, 'OFFER_DIFFERENT_CUSTOMER');
+    assert.equal(crossAccountRes.body.message, 'You are not eligible to use this voucher code. This code belongs to another account.');
+
+    // 3. Online customer validatePromoCode with mismatched customerId
+    const onlineCrossReq = {
+      body: { code: privateVoucher, customerId: 999999 },
+    };
+    const onlineCrossRes = createMockRes();
+    await BookingController.validatePromoCode(onlineCrossReq, onlineCrossRes);
+    assert.equal(onlineCrossRes.statusCode, 403);
+    assert.equal(onlineCrossRes.body.valid, false);
+    assert.equal(onlineCrossRes.body.code, 'OFFER_DIFFERENT_CUSTOMER');
+
+    // 4. Online customer validatePromoCode with random non-existent code
+    const randomReq = {
+      body: { code: 'RANDOM_INVENTED_CODE_888', customerId: testCustomer.id },
+    };
+    const randomRes = createMockRes();
+    await BookingController.validatePromoCode(randomReq, randomRes);
+    assert.equal(randomRes.statusCode, 400);
+    assert.equal(randomRes.body.valid, false);
+    assert.equal(randomRes.body.code, 'VOUCHER_NOT_FOUND');
+    assert.equal(randomRes.body.message, 'Voucher code does not exist.');
+
+    // 5. Valid owner verifies their own voucher successfully
+    const ownerReq = {
+      body: { code: privateVoucher, customerId: testCustomer.id },
+    };
+    const ownerRes = createMockRes();
+    await StaffController.verifyPromoCode(ownerReq, ownerRes);
+    assert.equal(ownerRes.statusCode, 200);
+    assert.equal(ownerRes.body.valid, true);
+    assert.equal(ownerRes.body.discountAmount, 20.00);
   });
 });

@@ -99,31 +99,24 @@ class StaffController {
       // Staff assisted has NO 15% online discount (P02), but vouchers can be applied!
       let promoDiscount = 0.00;
       let validPromoCode = null;
+      let validVoucherId = null;
       const incomingCode = (promoCode || voucherCode || offerCode || '').trim();
 
       if (incomingCode) {
-        const offer = await SpecialOfferModel.findByCode(incomingCode);
-        if (offer) {
-          if (offer.is_used) {
-            return res.status(400).json({ success: false, code: 'VOUCHER_ALREADY_USED', message: 'You have already used this voucher code.' });
-          }
-          if (offer.account_id && parseInt(offer.account_id, 10) !== parseInt(customer.id, 10)) {
-            return res.status(403).json({ success: false, code: 'OFFER_DIFFERENT_CUSTOMER', message: 'This promo code was issued to another customer.' });
-          }
-          promoDiscount = parseFloat(offer.discount_amount);
-          validPromoCode = offer.code;
-          await SpecialOfferModel.markUsed(validPromoCode);
-        } else if (
-          incomingCode.toUpperCase().startsWith('LOYALTY') ||
-          incomingCode.toUpperCase() === 'SAVE10' ||
-          incomingCode.toUpperCase() === 'VIP10' ||
-          incomingCode.toUpperCase() === 'WELCOME10'
-        ) {
-          promoDiscount = 10.00;
-          validPromoCode = incomingCode.toUpperCase();
-        } else {
+        const offer = await SpecialOfferModel.findByCode(incomingCode.toUpperCase());
+        if (!offer) {
           return res.status(400).json({ success: false, code: 'VOUCHER_NOT_FOUND', message: 'Voucher code does not exist.' });
         }
+        if (offer.is_used) {
+          return res.status(400).json({ success: false, code: 'VOUCHER_ALREADY_USED', message: 'You have already used this voucher code.' });
+        }
+        if (offer.account_id && parseInt(offer.account_id, 10) !== parseInt(customer.id, 10)) {
+          return res.status(403).json({ success: false, code: 'OFFER_DIFFERENT_CUSTOMER', message: 'You are not eligible to use this voucher code. This code belongs to another account.' });
+        }
+        promoDiscount = parseFloat(offer.discount_amount);
+        validPromoCode = offer.code;
+        validVoucherId = offer.id;
+        await SpecialOfferModel.markUsed(validPromoCode);
       }
 
       const finalFare = Math.max(0, Math.round((baseFare - promoDiscount) * 100) / 100);
@@ -164,6 +157,8 @@ class StaffController {
         discountAmount: 0.00, // No 15% online discount for staff/phone bookings
         promoCode: validPromoCode,
         promoDiscount: promoDiscount,
+        voucherCode: validPromoCode,
+        voucherId: validVoucherId,
         finalFare: finalFare,
       });
 
@@ -628,58 +623,56 @@ class StaffController {
       if (!code || !code.trim()) {
         return res.status(400).json({ success: false, message: 'Please provide a promo or voucher code.' });
       }
-      const incomingCode = code.trim();
+      const incomingCode = code.trim().toUpperCase();
       const offer = await SpecialOfferModel.findByCode(incomingCode);
 
-      if (offer) {
-        if (offer.is_used) {
-          return res.status(400).json({
+      if (!offer) {
+        return res.status(400).json({
+          success: false,
+          valid: false,
+          code: 'VOUCHER_NOT_FOUND',
+          message: 'Voucher code does not exist.',
+        });
+      }
+
+      if (offer.is_used) {
+        return res.status(400).json({
+          success: false,
+          valid: false,
+          code: 'VOUCHER_ALREADY_USED',
+          message: 'You have already used this voucher code.',
+        });
+      }
+
+      if (offer.account_id) {
+        if (!customerId) {
+          return res.status(403).json({
             success: false,
             valid: false,
-            code: 'VOUCHER_ALREADY_USED',
-            message: 'You have already used this voucher code.',
+            code: 'AUTH_REQUIRED_FOR_VOUCHER',
+            message: 'This voucher code is assigned to a specific customer account.',
           });
         }
-        if (offer.account_id && customerId && parseInt(offer.account_id, 10) !== parseInt(customerId, 10)) {
+        if (parseInt(offer.account_id, 10) !== parseInt(customerId, 10)) {
           return res.status(403).json({
             success: false,
             valid: false,
             code: 'OFFER_DIFFERENT_CUSTOMER',
-            message: 'This promo code was issued to another customer.',
+            message: 'You are not eligible to use this voucher code. This code belongs to another account.',
           });
         }
-        return res.json({
-          success: true,
-          valid: true,
-          discountAmount: parseFloat(offer.discount_amount),
-          code: offer.code,
-          message: `Special voucher applied! £${parseFloat(offer.discount_amount).toFixed(2)} discount.`,
-        });
       }
 
-      if (
-        incomingCode.toUpperCase().startsWith('LOYALTY') ||
-        incomingCode.toUpperCase() === 'SAVE10' ||
-        incomingCode.toUpperCase() === 'VIP10' ||
-        incomingCode.toUpperCase() === 'WELCOME10'
-      ) {
-        return res.json({
-          success: true,
-          valid: true,
-          discountAmount: 10.00,
-          code: incomingCode.toUpperCase(),
-          message: 'Promotional code verified! £10.00 discount applied.',
-        });
-      }
-
-      return res.status(400).json({
-        success: false,
-        valid: false,
-        code: 'VOUCHER_NOT_FOUND',
-        message: 'Voucher code does not exist.',
+      return res.json({
+        success: true,
+        valid: true,
+        discountAmount: parseFloat(offer.discount_amount),
+        code: offer.code,
+        message: `Special voucher applied! £${parseFloat(offer.discount_amount).toFixed(2)} discount.`,
       });
-    } catch (err) {
-      res.status(500).json({ success: false, message: err.message });
+    } catch (error) {
+      console.error('Error verifying promo code:', error);
+      res.status(500).json({ success: false, message: 'Internal server error validating promo code.' });
     }
   }
 

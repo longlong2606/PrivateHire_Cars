@@ -29,10 +29,14 @@ class BookingModel {
     discountAmount = 0.00,
     promoCode = null,
     promoDiscount = 0.00,
+    voucherCode = null,
+    voucherId = null,
     finalFare = 45.00,
     vehicleId = null,
     driverId = null,
   }) {
+    const resolvedVoucherCode = voucherCode || promoCode || null;
+    const resolvedVoucherId = voucherId || null;
     const sql = `
       INSERT INTO bookings (
         booking_code,
@@ -59,11 +63,13 @@ class BookingModel {
         discount_amount,
         promo_code,
         promo_discount,
+        voucher_code,
+        voucher_id,
         final_fare,
         vehicle_id,
         driver_id
       ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29
       )
       RETURNING *
     `;
@@ -92,6 +98,8 @@ class BookingModel {
       discountAmount,
       promoCode,
       promoDiscount,
+      resolvedVoucherCode,
+      resolvedVoucherId,
       finalFare,
       vehicleId,
       driverId,

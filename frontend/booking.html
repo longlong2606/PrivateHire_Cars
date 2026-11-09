@@ -1201,6 +1201,10 @@
             errText = 'You have already used this voucher code.';
           } else if (data && data.code === 'VOUCHER_NOT_FOUND') {
             errText = 'Voucher code does not exist.';
+          } else if (data && data.code === 'OFFER_DIFFERENT_CUSTOMER') {
+            errText = 'You are not eligible to use this voucher code. This code belongs to another account.';
+          } else if (data && data.code === 'AUTH_REQUIRED_FOR_VOUCHER') {
+            errText = 'Please sign in to use your account voucher.';
           } else if (data && data.message) {
             errText = data.message;
           }

@@ -93,42 +93,44 @@ const createBooking = async (req, res) => {
     // 3. [P09]: Special Offer Promo Code Deduction (applied after 15% discount)
     let promoDiscount = 0.00;
     let validPromoCode = null;
+    let validVoucherId = null;
     const incomingCode = (promoCode || offerCode || voucherCode || '').trim();
     if (incomingCode) {
-      const offer = await SpecialOfferModel.findByCode(incomingCode);
-      if (offer) {
-        if (offer.is_used) {
-          return res.status(400).json({
-            success: false,
-            code: 'VOUCHER_ALREADY_USED',
-            message: 'You have already used this voucher code.',
-          });
-        }
-        if (offer.account_id && customer && parseInt(offer.account_id, 10) !== parseInt(customer.id, 10)) {
-          return res.status(403).json({
-            success: false,
-            code: 'OFFER_DIFFERENT_CUSTOMER',
-            message: 'This promo code was issued to another customer.',
-          });
-        }
-        promoDiscount = parseFloat(offer.discount_amount);
-        validPromoCode = offer.code;
-        await SpecialOfferModel.markUsed(validPromoCode);
-      } else if (
-        incomingCode.toUpperCase().startsWith('LOYALTY') ||
-        incomingCode.toUpperCase() === 'SAVE10' ||
-        incomingCode.toUpperCase() === 'VIP10' ||
-        incomingCode.toUpperCase() === 'WELCOME10'
-      ) {
-        promoDiscount = 10.00;
-        validPromoCode = incomingCode.toUpperCase();
-      } else {
+      const offer = await SpecialOfferModel.findByCode(incomingCode.toUpperCase());
+      if (!offer) {
         return res.status(400).json({
           success: false,
           code: 'VOUCHER_NOT_FOUND',
           message: 'Voucher code does not exist.',
         });
       }
+      if (offer.is_used) {
+        return res.status(400).json({
+          success: false,
+          code: 'VOUCHER_ALREADY_USED',
+          message: 'You have already used this voucher code.',
+        });
+      }
+      if (offer.account_id) {
+        if (!customer) {
+          return res.status(403).json({
+            success: false,
+            code: 'AUTH_REQUIRED_FOR_VOUCHER',
+            message: 'This voucher code is assigned to a specific customer account. Please log in to use your voucher.',
+          });
+        }
+        if (parseInt(offer.account_id, 10) !== parseInt(customer.id, 10)) {
+          return res.status(403).json({
+            success: false,
+            code: 'OFFER_DIFFERENT_CUSTOMER',
+            message: 'You are not eligible to use this voucher code. This code belongs to another account.',
+          });
+        }
+      }
+      promoDiscount = parseFloat(offer.discount_amount);
+      validPromoCode = offer.code;
+      validVoucherId = offer.id;
+      await SpecialOfferModel.markUsed(validPromoCode);
     }
 
     // Total cannot be negative (P02)
@@ -182,6 +184,8 @@ const createBooking = async (req, res) => {
       discountAmount: onlineDiscount,
       promoCode: validPromoCode,
       promoDiscount: promoDiscount,
+      voucherCode: validPromoCode,
+      voucherId: validVoucherId,
       finalFare: finalFare,
       vehicleId: assignedVehicleId,
       driverId: assignedDriverId,
@@ -566,55 +570,64 @@ const validatePromoCode = async (req, res) => {
     const customer = req.user;
     const customerId = (customer && customer.id) || (req.body && req.body.customerId) || (req.query && req.query.customerId);
 
-    if (!rawCode) return res.status(400).json({ success: false, message: 'Code is required' });
+    if (!rawCode || !String(rawCode).trim()) {
+      return res.status(400).json({ success: false, valid: false, message: 'Code is required' });
+    }
 
     const code = String(rawCode).trim().toUpperCase();
     const offer = await SpecialOfferModel.findByCode(code);
 
-    if (offer) {
-      if (offer.account_id && customerId && parseInt(offer.account_id, 10) !== parseInt(customerId, 10)) {
-        return res.status(403).json({ success: false, valid: false, code: 'OFFER_DIFFERENT_CUSTOMER', message: 'This promo code was issued to another customer.' });
+    if (!offer) {
+      return res.status(400).json({
+        success: false,
+        valid: false,
+        code: 'VOUCHER_NOT_FOUND',
+        message: 'Voucher code does not exist.',
+      });
+    }
+
+    if (offer.is_used) {
+      return res.status(400).json({
+        success: false,
+        valid: false,
+        code: 'VOUCHER_ALREADY_USED',
+        message: 'You have already used this voucher code.',
+      });
+    }
+
+    if (offer.account_id) {
+      if (!customerId) {
+        return res.status(403).json({
+          success: false,
+          valid: false,
+          code: 'AUTH_REQUIRED_FOR_VOUCHER',
+          message: 'This voucher code is assigned to a specific customer account. Please log in to use your voucher.',
+        });
       }
-      if (offer.is_used) {
-        return res.status(400).json({ success: false, valid: false, code: 'VOUCHER_ALREADY_USED', message: 'You have already used this voucher code.' });
+      if (parseInt(offer.account_id, 10) !== parseInt(customerId, 10)) {
+        return res.status(403).json({
+          success: false,
+          valid: false,
+          code: 'OFFER_DIFFERENT_CUSTOMER',
+          message: 'You are not eligible to use this voucher code. This code belongs to another account.',
+        });
       }
-      const discountAmount = parseFloat(offer.discount_amount || 10.00);
-      return res.json({
-        success: true,
-        valid: true,
+    }
+
+    const discountAmount = parseFloat(offer.discount_amount || 10.00);
+    return res.json({
+      success: true,
+      valid: true,
+      code: offer.code,
+      discountAmount: discountAmount,
+      offer: {
+        id: offer.id,
         code: offer.code,
+        amount: discountAmount,
         discountAmount: discountAmount,
-        offer: {
-          code: offer.code,
-          amount: discountAmount,
-          discountAmount: discountAmount,
-        },
-        message: `Voucher applied! £${discountAmount.toFixed(2)} GBP discount applied to total.`,
-      });
-    }
-
-    // Support promotional voucher patterns (e.g. LOYALTY-*, SAVE10, VIP10, WELCOME10)
-    if (code.startsWith('LOYALTY') || code === 'SAVE10' || code === 'VIP10' || code === 'WELCOME10') {
-      const discountAmount = 10.00;
-      return res.json({
-        success: true,
-        valid: true,
-        code: code,
-        discountAmount: discountAmount,
-        offer: {
-          code: code,
-          amount: discountAmount,
-          discountAmount: discountAmount,
-        },
-        message: `Promo code ${code} applied! £10.00 GBP discount applied to total.`,
-      });
-    }
-
-    return res.status(400).json({
-      success: false,
-      valid: false,
-      code: 'VOUCHER_NOT_FOUND',
-      message: 'Voucher code does not exist.',
+        accountId: offer.account_id,
+      },
+      message: `Voucher applied! £${discountAmount.toFixed(2)} GBP discount applied to total.`,
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

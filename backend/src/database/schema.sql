@@ -292,6 +292,13 @@ CREATE TABLE IF NOT EXISTS special_offers (
 CREATE INDEX IF NOT EXISTS idx_special_offers_code ON special_offers(code);
 CREATE INDEX IF NOT EXISTS idx_special_offers_account ON special_offers(account_id);
 
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS voucher_code VARCHAR(50);
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS voucher_id INTEGER REFERENCES special_offers(id);
+
+CREATE OR REPLACE VIEW vouchers AS
+SELECT id, code, account_id, discount_amount, is_used, used_at, created_at
+FROM special_offers;
+
 -- ===================================================================
 -- 9. REVIEWS & RATINGS (P07)
 -- Ratings 1-5 for journey, vehicle, driver on completed bookings
