@@ -9,6 +9,7 @@ html[data-theme="dark"],
 [data-theme="dark"] {
   --bg-body: #0A1410 !important;
   --bg-surface: #12211A !important;
+  --bg-surface-subtle: #182E24 !important;
   --bg-card: #12211A !important;
   --bg-card-hover: #182E24 !important;
   --bg-input: #0E1A14 !important;
@@ -438,6 +439,62 @@ html[data-theme="dark"] body {
 [data-theme="dark"] .modal-footer {
   background-color: #182E24 !important;
   border-top: 1px solid #1F362C !important;
+}
+
+/* Staff Modal Dialogs (Refund Details & Journey Details) in Dark Mode */
+[data-theme="dark"] #modal-refund-detail,
+[data-theme="dark"] #modal-journey-detail {
+  background: rgba(0, 0, 0, 0.75) !important;
+}
+
+[data-theme="dark"] #modal-refund-detail > div,
+[data-theme="dark"] #modal-journey-detail > div,
+[data-theme="dark"] .staff-modal-box {
+  background-color: #12211A !important;
+  background: #12211A !important;
+  border-color: #1F362C !important;
+  color: #F2F7F4 !important;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8) !important;
+}
+
+[data-theme="dark"] #modal-refund-detail .staff-modal-card,
+[data-theme="dark"] #modal-journey-detail .staff-modal-card,
+[data-theme="dark"] #modal-refund-detail [style*="#FAF7F2"],
+[data-theme="dark"] #modal-journey-detail [style*="#FAF7F2"] {
+  background: #182E24 !important;
+  background-color: #182E24 !important;
+  border-color: #264738 !important;
+  color: #F2F7F4 !important;
+}
+
+[data-theme="dark"] #modal-refund-detail .staff-audit-note-box,
+[data-theme="dark"] #modal-refund-detail [style*="#FFFFFF"] {
+  background: #142820 !important;
+  background-color: #142820 !important;
+  border-color: #264738 !important;
+  color: #F2F7F4 !important;
+}
+
+[data-theme="dark"] #modal-rf-title,
+[data-theme="dark"] #modal-jd-title {
+  color: #F2F7F4 !important;
+}
+
+[data-theme="dark"] #modal-refund-detail strong[style*="var(--primary)"],
+[data-theme="dark"] #modal-journey-detail strong[style*="var(--primary)"] {
+  color: #52B788 !important;
+}
+
+[data-theme="dark"] .staff-modal-card {
+  color: #F2F7F4 !important;
+}
+
+[data-theme="dark"] .modal-close-btn {
+  color: #A3BCB0 !important;
+}
+
+[data-theme="dark"] .modal-close-btn:hover {
+  color: #F2F7F4 !important;
 }
 
 /* 10. Toasts & Alerts */

@@ -19,6 +19,8 @@
   <style>
     :root {
       --bg-body: #F4F1EA;
+      --bg-surface: #FFFFFF;
+      --bg-surface-subtle: #FAF7F2;
       --bg-card: #FFFFFF;
       --bg-card-hover: #FAF7F2;
       --bg-input: #FFFFFF;
@@ -1661,7 +1663,7 @@
       const pStatus = (b.payment_status || 'UNPAID').toUpperCase();
 
       content.innerHTML = `
-        <div style="background: var(--bg-surface-subtle, #FAF7F2); border: 1px solid var(--border-subtle, #E6DEC9); border-radius: 10px; padding: 14px 16px;">
+        <div class="staff-modal-card" style="background: var(--bg-surface-subtle, #FAF7F2); border: 1px solid var(--border-subtle, #E6DEC9); border-radius: 10px; padding: 14px 16px;">
           <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
             <div>
               <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Customer Information</div>
@@ -1683,16 +1685,16 @@
           </div>
         </div>
 
-        <div style="background: var(--bg-surface-subtle, #FAF7F2); border: 1px solid var(--border-subtle, #E6DEC9); border-radius: 10px; padding: 14px 16px;">
+        <div class="staff-modal-card" style="background: var(--bg-surface-subtle, #FAF7F2); border: 1px solid var(--border-subtle, #E6DEC9); border-radius: 10px; padding: 14px 16px;">
           <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 8px;">Journey Route &amp; Schedule</div>
           <div style="display: flex; flex-direction: column; gap: 8px;">
             <div style="display: flex; gap: 10px;">
               <span style="font-size: 12px; font-weight: 700; color: var(--accent-emerald); width: 65px; flex-shrink: 0;">PICKUP:</span>
-              <span style="font-weight: 600; color: var(--primary);">${escapeHtml(b.pickup_address)}</span>
+              <span style="font-weight: 600; color: var(--text-main);">${escapeHtml(b.pickup_address)}</span>
             </div>
             <div style="display: flex; gap: 10px;">
               <span style="font-size: 12px; font-weight: 700; color: var(--accent-gold); width: 65px; flex-shrink: 0;">DROPOFF:</span>
-              <span style="font-weight: 600; color: var(--primary);">${escapeHtml(b.dropoff_address)}</span>
+              <span style="font-weight: 600; color: var(--text-main);">${escapeHtml(b.dropoff_address)}</span>
             </div>
             <div style="display: flex; gap: 10px; border-top: 1px dashed var(--border-subtle); padding-top: 6px; margin-top: 2px;">
               <span style="font-size: 12px; font-weight: 700; color: var(--text-dim); width: 65px; flex-shrink: 0;">TIME:</span>
@@ -1708,19 +1710,19 @@
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-          <div style="background: var(--bg-surface-subtle, #FAF7F2); border: 1px solid var(--border-subtle, #E6DEC9); border-radius: 10px; padding: 12px 14px;">
+          <div class="staff-modal-card" style="background: var(--bg-surface-subtle, #FAF7F2); border: 1px solid var(--border-subtle, #E6DEC9); border-radius: 10px; padding: 12px 14px;">
             <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 6px;">Vehicle &amp; Class</div>
             <div style="font-weight: 700; color: var(--primary);">${escapeHtml(b.service_name || 'Standard')}</div>
             <div style="font-size: 12px; color: var(--text-muted);">${escapeHtml(b.car_type || 'Saloon')} (${b.vehicle_capacity_seats || 4} seats)</div>
             <div style="margin-top: 6px; font-size: 12px;">
               ${b.vehicle_reg ? `
-                <span style="font-family: var(--font-mono); font-weight: 700; background: #E6DEC9; padding: 2px 6px; border-radius: 4px;">${escapeHtml(b.vehicle_reg)}</span>
+                <span style="font-family: var(--font-mono); font-weight: 700; background: var(--bg-card); border: 1px solid var(--border-subtle); padding: 2px 6px; border-radius: 4px;">${escapeHtml(b.vehicle_reg)}</span>
                 ${b.vehicle_model ? `<span style="color: var(--text-dim); margin-left: 4px;">${escapeHtml(b.vehicle_model)}</span>` : ''}
               ` : '<span style="color: var(--text-dim); font-style: italic;">No specific vehicle assigned</span>'}
             </div>
           </div>
 
-          <div style="background: var(--bg-surface-subtle, #FAF7F2); border: 1px solid var(--border-subtle, #E6DEC9); border-radius: 10px; padding: 12px 14px;">
+          <div class="staff-modal-card" style="background: var(--bg-surface-subtle, #FAF7F2); border: 1px solid var(--border-subtle, #E6DEC9); border-radius: 10px; padding: 12px 14px;">
             <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 6px;">Assigned Chauffeur</div>
             <div style="font-weight: 700; color: var(--primary);">${escapeHtml(b.driver_name || 'Unassigned')}</div>
             <div style="font-size: 12px; color: var(--text-muted);">
@@ -1734,13 +1736,13 @@
           </div>
         </div>
 
-        <div style="background: var(--bg-surface-subtle, #FAF7F2); border: 1px solid var(--border-subtle, #E6DEC9); border-radius: 10px; padding: 14px 16px;">
+        <div class="staff-modal-card" style="background: var(--bg-surface-subtle, #FAF7F2); border: 1px solid var(--border-subtle, #E6DEC9); border-radius: 10px; padding: 14px 16px;">
           <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 8px;">Fare &amp; Billing Breakdown</div>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12.5px;">
-            <div>Base Fare: <strong>£${parseFloat(b.base_fare || b.fare_amount || 0).toFixed(2)} GBP</strong></div>
-            <div>Discount / Voucher: <strong>${b.promo_code ? `${escapeHtml(b.promo_code)} (-£${parseFloat(b.promo_discount || b.discount_amount || 0).toFixed(2)})` : 'None'}</strong></div>
-            <div>Total Fare: <strong style="color: var(--accent-emerald); font-size: 14px;">£${parseFloat(b.final_fare || b.fare_amount || 0).toFixed(2)} GBP</strong></div>
-            <div>Payment: <strong>${escapeHtml(b.payment_method || 'CARD')}</strong> ${b.card_ref_used ? `<span style="font-size: 11px; color: var(--text-dim);">(${escapeHtml(b.card_ref_used)})</span>` : ''}</div>
+            <div><span style="color: var(--text-muted);">Base Fare:</span> <strong>£${parseFloat(b.base_fare || b.fare_amount || 0).toFixed(2)} GBP</strong></div>
+            <div><span style="color: var(--text-muted);">Discount / Voucher:</span> <strong>${b.promo_code ? `${escapeHtml(b.promo_code)} (-£${parseFloat(b.promo_discount || b.discount_amount || 0).toFixed(2)})` : 'None'}</strong></div>
+            <div><span style="color: var(--text-muted);">Total Fare:</span> <strong style="color: var(--accent-emerald); font-size: 14px;">£${parseFloat(b.final_fare || b.fare_amount || 0).toFixed(2)} GBP</strong></div>
+            <div><span style="color: var(--text-muted);">Payment:</span> <strong>${escapeHtml(b.payment_method || 'CARD')}</strong> ${b.card_ref_used ? `<span style="font-size: 11px; color: var(--text-dim);">(${escapeHtml(b.card_ref_used)})</span>` : ''}</div>
           </div>
           ${b.notes || b.booking_notes ? `
             <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border-subtle); font-size: 12px;">
@@ -2369,7 +2371,7 @@
       }
 
       content.innerHTML = `
-        <div style="background: ${categoryBg}; border: 1px solid ${categoryColor}40; border-radius: 10px; padding: 14px 16px;">
+        <div class="staff-modal-card" style="background: ${categoryBg}; border: 1px solid ${categoryColor}40; border-radius: 10px; padding: 14px 16px;">
           <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
             <i data-lucide="info" style="width: 16px; height: 16px; color: ${categoryColor}; flex-shrink: 0;"></i>
             <span style="font-size: 11.5px; text-transform: uppercase; font-weight: 700; color: ${categoryColor}; letter-spacing: 0.5px;">
@@ -2379,13 +2381,13 @@
           <div style="font-size: 13px; color: var(--text-main); line-height: 1.5; margin-bottom: 8px;">
             ${categoryExplanation}
           </div>
-          <div style="background: var(--bg-surface, #FFFFFF); border: 1px solid var(--border-subtle, #E6DEC9); border-radius: 6px; padding: 8px 12px; font-size: 12.5px;">
+          <div class="staff-audit-note-box" style="background: var(--bg-surface, #FFFFFF); border: 1px solid var(--border-subtle, #E6DEC9); border-radius: 6px; padding: 8px 12px; font-size: 12.5px;">
             <span style="font-weight: 700; color: var(--text-muted);">System Audit Note:</span>
             <span style="color: var(--text-main); font-weight: 600;">"${escapeHtml(r.reason || 'No description provided')}"</span>
           </div>
         </div>
 
-        <div style="background: var(--bg-surface-subtle, #FAF7F2); border: 1px solid var(--border-subtle, #E6DEC9); border-radius: 10px; padding: 14px 16px;">
+        <div class="staff-modal-card" style="background: var(--bg-surface-subtle, #FAF7F2); border: 1px solid var(--border-subtle, #E6DEC9); border-radius: 10px; padding: 14px 16px;">
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <div>
               <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Refund Amount Authorized</div>
@@ -2400,22 +2402,22 @@
           </div>
         </div>
 
-        <div style="background: var(--bg-surface-subtle, #FAF7F2); border: 1px solid var(--border-subtle, #E6DEC9); border-radius: 10px; padding: 14px 16px;">
+        <div class="staff-modal-card" style="background: var(--bg-surface-subtle, #FAF7F2); border: 1px solid var(--border-subtle, #E6DEC9); border-radius: 10px; padding: 14px 16px;">
           <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 8px;">Customer &amp; Journey Information</div>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12.5px;">
-            <div>Passenger: <strong>${escapeHtml(r.customer_name || 'Customer')}</strong></div>
-            <div>Email: <strong>${escapeHtml(r.customer_email || 'N/A')}</strong></div>
-            <div>Phone: <strong>${escapeHtml(r.customer_phone || 'N/A')}</strong></div>
-            <div>Booking Ref: <strong style="font-family: var(--font-mono);">${escapeHtml(r.booking_code || ('#' + r.booking_id))}</strong></div>
-            <div>Service &amp; Vehicle: <strong>${escapeHtml(r.service_name || 'Standard')} (${escapeHtml(r.car_type || 'Saloon')})</strong></div>
-            <div>Booking Status: <span class="badge" style="font-size: 11px;">${r.booking_status || 'UNKNOWN'}</span></div>
-            <div>Paid Fare: <strong>£${parseFloat(r.final_fare || r.fare_amount || r.amount).toFixed(2)} GBP</strong></div>
-            <div>Payment Method: <strong>${escapeHtml(r.payment_method || 'CARD')}</strong> ${r.card_ref_used ? `<span style="font-size: 11px; color: var(--text-dim);">(${escapeHtml(r.card_ref_used)})</span>` : ''}</div>
+            <div><span style="color: var(--text-muted);">Passenger:</span> <strong>${escapeHtml(r.customer_name || 'Customer')}</strong></div>
+            <div><span style="color: var(--text-muted);">Email:</span> <strong>${escapeHtml(r.customer_email || 'N/A')}</strong></div>
+            <div><span style="color: var(--text-muted);">Phone:</span> <strong>${escapeHtml(r.customer_phone || 'N/A')}</strong></div>
+            <div><span style="color: var(--text-muted);">Booking Ref:</span> <strong style="font-family: var(--font-mono); color: var(--accent-gold);">${escapeHtml(r.booking_code || ('#' + r.booking_id))}</strong></div>
+            <div><span style="color: var(--text-muted);">Service &amp; Vehicle:</span> <strong>${escapeHtml(r.service_name || 'Standard')} (${escapeHtml(r.car_type || 'Saloon')})</strong></div>
+            <div><span style="color: var(--text-muted);">Booking Status:</span> <span class="badge" style="font-size: 11px;">${r.booking_status || 'UNKNOWN'}</span></div>
+            <div><span style="color: var(--text-muted);">Paid Fare:</span> <strong>£${parseFloat(r.final_fare || r.fare_amount || r.amount).toFixed(2)} GBP</strong></div>
+            <div><span style="color: var(--text-muted);">Payment Method:</span> <strong>${escapeHtml(r.payment_method || 'CARD')}</strong> ${r.card_ref_used ? `<span style="font-size: 11px; color: var(--text-dim);">(${escapeHtml(r.card_ref_used)})</span>` : ''}</div>
           </div>
           <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border-subtle); font-size: 12px;">
-            <div><strong style="color: var(--accent-emerald);">Pickup:</strong> ${escapeHtml(r.pickup_address || 'N/A')}</div>
-            <div style="margin-top: 3px;"><strong style="color: var(--accent-gold);">Dropoff:</strong> ${escapeHtml(r.dropoff_address || 'N/A')}</div>
-            ${r.pickup_time ? `<div style="margin-top: 3px;"><strong style="color: var(--text-muted);">Scheduled:</strong> ${new Date(r.pickup_time).toLocaleString('en-GB')}</div>` : ''}
+            <div><strong style="color: var(--accent-emerald);">Pickup:</strong> <span>${escapeHtml(r.pickup_address || 'N/A')}</span></div>
+            <div style="margin-top: 3px;"><strong style="color: var(--accent-gold);">Dropoff:</strong> <span>${escapeHtml(r.dropoff_address || 'N/A')}</span></div>
+            ${r.pickup_time ? `<div style="margin-top: 3px;"><strong style="color: var(--text-muted);">Scheduled:</strong> <span>${new Date(r.pickup_time).toLocaleString('en-GB')}</span></div>` : ''}
           </div>
         </div>
       `;
@@ -2938,8 +2940,8 @@
   </div>
 
   <!-- Modal 1: Journey Details (Request 17) -->
-  <div id="modal-journey-detail" style="display: none; position: fixed; inset: 0; background: rgba(18, 33, 26, 0.7); backdrop-filter: blur(4px); z-index: 1050; align-items: center; justify-content: center; padding: 20px;">
-    <div style="background: var(--bg-surface, #FFFFFF); border: 1px solid var(--border-subtle, #E6DEC9); border-radius: 14px; max-width: 650px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 26px; box-shadow: var(--shadow-elevated, 0 16px 40px rgba(0,0,0,0.18));">
+  <div id="modal-journey-detail" class="modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(10, 20, 16, 0.75); backdrop-filter: blur(4px); z-index: 1050; align-items: center; justify-content: center; padding: 20px;">
+    <div class="modal-box staff-modal-box" style="background: var(--bg-surface, #FFFFFF); border: 1px solid var(--border-subtle, #E6DEC9); border-radius: 14px; max-width: 650px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 26px; box-shadow: var(--shadow-elevated, 0 16px 40px rgba(0,0,0,0.18));">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 12px;">
         <div>
           <div style="font-size: 11px; text-transform: uppercase; color: var(--accent-gold); font-weight: 700; letter-spacing: 0.5px;">Operational Journey Dispatch Detail</div>
@@ -2947,7 +2949,7 @@
             Booking Details
           </h3>
         </div>
-        <button onclick="closeJourneyDetailModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-dim); line-height: 1;">&times;</button>
+        <button onclick="closeJourneyDetailModal()" class="modal-close-btn" style="background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-dim); line-height: 1;">&times;</button>
       </div>
 
       <div id="modal-jd-content" style="display: flex; flex-direction: column; gap: 16px; font-size: 13.5px;">
@@ -2961,8 +2963,8 @@
   </div>
 
   <!-- Modal 2: Refund Details & Reason (Request 15) -->
-  <div id="modal-refund-detail" style="display: none; position: fixed; inset: 0; background: rgba(18, 33, 26, 0.7); backdrop-filter: blur(4px); z-index: 1050; align-items: center; justify-content: center; padding: 20px;">
-    <div style="background: var(--bg-surface, #FFFFFF); border: 1px solid var(--border-subtle, #E6DEC9); border-radius: 14px; max-width: 620px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 26px; box-shadow: var(--shadow-elevated, 0 16px 40px rgba(0,0,0,0.18));">
+  <div id="modal-refund-detail" class="modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(10, 20, 16, 0.75); backdrop-filter: blur(4px); z-index: 1050; align-items: center; justify-content: center; padding: 20px;">
+    <div class="modal-box staff-modal-box" style="background: var(--bg-surface, #FFFFFF); border: 1px solid var(--border-subtle, #E6DEC9); border-radius: 14px; max-width: 620px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 26px; box-shadow: var(--shadow-elevated, 0 16px 40px rgba(0,0,0,0.18));">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 12px;">
         <div>
           <div style="font-size: 11px; text-transform: uppercase; color: #DC2626; font-weight: 700; letter-spacing: 0.5px;">Customer Refund Authorization</div>
@@ -2970,7 +2972,7 @@
             Refund Request Details
           </h3>
         </div>
-        <button onclick="closeRefundDetailModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-dim); line-height: 1;">&times;</button>
+        <button onclick="closeRefundDetailModal()" class="modal-close-btn" style="background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-dim); line-height: 1;">&times;</button>
       </div>
 
       <div id="modal-rf-content" style="display: flex; flex-direction: column; gap: 16px; font-size: 13.5px;">
