@@ -145,6 +145,43 @@
     document.body.style.overflow = '';
   };
 
+  // 4b. Synchronize Customer / Staff Sidebar User Info
+  window.syncSidebarUserInfo = function () {
+    try {
+      var saved = localStorage.getItem('currentUser');
+      var nameEl = document.getElementById('sidebar-customer-name');
+      var roleEl = document.getElementById('sidebar-customer-role');
+      var authLink = document.getElementById('sidebar-auth-link');
+      var authText = document.getElementById('sidebar-auth-text');
+
+      if (saved) {
+        var user = JSON.parse(saved);
+        if (nameEl) nameEl.textContent = user.name || 'Passenger';
+        if (roleEl) roleEl.innerHTML = '<span class="status-dot"></span> ' + (user.role || 'Passenger');
+        if (authLink) {
+          authLink.href = 'javascript:void(0)';
+          authLink.onclick = function (e) {
+            e.preventDefault();
+            if (typeof window.logout === 'function') window.logout();
+            else if (typeof window.handleUserProfileLogout === 'function') window.handleUserProfileLogout();
+            else if (typeof window.handleAuthAction === 'function') window.handleAuthAction();
+          };
+          authLink.style.color = '#F87171';
+        }
+        if (authText) authText.textContent = 'Sign Out';
+      } else {
+        if (nameEl) nameEl.textContent = 'Guest Visitor';
+        if (roleEl) roleEl.innerHTML = '<span class="status-dot" style="background:#84988F;"></span> Not Signed In';
+        if (authLink) {
+          authLink.href = 'login.html';
+          authLink.onclick = null;
+          authLink.style.color = '';
+        }
+        if (authText) authText.textContent = 'Sign In';
+      }
+    } catch (_) {}
+  };
+
   // 5. Staff Portal Visibility Based on User Role & Admin Identity
   window.updateStaffPortalAccess = function () {
     var isAdmin = false;
@@ -462,6 +499,9 @@
     }
     if (typeof window.syncHeroCTA === 'function') {
       window.syncHeroCTA();
+    }
+    if (typeof window.syncSidebarUserInfo === 'function') {
+      window.syncSidebarUserInfo();
     }
   }
 

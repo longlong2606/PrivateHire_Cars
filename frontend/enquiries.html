@@ -230,36 +230,100 @@
   <!-- Luxury Dark Theme System (Overrides default styles) -->
   <link rel="stylesheet" href="theme.css">
 </head>
-<body>
+<body class="has-sidebar-layout">
 
-  <!-- Top Navigation Header -->
-  <header class="top-header">
-    <div class="nav-container">
-      <a href="home.html" class="brand-left">
-        <div class="brand-logo-emblem">P</div>
-        <div>
-          <span style="font-family: var(--font-heading); font-size: 17px; font-weight: 700; display: block; line-height: 1.2;">PrivateHire Cars</span>
-          <span style="font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; font-family: var(--font-mono);">London Minicab Service</span>
+  <!-- Mobile Sidebar Backdrop -->
+  <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="closeStaffSidebar()"></div>
+
+  <!-- Modern Executive Sidebar -->
+  <aside class="app-sidebar">
+    <div class="sidebar-header">
+      <a href="home.html" class="brand-cluster">
+        <div class="brand-logo-icon">
+          <i data-lucide="shield-check" style="width: 20px; height: 20px;"></i>
+        </div>
+        <div class="brand-info">
+          <span class="brand-title">PrivateHire</span>
+          <span class="brand-badge">London Minicab</span>
         </div>
       </a>
+      <button type="button" class="mobile-sidebar-close-btn" onclick="closeStaffSidebar()" aria-label="Close sidebar">
+        <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+      </button>
+    </div>
 
-      <nav>
-        <ul class="nav-menu">
-          <li><a href="home.html"><i data-lucide="home" style="width: 15px; height: 15px;"></i> Home</a></li>
-          <li><a href="booking.html"><i data-lucide="calendar-plus" style="width: 15px; height: 15px;"></i> Book a Minicab</a></li>
-          <li><a href="my-bookings.html"><i data-lucide="clock" style="width: 15px; height: 15px;"></i> My Bookings</a></li>
-          <li><a href="offers.html"><i data-lucide="tag" style="width: 15px; height: 15px;"></i> Offers</a></li>
-          <li><a href="enquiries.html" class="active"><i data-lucide="help-circle" style="width: 15px; height: 15px;"></i> Support</a></li>
-          <li><a href="notifications.html"><i data-lucide="bell" style="width: 15px; height: 15px;"></i> Alerts</a></li>
-        </ul>
-      </nav>
+    <div class="sidebar-user-card">
+      <div class="user-avatar">
+        <i data-lucide="user" style="width: 18px; height: 18px;"></i>
+      </div>
+      <div class="user-details">
+        <div class="user-name" id="sidebar-customer-name">Passenger</div>
+        <div class="user-role" id="sidebar-customer-role"><span class="status-dot"></span> Client Account</div>
+      </div>
+    </div>
 
-      <div class="nav-user-actions">
-        <button type="button" class="theme-toggle-btn btn-outline-sm" onclick="toggleTheme()" title="Switch Theme">
+    <nav class="sidebar-nav">
+      <div class="nav-section-title">Navigation</div>
+      <a href="home.html" class="tab-btn">
+        <i data-lucide="home" style="width: 16px; height: 16px;"></i>
+        <span class="tab-btn-text">Home</span>
+      </a>
+      <a href="booking.html" class="tab-btn">
+        <i data-lucide="calendar-plus" style="width: 16px; height: 16px;"></i>
+        <span class="tab-btn-text">Book a Minicab</span>
+      </a>
+      <a href="my-bookings.html" class="tab-btn">
+        <i data-lucide="clock" style="width: 16px; height: 16px;"></i>
+        <span class="tab-btn-text">My Bookings</span>
+      </a>
+      <a href="offers.html" class="tab-btn">
+        <i data-lucide="tag" style="width: 16px; height: 16px;"></i>
+        <span class="tab-btn-text">Offers</span>
+      </a>
+      <a href="enquiries.html" class="tab-btn active">
+        <i data-lucide="help-circle" style="width: 16px; height: 16px;"></i>
+        <span class="tab-btn-text">Support</span>
+      </a>
+      <a href="notifications.html" class="tab-btn">
+        <i data-lucide="bell" style="width: 16px; height: 16px;"></i>
+        <span class="tab-btn-text">Alerts</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="profile.html" class="sidebar-link">
+        <i data-lucide="user-check" style="width: 14px; height: 14px;"></i>
+        <span>My Profile</span>
+      </a>
+      <a href="staff.html" class="sidebar-link staff-portal-btn">
+        <i data-lucide="shield" style="width: 14px; height: 14px;"></i>
+        <span>Staff Portal</span>
+      </a>
+      <a href="login.html" id="sidebar-auth-link" class="sidebar-link">
+        <i data-lucide="log-in" style="width: 14px; height: 14px;"></i>
+        <span id="sidebar-auth-text">Sign In</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main Content Container -->
+  <div class="app-main">
+    <header class="main-topbar">
+      <button type="button" class="mobile-sidebar-toggle-btn" onclick="toggleStaffSidebar()" aria-label="Open navigation menu">
+        <i data-lucide="menu" style="width: 20px; height: 20px;"></i>
+      </button>
+      <div class="topbar-left">
+        <span class="topbar-breadcrumb">Customer Portal / Customer Support</span>
+        <h1 class="topbar-title">Customer Support & Trip Enquiries</h1>
+      </div>
+      <div class="topbar-right">
+        <button type="button" class="theme-toggle-btn btn-action" onclick="toggleTheme()" title="Switch Theme">
           <i data-lucide="moon" class="theme-toggle-icon" style="width: 14px; height: 14px;"></i>
           <span class="theme-toggle-label">Dark</span>
         </button>
-        <a href="staff.html" class="btn-outline-sm staff-portal-btn" style="color: var(--primary); font-weight: 700;"><i data-lucide="shield" style="width: 14px; height: 14px;"></i> Staff Portal</a>
+        <a href="staff.html" class="btn-action staff-portal-btn" style="color: var(--primary); font-weight: 700;">
+          <i data-lucide="shield" style="width: 14px; height: 14px;"></i> Staff Portal
+        </a>
         <div class="user-profile-menu-wrapper" style="position: relative; display: inline-flex;">
           <div id="user-display" class="user-pill" style="display: none; cursor: pointer;" title="Click to view profile & account details">
             <i data-lucide="user" style="width: 14px; height: 14px;"></i>
@@ -268,18 +332,14 @@
           </div>
           <div id="user-profile-dropdown" class="user-profile-dropdown"></div>
         </div>
-        <button id="btn-auth-action" onclick="handleAuthAction()" class="btn-outline-sm">
+        <button id="btn-auth-action" onclick="handleAuthAction()" class="btn-action">
           <i data-lucide="log-in" style="width: 14px; height: 14px;"></i> <span>Log In</span>
         </button>
-        <button class="mobile-nav-toggle" onclick="toggleMobileNav()" aria-label="Toggle navigation menu" type="button">
-          <i data-lucide="menu" id="mobile-menu-icon" style="width: 18px; height: 18px;"></i>
-        </button>
       </div>
-    </div>
-  </header>
+    </header>
 
-  <!-- Main Content Layout -->
-  <main class="main-layout">
+    <!-- Main Content Layout -->
+    <main class="main-body-container">
     <!-- Breadcrumbs -->
     <nav class="breadcrumb-nav" aria-label="Breadcrumb">
       <ol class="breadcrumb-list">
@@ -448,6 +508,7 @@
       </div>
     </div>
   </footer>
+  </div> <!-- /.app-main -->
 
   <div id="toast-rack"></div>
 
