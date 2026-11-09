@@ -1300,7 +1300,7 @@
                   <th>Customer Account</th>
                   <th>Email Address</th>
                   <th>Telephone</th>
-                  <th style="min-width: 170px;">Completed Trips</th>
+                  <th style="min-width: 260px;">Completed Trips</th>
                 </tr>
               </thead>
               <tbody id="loyal-customers-body">
@@ -3183,9 +3183,9 @@
                     <td>${c.email}</td>
                     <td>${c.telephone || '—'}</td>
                     <td>
-                      <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                        <span class="badge badge-completed" style="font-size: 12px; font-weight: 700;">${trips} ${trips === 1 ? 'trip' : 'trips'}</span>
-                        ${isLoyaltyAwarded ? '<span class="badge badge-loyalty-promo" style="font-size: 11px; font-weight: 700;">🏆 Loyalty Promo Active</span>' : ''}
+                      <div style="display: flex; align-items: center; gap: 10px; row-gap: 8px; flex-wrap: wrap; padding: 3px 0;">
+                        <span class="badge badge-completed" style="font-size: 12px; font-weight: 700; margin: 2px 0;">${trips} ${trips === 1 ? 'trip' : 'trips'}</span>
+                        ${isLoyaltyAwarded ? '<span class="badge badge-loyalty-promo" style="font-size: 11px; font-weight: 700; margin: 2px 0;">🏆 Loyalty Promo Active</span>' : ''}
                       </div>
                     </td>
                   </tr>
