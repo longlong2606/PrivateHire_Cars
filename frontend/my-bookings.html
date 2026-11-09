@@ -1213,6 +1213,8 @@
       document.getElementById('rev-booking-id').value = bookingId || '';
       const codeElem = document.getElementById('modal-review-code');
       if (codeElem) codeElem.textContent = bookingCode;
+      const commentInput = document.getElementById('rev-comment');
+      if (commentInput) commentInput.value = '';
       document.getElementById('review-modal').classList.add('open');
       lucide.createIcons();
     }
@@ -1267,42 +1269,83 @@
       const jRating = parseInt(document.getElementById('rev-rating-journey').value, 10);
       const vRating = parseInt(document.getElementById('rev-rating-vehicle').value, 10);
       const dRating = parseInt(document.getElementById('rev-rating-driver').value, 10);
-      const comment = document.getElementById('rev-comment').value.trim();
+      const comment = (document.getElementById('rev-comment').value || '').trim();
 
       if (!comment) {
         triggerToast("Please write a few words about your journey.", "error");
         return;
       }
 
+      if ([jRating, vRating, dRating].some(r => isNaN(r) || r < 1 || r > 5)) {
+        triggerToast("Please select valid 1 to 5 star ratings.", "error");
+        return;
+      }
+
+      const modalFooterBtn = document.querySelector('#review-modal .modal-footer button:last-child');
+      if (modalFooterBtn) {
+        modalFooterBtn.disabled = true;
+        modalFooterBtn.innerText = 'Submitting...';
+      }
+
       try {
-        const res = await fetch(`${API_BASE}/api/reviews`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('sessionToken') || ''}`
-          },
-          body: JSON.stringify({
-            bookingId: bId || undefined,
-            bookingCode: bCode,
-            journeyRating: jRating,
-            vehicleRating: vRating,
-            driverRating: dRating,
-            reviewText: comment,
-            comments: comment,
-            comment: comment
-          })
+        let res;
+        const payload = JSON.stringify({
+          bookingId: bId || undefined,
+          bookingCode: bCode,
+          journeyRating: jRating,
+          vehicleRating: vRating,
+          driverRating: dRating,
+          reviewText: comment,
+          comments: comment,
+          comment: comment
         });
-        const data = await res.json();
-        if (res.ok && data.success) {
-          triggerToast("Thank you for your review!");
+
+        const reqHeaders = {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('sessionToken') || ''}`
+        };
+
+        try {
+          res = await fetch(`${API_BASE}/api/reviews`, {
+            method: 'POST',
+            headers: reqHeaders,
+            body: payload
+          });
+        } catch (fetchErr) {
+          // Fallback to absolute localhost:5000 if relative or proxy was interrupted
+          if (API_BASE !== 'http://localhost:5000') {
+            res = await fetch('http://localhost:5000/api/reviews', {
+              method: 'POST',
+              headers: reqHeaders,
+              body: payload
+            });
+          } else {
+            throw fetchErr;
+          }
+        }
+
+        let data = null;
+        try {
+          data = await res.json();
+        } catch (_) {}
+
+        if (res.ok && data && data.success) {
+          triggerToast("Thank you! Your chauffeur review has been recorded.");
           closeReviewModal();
           document.getElementById('rev-comment').value = '';
-          loadCustomerBookings();
+          await fetchMyBookings();
         } else {
-          triggerToast(data.message || "Failed to submit review. You can only review once.", "error");
+          const errDetail = (data && data.message) ? data.message : `Review submission failed (Status ${res.status}).`;
+          triggerToast(errDetail, "error");
         }
       } catch (err) {
-        triggerToast("Network error submitting review.", "error");
+        console.error("Review submission error:", err);
+        triggerToast("Network error submitting review: " + (err.message || "Please check connection."), "error");
+      } finally {
+        if (modalFooterBtn) {
+          modalFooterBtn.disabled = false;
+          modalFooterBtn.innerText = 'Submit Review';
+        }
       }
     }
 

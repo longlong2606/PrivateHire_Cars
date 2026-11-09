@@ -20,7 +20,8 @@ class CustomerFeatureController {
         if (typeof bookingId === 'string' && bookingId.startsWith('BK-')) {
           booking = await BookingModel.findByCode(bookingId);
         } else {
-          booking = await BookingModel.findById(bookingId);
+          const parsedId = parseInt(bookingId, 10);
+          booking = !isNaN(parsedId) ? await BookingModel.findById(parsedId) : await BookingModel.findById(bookingId);
         }
       }
       if (!booking && (bookingCode || req.body.code)) {
@@ -33,11 +34,12 @@ class CustomerFeatureController {
 
       const resolvedBookingId = booking.id;
 
-      if (booking.account_id !== customer.id) {
+      if (parseInt(booking.account_id, 10) !== parseInt(customer.id, 10)) {
         return res.status(403).json({ success: false, message: 'You can only review your own journeys.' });
       }
 
-      if (booking.status !== 'COMPLETED') {
+      const currentStatus = (booking.status || '').trim().toUpperCase();
+      if (currentStatus !== 'COMPLETED') {
         return res.status(400).json({
           success: false,
           message: 'Reviews can only be submitted for Completed journeys (P07).',

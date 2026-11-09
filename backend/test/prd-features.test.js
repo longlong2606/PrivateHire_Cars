@@ -271,6 +271,29 @@ test('PRD Compliance Test Suite: 9 Core Business Rules & Epics', async (t) => {
     );
     assert.equal(okRes.statusCode, 201);
     assert.equal(okRes.body.review.journey_rating, 5);
+
+    // Test specific rating combination 3-star journey, 3-star vehicle, 2-star chauffeur
+    const completedBooking332 = await BookingModel.create({
+      bookingCode: 'BK-REV-332',
+      accountId: customer.id,
+      pickupAddress: 'Mayfair',
+      dropoffAddress: 'Gatwick',
+      passengerName: customer.name,
+      passengerPhone: customer.telephone,
+      fareAmount: 65.00,
+      status: 'COMPLETED',
+      paymentStatus: 'PAID',
+    });
+
+    const res332 = createMockRes();
+    await CustomerFeatureController.submitReview(
+      { user: customer, body: { bookingCode: 'BK-REV-332', journeyRating: 3, vehicleRating: 3, driverRating: 2, reviewText: 'Driver was a bit late but vehicle was decent.' } },
+      res332
+    );
+    assert.equal(res332.statusCode, 201);
+    assert.equal(res332.body.review.journey_rating, 3);
+    assert.equal(res332.body.review.vehicle_rating, 3);
+    assert.equal(res332.body.review.driver_rating, 2);
   });
 
   await t.test('6. P08: Vehicle Popularity and Customer Loyalty Metrics', async () => {
