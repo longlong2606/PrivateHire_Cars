@@ -12,10 +12,23 @@ class NotificationModel {
   }
 
   static async getForAccount(accountId) {
-    const res = await db.query(
-      'SELECT * FROM notifications WHERE account_id = $1 ORDER BY created_at DESC LIMIT 20',
-      [accountId]
-    );
+    const sql = `
+      SELECT 
+        n.*,
+        rr.amount AS refund_amount,
+        rr.reason AS refund_trigger_reason,
+        rr.staff_notes,
+        rr.processed_at AS refund_processed_at,
+        sa.name AS processed_by_staff_name,
+        sa.email AS processed_by_staff_email
+      FROM notifications n
+      LEFT JOIN refund_requests rr ON (n.type = 'REFUND_PROCESSED' AND n.booking_id = rr.booking_id)
+      LEFT JOIN accounts sa ON rr.processed_by_staff_id = sa.id
+      WHERE n.account_id = $1
+      ORDER BY n.created_at DESC
+      LIMIT 20
+    `;
+    const res = await db.query(sql, [accountId]);
     return res.rows;
   }
 

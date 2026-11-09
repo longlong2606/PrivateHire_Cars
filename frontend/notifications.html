@@ -429,6 +429,16 @@
       window.location.href = "login.html";
     }
 
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
     async function fetchNotifications() {
       const container = document.getElementById('notifications-list');
       try {
@@ -446,6 +456,64 @@
               ? `<span style="background: rgba(34, 197, 94, 0.12); color: #16A34A; border: 1px solid rgba(34, 197, 94, 0.25); font-size: 11px; padding: 2px 8px; border-radius: 12px; font-weight: 700;">REFUND PROCESSED</span>`
               : `<span style="background: rgba(198, 156, 84, 0.12); color: #8F6B27; border: 1px solid rgba(198, 156, 84, 0.25); font-size: 11px; padding: 2px 8px; border-radius: 12px; font-weight: 700;">DISPATCH ALERT</span>`;
 
+            let refundAuditHtml = '';
+            let bodyText = n.message || '';
+
+            if (isRefund) {
+              // Extract staff name
+              let staffName = n.processed_by_staff_name || '';
+              if (!staffName && n.message) {
+                const matchStaff = n.message.match(/Handled by Staff:\s*([^.]+)/i) || n.message.match(/Processed by Staff:\s*([^.]+)/i);
+                if (matchStaff) staffName = matchStaff[1].trim();
+              }
+              if (!staffName) staffName = 'Operations Staff';
+
+              // Extract staff reason
+              let staffReason = n.staff_notes || '';
+              if (!staffReason && n.message) {
+                const matchReason = n.message.match(/Staff Reason:\s*"?([^."]+)"?/i) || n.message.match(/Staff Note:\s*"?([^."]+)"?/i);
+                if (matchReason) staffReason = matchReason[1].trim();
+              }
+              if (!staffReason) staffReason = 'Authorized per standard refund policy';
+
+              // Extract trigger reason if present
+              let triggerReason = n.refund_trigger_reason || '';
+              if (!triggerReason && n.message) {
+                const matchTrigger = n.message.match(/Trigger Reason:\s*([^.]*)/i);
+                if (matchTrigger) triggerReason = matchTrigger[1].trim();
+              }
+
+              // Extract main intro summary
+              const introMatch = n.message ? n.message.match(/^(Your refund of [^.]+\.)/i) : null;
+              if (introMatch) {
+                bodyText = introMatch[1];
+              }
+
+              refundAuditHtml = `
+                <div class="notif-refund-audit" style="margin: 12px 0 14px 0; background: var(--bg-surface-subtle, #FAF7F2); border: 1px solid var(--border-subtle, #E6DEC9); border-radius: 8px; padding: 12px 14px;">
+                  <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 6px; font-size: 13px;">
+                      <i data-lucide="user-check" style="width: 15px; height: 15px; color: #16A34A;"></i>
+                      <span style="color: var(--text-muted);">Processed by Staff:</span>
+                      <strong style="color: var(--primary);">${escapeHtml(staffName)}</strong>
+                    </div>
+                    ${n.refund_processed_at ? `<span style="font-size: 11.5px; color: var(--text-dim);">${new Date(n.refund_processed_at).toLocaleString('en-GB')}</span>` : ''}
+                  </div>
+                  <div style="background: var(--bg-card, #FFFFFF); border: 1px solid var(--border-subtle, #E6DEC9); border-radius: 6px; padding: 9px 12px; font-size: 12.5px; margin-bottom: ${triggerReason ? '8px' : '0'};">
+                    <span style="font-weight: 700; color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 2px;">
+                      Staff Authorisation Reason:
+                    </span>
+                    <span style="color: var(--text-main); font-style: italic; font-weight: 600;">"${escapeHtml(staffReason)}"</span>
+                  </div>
+                  ${triggerReason ? `
+                    <div style="font-size: 12px; color: var(--text-muted); padding-left: 2px;">
+                      <span style="font-weight: 600;">Trigger Origin:</span> ${escapeHtml(triggerReason)}
+                    </div>
+                  ` : ''}
+                </div>
+              `;
+            }
+
             return `
               <div class="notification-card" style="${isRefund ? 'border-left: 4px solid #16A34A;' : ''}">
                 <div class="notif-icon-box" style="background: ${isRefund ? 'rgba(34, 197, 94, 0.1)' : 'rgba(22, 75, 59, 0.08)'}; color: ${iconColor};">
@@ -456,7 +524,8 @@
                     <div class="notif-title" style="font-weight: 700; color: var(--text-main); font-size: 14.5px;">${titleText}</div>
                     ${typeBadge}
                   </div>
-                  <div class="notif-body" style="font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 10px;">${n.message}</div>
+                  <div class="notif-body" style="font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 6px;">${escapeHtml(bodyText)}</div>
+                  ${refundAuditHtml}
                   <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
                     <span class="notif-time" style="font-size: 11.5px; color: var(--text-dim);">${new Date(n.created_at).toLocaleString('en-GB')}</span>
                     ${n.booking_id ? `<a href="my-bookings.html" class="btn-outline-sm" style="font-size: 11.5px; padding: 4px 10px;">View Booking</a>` : ''}

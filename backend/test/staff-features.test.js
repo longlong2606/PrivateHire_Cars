@@ -240,7 +240,8 @@ test('Sprint Feature: Phone Booking Desk Step 2 & Staff Account/Role Management'
     assert.equal(found.customer_email, testCustomer.email);
 
     // Process the refund with staff reasoning notes
-    const staffUser = { id: 1, name: 'Staff Dispatcher', role: 'STAFF' };
+    const dbStaff = await AccountModel.findById(1);
+    const staffUser = dbStaff || { id: 1, name: 'Staff Dispatcher', role: 'STAFF' };
     const procReq = {
       params: { id: refund.id },
       user: staffUser,
@@ -260,12 +261,15 @@ test('Sprint Feature: Phone Booking Desk Step 2 & Staff Account/Role Management'
     assert.equal(processedRecord.staff_notes, 'Approved cancellation refund >=24h policy');
     assert.ok(processedRecord.processed_by_staff_id);
 
-    // Verify customer received REFUND_PROCESSED notification
+    // Verify customer received REFUND_PROCESSED notification with staff name and reason
     const notifications = await NotificationModel.getByAccountId(testCustomer.id);
     const refundNotif = notifications.find(n => n.type === 'REFUND_PROCESSED' && n.booking_id === booking.id);
     assert.ok(refundNotif);
     assert.equal(refundNotif.title, 'Refund Processed Successfully');
     assert.ok(refundNotif.message.includes('85.00'));
     assert.ok(refundNotif.message.includes('Approved cancellation refund >=24h policy'));
+    assert.ok(refundNotif.message.includes(staffUser.name));
+    assert.equal(refundNotif.processed_by_staff_name, staffUser.name);
+    assert.equal(refundNotif.staff_notes, 'Approved cancellation refund >=24h policy');
   });
 });

@@ -1609,3 +1609,15 @@ body[data-user-role="STAFF"] .staff-portal-btn {
   border-color: #264738 !important;
   color: #F2F7F4 !important;
 }
+
+[data-theme="dark"] .notif-refund-audit {
+  background: #182E24 !important;
+  border-color: #264738 !important;
+  color: #F2F7F4 !important;
+}
+
+[data-theme="dark"] .notif-refund-audit [style*="background: var(--bg-card"] {
+  background: #142820 !important;
+  border-color: #264738 !important;
+  color: #F2F7F4 !important;
+}

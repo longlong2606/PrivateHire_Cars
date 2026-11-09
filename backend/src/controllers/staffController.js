@@ -347,24 +347,34 @@ class StaffController {
       const staff = req.user;
       const staffNotes = (req.body && (req.body.staffNotes || req.body.notes || req.body.staff_notes || req.body.reason)) || '';
 
-      const processed = await RefundModel.processRefund(refundId, staff.id, staffNotes);
+      const staffId = staff ? staff.id : (req.body && req.body.staffId ? req.body.staffId : 1);
+      let staffName = (staff && staff.name) || '';
+      if (!staffName && staffId) {
+        try {
+          const staffAcc = await AccountModel.findById(staffId);
+          if (staffAcc && staffAcc.name) staffName = staffAcc.name;
+        } catch (_) {}
+      }
+      if (!staffName) staffName = 'Operations Staff';
+
+      const processed = await RefundModel.processRefund(refundId, staffId, staffNotes);
       if (!processed) return res.status(404).json({ success: false, message: 'Refund request not found' });
 
       // Update booking payment status to REFUNDED
       await BookingModel.updatePaymentStatus(processed.booking_id, 'REFUNDED');
 
-      // [Request 16]: Notify customer that refund was processed
+      // [Request 16 & Prompt 9]: Notify customer that refund was processed with staff name and reason
       try {
         const booking = await BookingModel.findById(processed.booking_id);
         const bookingCode = booking ? booking.booking_code : `#${processed.booking_id}`;
         const refundAmount = parseFloat(processed.amount).toFixed(2);
-        const noteDetail = staffNotes ? ` Staff Note: ${String(staffNotes).trim()}` : '';
+        const noteDetail = staffNotes && String(staffNotes).trim() ? String(staffNotes).trim() : 'Authorized per standard refund policy';
 
         await NotificationModel.create({
           accountId: processed.account_id,
           bookingId: processed.booking_id,
           title: 'Refund Processed Successfully',
-          message: `Your refund of £${refundAmount} GBP for journey ${bookingCode} has been approved and issued to your original payment method. Reason: ${processed.reason || 'Booking cancellation or amendment.'}.${noteDetail}`,
+          message: `Your refund of £${refundAmount} GBP for journey ${bookingCode} has been approved and issued to your original payment method. Handled by Staff: ${staffName}. Staff Reason: "${noteDetail}". Trigger Reason: ${processed.reason || 'Booking cancellation or amendment.'}`,
           type: 'REFUND_PROCESSED',
         });
       } catch (nErr) {
@@ -373,7 +383,7 @@ class StaffController {
 
       res.json({
         success: true,
-        message: `Refund of £${processed.amount} successfully processed by Staff ${staff.name}.`,
+        message: `Refund of £${processed.amount} successfully processed by Staff ${staffName}.`,
         refund: processed,
       });
     } catch (error) {
