@@ -239,16 +239,26 @@ test('Sprint Feature: Phone Booking Desk Step 2 & Staff Account/Role Management'
     assert.equal(found.pickup_address, 'Mayfair, London W1');
     assert.equal(found.customer_email, testCustomer.email);
 
-    // Process the refund
+    // Process the refund with staff reasoning notes
     const staffUser = { id: 1, name: 'Staff Dispatcher', role: 'STAFF' };
     const procReq = {
       params: { id: refund.id },
       user: staffUser,
+      body: { staffNotes: 'Approved cancellation refund >=24h policy' },
     };
     const procRes = createMockRes();
     await StaffController.processRefund(procReq, procRes);
     assert.equal(procRes.statusCode, 200);
     assert.equal(procRes.body.success, true);
+    assert.equal(procRes.body.refund.staff_notes, 'Approved cancellation refund >=24h policy');
+
+    // Verify refund list includes staff link and notes
+    const updatedList = await RefundModel.getPending();
+    const processedRecord = updatedList.find(r => r.id === refund.id);
+    assert.ok(processedRecord);
+    assert.equal(processedRecord.status, 'PROCESSED');
+    assert.equal(processedRecord.staff_notes, 'Approved cancellation refund >=24h policy');
+    assert.ok(processedRecord.processed_by_staff_id);
 
     // Verify customer received REFUND_PROCESSED notification
     const notifications = await NotificationModel.getByAccountId(testCustomer.id);
@@ -256,5 +266,6 @@ test('Sprint Feature: Phone Booking Desk Step 2 & Staff Account/Role Management'
     assert.ok(refundNotif);
     assert.equal(refundNotif.title, 'Refund Processed Successfully');
     assert.ok(refundNotif.message.includes('85.00'));
+    assert.ok(refundNotif.message.includes('Approved cancellation refund >=24h policy'));
   });
 });

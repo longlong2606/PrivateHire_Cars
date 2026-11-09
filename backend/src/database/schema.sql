@@ -323,8 +323,11 @@ CREATE TABLE IF NOT EXISTS refund_requests (
     status VARCHAR(30) DEFAULT 'PENDING',
     processed_by_staff_id INTEGER REFERENCES accounts(id),
     processed_at TIMESTAMP WITH TIME ZONE,
+    staff_notes TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+ALTER TABLE refund_requests ADD COLUMN IF NOT EXISTS staff_notes TEXT;
 
 CREATE INDEX IF NOT EXISTS idx_refund_status ON refund_requests(status);
 

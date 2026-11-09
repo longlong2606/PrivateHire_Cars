@@ -345,8 +345,9 @@ class StaffController {
     try {
       const refundId = req.params.id;
       const staff = req.user;
+      const staffNotes = (req.body && (req.body.staffNotes || req.body.notes || req.body.staff_notes || req.body.reason)) || '';
 
-      const processed = await RefundModel.processRefund(refundId, staff.id);
+      const processed = await RefundModel.processRefund(refundId, staff.id, staffNotes);
       if (!processed) return res.status(404).json({ success: false, message: 'Refund request not found' });
 
       // Update booking payment status to REFUNDED
@@ -357,12 +358,13 @@ class StaffController {
         const booking = await BookingModel.findById(processed.booking_id);
         const bookingCode = booking ? booking.booking_code : `#${processed.booking_id}`;
         const refundAmount = parseFloat(processed.amount).toFixed(2);
+        const noteDetail = staffNotes ? ` Staff Note: ${String(staffNotes).trim()}` : '';
 
         await NotificationModel.create({
           accountId: processed.account_id,
           bookingId: processed.booking_id,
           title: 'Refund Processed Successfully',
-          message: `Your refund of £${refundAmount} GBP for journey ${bookingCode} has been approved and issued to your original payment method. Reason: ${processed.reason || 'Booking cancellation or amendment.'}`,
+          message: `Your refund of £${refundAmount} GBP for journey ${bookingCode} has been approved and issued to your original payment method. Reason: ${processed.reason || 'Booking cancellation or amendment.'}.${noteDetail}`,
           type: 'REFUND_PROCESSED',
         });
       } catch (nErr) {

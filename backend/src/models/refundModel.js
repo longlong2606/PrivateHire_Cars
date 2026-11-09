@@ -36,24 +36,27 @@ class RefundModel {
         b.created_at AS booking_created_at,
         a.name AS customer_name,
         a.email AS customer_email,
-        a.telephone AS customer_phone
+        a.telephone AS customer_phone,
+        sa.name AS staff_name,
+        sa.email AS staff_email
       FROM refund_requests rr
       JOIN bookings b ON rr.booking_id = b.id
       JOIN accounts a ON rr.account_id = a.id
+      LEFT JOIN accounts sa ON rr.processed_by_staff_id = sa.id
       ORDER BY rr.created_at DESC
     `;
     const res = await db.query(sql);
     return res.rows;
   }
 
-  static async processRefund(id, staffId) {
+  static async processRefund(id, staffId, staffNotes = '') {
     const sql = `
       UPDATE refund_requests
-      SET status = 'PROCESSED', processed_by_staff_id = $2, processed_at = CURRENT_TIMESTAMP
+      SET status = 'PROCESSED', processed_by_staff_id = $2, processed_at = CURRENT_TIMESTAMP, staff_notes = $3
       WHERE id = $1
       RETURNING *
     `;
-    const res = await db.query(sql, [id, staffId]);
+    const res = await db.query(sql, [id, staffId, staffNotes ? String(staffNotes).trim() : null]);
     return res.rows[0] || null;
   }
 }
