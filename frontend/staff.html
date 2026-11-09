@@ -488,6 +488,11 @@
       color: #2E7D32;
       border: 1px solid rgba(46, 125, 50, 0.28);
     }
+    .badge-loyalty-promo {
+      background: #FFF8E1;
+      color: #B45309;
+      border: 1px solid #FFE082;
+    }
 
     /* Modal Backdrop */
     .modal-backdrop {
@@ -1219,7 +1224,7 @@
                   <th>Customer Account</th>
                   <th>Email Address</th>
                   <th>Telephone</th>
-                  <th>Completed Trips</th>
+                  <th style="min-width: 170px;">Completed Trips</th>
                 </tr>
               </thead>
               <tbody id="loyal-customers-body">
@@ -2789,8 +2794,10 @@
                     <td>${c.email}</td>
                     <td>${c.telephone || '—'}</td>
                     <td>
-                      <span class="badge badge-completed" style="font-size: 12.5px; font-weight: 700;">${trips} ${trips === 1 ? 'trip' : 'trips'}</span>
-                      ${isLoyaltyAwarded ? '<span class="badge" style="background:#FFF8E1; color:#F57F17; border:1px solid #FFE082; font-size:10.5px; margin-left:6px; font-weight:700;">🏆 Loyalty Promo Active</span>' : ''}
+                      <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <span class="badge badge-completed" style="font-size: 12px; font-weight: 700;">${trips} ${trips === 1 ? 'trip' : 'trips'}</span>
+                        ${isLoyaltyAwarded ? '<span class="badge badge-loyalty-promo" style="font-size: 11px; font-weight: 700;">🏆 Loyalty Promo Active</span>' : ''}
+                      </div>
                     </td>
                   </tr>
                 `;

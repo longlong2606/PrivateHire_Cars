@@ -1729,6 +1729,18 @@ body[data-user-role="STAFF"] .staff-portal-btn {
   border: 1px solid rgba(212, 175, 55, 0.4) !important;
 }
 
+.badge-loyalty-promo {
+  background: #FFF8E1;
+  color: #B45309;
+  border: 1px solid #FFE082;
+}
+
+[data-theme="dark"] .badge-loyalty-promo {
+  background: rgba(245, 158, 11, 0.2) !important;
+  color: #FCD34D !important;
+  border: 1px solid rgba(245, 158, 11, 0.45) !important;
+}
+
 [data-theme="dark"] #refunds-processed-table-body td [style*="background: var(--bg-surface-subtle"],
 [data-theme="dark"] #refunds-processed-table-body td [style*="background: #FAF7F2"] {
   background: #182E24 !important;
