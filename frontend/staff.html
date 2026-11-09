@@ -1923,10 +1923,6 @@
       renderProcessedDispatchTable();
       lucide.createIcons();
     }
-      } catch (err) {
-        console.error('Error loading dispatch queue:', err);
-      }
-    }
 
     function viewJourneyDetail(bookingId) {
       const b = allBookingsCache.find(x => x.id === bookingId);
@@ -2882,9 +2878,6 @@
       processedRefundPage = p;
       renderProcessedRefundsTable();
       lucide.createIcons();
-    }
-        console.error('Error loading refund queue:', err);
-      }
     }
 
     function viewRefundDetail(refundId) {
