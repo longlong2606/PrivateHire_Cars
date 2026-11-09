@@ -703,19 +703,19 @@
             <div class="offers-stats-grid">
               <div class="offers-stat-box">
                 <div class="offers-stat-val">${offers.length}</div>
-                <div class="offers-stat-lbl">Vouchers Received (Tổng mã)</div>
+                <div class="offers-stat-lbl">Vouchers Received</div>
               </div>
               <div class="offers-stat-box">
                 <div class="offers-stat-val" style="color: var(--accent-emerald, #3A8B68);">${availableCount}</div>
-                <div class="offers-stat-lbl">Available (Chưa sử dụng)</div>
+                <div class="offers-stat-lbl">Available</div>
               </div>
               <div class="offers-stat-box">
                 <div class="offers-stat-val" style="color: var(--text-muted);">${usedCount}</div>
-                <div class="offers-stat-lbl">Redeemed (Đã sử dụng)</div>
+                <div class="offers-stat-lbl">Redeemed</div>
               </div>
               <div class="offers-stat-box">
                 <div class="offers-stat-val" style="color: var(--accent-gold, #C69C54);">${completedCount}</div>
-                <div class="offers-stat-lbl">Completed Trips (Chuyến hoàn thành)</div>
+                <div class="offers-stat-lbl">Completed Journeys</div>
               </div>
             </div>
 
@@ -748,12 +748,12 @@
                     ${isUsed ? `
                       <span class="badge-voucher-status status-used">
                         <i data-lucide="check-circle-2" style="width: 13px; height: 13px;"></i>
-                        Đã sử dụng (Redeemed)${usedDate ? ' • ' + usedDate : ''}
+                        Redeemed${usedDate ? ' • ' + usedDate : ''}
                       </span>
                     ` : `
                       <span class="badge-voucher-status status-available">
                         <i data-lucide="check-circle" style="width: 13px; height: 13px;"></i>
-                        Chưa sử dụng (Available)
+                        Available
                       </span>
                     `}
                   </div>
@@ -765,13 +765,13 @@
                       £${discountAmount} GBP OFF
                     </div>
                     <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
-                      ${isUsed ? 'Mã ưu đãi này đã được áp dụng thành công cho chuyến đi của bạn.' : 'Mã giảm giá áp dụng trực tiếp vào tổng thanh toán sau khi trừ 15% đặt trực tuyến.'}
+                      ${isUsed ? 'This reward code has been successfully redeemed for your journey.' : 'Voucher discount is applied directly to the booking total after the 15% online discount.'}
                     </div>
 
                     <div class="voucher-code-wrapper ${isUsed ? 'used' : ''}">
                       <span class="voucher-code-text ${isUsed ? 'used' : ''}">${escapeHtml(code)}</span>
                       ${!isUsed ? `
-                        <button type="button" class="btn-copy-code" onclick="copyVoucherCode('${escapeHtml(code)}')" title="Sao chép mã vào bộ nhớ tạm">
+                        <button type="button" class="btn-copy-code" onclick="copyVoucherCode('${escapeHtml(code)}')" title="Copy promo code to clipboard">
                           <i data-lucide="copy" style="width: 13px; height: 13px;"></i> Copy Code
                         </button>
                       ` : ''}
@@ -807,7 +807,7 @@
                 Loyalty Milestone: ${completedCount} / 3 Completed Journeys
               </h3>
               <p style="font-size: 13.5px; color: var(--text-muted); max-width: 520px; margin: 0 auto 18px auto; line-height: 1.6;">
-                Bạn chưa có mã giảm giá nào. Hoàn thành thêm <strong>${remaining} chuyến đi</strong> nữa để nhận ngay mã ưu đãi khách hàng thân thiết trị giá <strong>£10.00 GBP</strong>.
+                You do not have any active vouchers yet. Complete <strong>${remaining} more journey${remaining === 1 ? '' : 's'}</strong> to unlock an exclusive loyalty discount reward worth <strong>£10.00 GBP</strong>.
               </p>
 
               <!-- Visual Progress Bar -->
@@ -822,7 +822,7 @@
           `;
         }
       } catch (err) {
-        container.innerHTML = `<p style="color: var(--text-error); text-align: center; padding: 24px;">Không thể tải danh sách ưu đãi. Vui lòng kiểm tra lại kết nối.</p>`;
+        container.innerHTML = `<p style="color: var(--text-error); text-align: center; padding: 24px;">Unable to load your promotional offers. Please check your connection and try again.</p>`;
       }
       lucide.createIcons();
     }
@@ -831,7 +831,7 @@
       if (!code) return;
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(code).then(() => {
-          showToast(`✓ Đã sao chép mã ${code} vào bộ nhớ tạm!`);
+          showToast(`✓ Promo code ${code} copied to clipboard!`);
         }).catch(() => {
           fallbackCopy(code);
         });
@@ -847,7 +847,7 @@
       tempInput.select();
       document.execCommand('copy');
       document.body.removeChild(tempInput);
-      showToast(`✓ Đã sao chép mã ${code} vào bộ nhớ tạm!`);
+      showToast(`✓ Promo code ${code} copied to clipboard!`);
     }
 
     function showToast(message) {
