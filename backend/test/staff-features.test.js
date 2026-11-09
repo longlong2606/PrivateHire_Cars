@@ -135,6 +135,27 @@ test('Sprint Feature: Phone Booking Desk Step 2 & Staff Account/Role Management'
     assert.equal(invalidRes.body.valid, false);
   });
 
+  await t.test('3b. Staff getCustomerVouchers returns active vouchers belonging to customer', async () => {
+    const custVoucherCode = 'PHC-CUST-ACTIVE-' + Math.floor(1000 + Math.random() * 9000);
+    await SpecialOfferModel.createOffer({
+      code: custVoucherCode,
+      accountId: testCustomer.id,
+      discountAmount: 12.50,
+    });
+
+    const req = {
+      params: { id: testCustomer.id },
+      user: { role: 'STAFF', email: 'staff@privatehirecars.com' },
+    };
+    const res = createMockRes();
+    await StaffController.getCustomerVouchers(req, res);
+    assert.equal(res.statusCode, 200);
+    assert.equal(res.body.success, true);
+    assert.ok(Array.isArray(res.body.vouchers));
+    assert.ok(Array.isArray(res.body.activeVouchers));
+    assert.ok(res.body.activeVouchers.some(v => v.code === custVoucherCode));
+  });
+
   await t.test('4. Staff getAllAccounts returns all database fields including role and updated_at', async () => {
     const req = { user: { role: 'STAFF', email: 'staff@privatehirecars.com' } };
     const res = createMockRes();

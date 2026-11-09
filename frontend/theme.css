@@ -1760,6 +1760,17 @@ body[data-user-role="STAFF"] .staff-portal-btn {
   border-color: rgba(58, 139, 104, 0.45) !important;
 }
 
+[data-theme="dark"] #asst-customer-vouchers-container {
+  background: rgba(198, 156, 84, 0.12) !important;
+  border-color: rgba(198, 156, 84, 0.35) !important;
+}
+
+[data-theme="dark"] #asst-voucher-empty-notice {
+  background: #182E24 !important;
+  border-color: #264738 !important;
+  color: #94A3B8 !important;
+}
+
 [data-theme="dark"] #refunds-processed-table-body td [style*="background: var(--bg-surface-subtle"],
 [data-theme="dark"] #refunds-processed-table-body td [style*="background: #FAF7F2"] {
   background: #182E24 !important;

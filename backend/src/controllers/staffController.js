@@ -682,6 +682,39 @@ class StaffController {
   }
 
   /**
+   * Lấy danh sách mã giảm giá / vouchers thuộc sở hữu của một khách hàng cụ thể
+   */
+  static async getCustomerVouchers(req, res) {
+    try {
+      const customerId = req.params.id;
+      if (!customerId) {
+        return res.status(400).json({ success: false, message: 'Customer ID is required.' });
+      }
+
+      const customer = await AccountModel.findById(customerId);
+      if (!customer) {
+        return res.status(404).json({ success: false, message: 'Customer account not found.' });
+      }
+
+      const vouchers = await SpecialOfferModel.getOffersForAccount(customerId);
+      const activeVouchers = vouchers.filter(v => !v.is_used);
+
+      res.status(200).json({
+        success: true,
+        customerId: customer.id,
+        customerName: customer.name,
+        count: vouchers.length,
+        activeCount: activeVouchers.length,
+        vouchers,
+        activeVouchers,
+      });
+    } catch (error) {
+      console.error('Error in getCustomerVouchers:', error);
+      res.status(500).json({ success: false, message: 'Server error retrieving customer vouchers', error: error.message });
+    }
+  }
+
+  /**
    * Lấy danh sách toàn bộ tài khoản với đầy đủ thông tin các fields trong database
    */
   static async getAllAccounts(req, res) {

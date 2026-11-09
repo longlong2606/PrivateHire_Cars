@@ -840,6 +840,24 @@
               </div>
               <div class="field-group">
                 <label class="field-label">Special Offer / Voucher Code</label>
+
+                <!-- Customer's Available Vouchers Section (Shown when Customer is Selected) -->
+                <div id="asst-customer-vouchers-container" style="display: none; background: rgba(198, 156, 84, 0.08); border: 1px dashed rgba(198, 156, 84, 0.4); border-radius: var(--radius-sm); padding: 10px 12px; margin-bottom: 10px;">
+                  <div style="font-size: 11.5px; font-weight: 700; color: #8F6B27; display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                    <span style="display: flex; align-items: center; gap: 5px;">
+                      <i data-lucide="gift" style="width: 14px; height: 14px; color: var(--accent-gold);"></i> Customer's Available Vouchers:
+                    </span>
+                    <span id="asst-voucher-count-badge" class="badge-loyalty-promo" style="font-size: 10.5px; padding: 2px 7px; border-radius: 10px; font-weight: 700;">0 Available</span>
+                  </div>
+                  <select id="asst-voucher-select" class="field-select" onchange="handleAssistedVoucherSelect()" style="font-weight: 600; font-size: 12.5px; margin-bottom: 6px;">
+                    <option value="">-- Choose from Customer's Active Vouchers --</option>
+                  </select>
+                  <div id="asst-voucher-pills-list" style="display: flex; flex-wrap: wrap; gap: 6px;"></div>
+                </div>
+                <div id="asst-voucher-empty-notice" style="display: none; font-size: 12px; color: var(--text-muted); background: #FAF7F2; border: 1px dashed var(--border-subtle); padding: 8px 10px; border-radius: var(--radius-sm); margin-bottom: 10px;">
+                  <i data-lucide="info" style="width: 13px; height: 13px; vertical-align: -1px; display: inline-block;"></i> This customer account currently has no active voucher codes.
+                </div>
+
                 <div style="display: flex; gap: 8px;">
                   <input type="text" id="asst-promo-code" class="field-input" placeholder="e.g. PHC-OFFER-XXXX or SAVE10" style="text-transform: uppercase;" />
                   <button type="button" class="btn-action" onclick="verifyAndApplyAssistedPromo()" style="white-space: nowrap; font-size: 12px; padding: 0 12px;">
@@ -2078,6 +2096,87 @@
       document.getElementById('asst-customer-id').value = verifiedCustomer.id;
       document.getElementById('asst-customer-label').value = `${verifiedCustomer.name} (${verifiedCustomer.email})`;
       triggerToast("Caller verified! Ready for assisted booking.");
+      loadCustomerVouchersForAssistedBooking(verifiedCustomer.id);
+    }
+
+    async function loadCustomerVouchersForAssistedBooking(customerId) {
+      const container = document.getElementById('asst-customer-vouchers-container');
+      const emptyNotice = document.getElementById('asst-voucher-empty-notice');
+      const select = document.getElementById('asst-voucher-select');
+      const pillsContainer = document.getElementById('asst-voucher-pills-list');
+      const countBadge = document.getElementById('asst-voucher-count-badge');
+      if (!container || !customerId) return;
+
+      try {
+        const res = await authenticatedFetch(`${API_BASE}/api/staff/customers/${customerId}/vouchers`);
+        const data = await res.json();
+        if (res.ok && data.success && Array.isArray(data.vouchers)) {
+          const activeVouchers = data.vouchers.filter(v => !v.is_used);
+          if (countBadge) countBadge.textContent = `${activeVouchers.length} Available`;
+
+          if (activeVouchers.length > 0) {
+            if (emptyNotice) emptyNotice.style.display = 'none';
+            container.style.display = 'block';
+
+            if (select) {
+              select.innerHTML = `
+                <option value="">-- Choose from Customer's Active Vouchers (${activeVouchers.length}) --</option>
+                ${activeVouchers.map(v => `
+                  <option value="${escapeHtml(v.code)}">
+                    🏷️ ${escapeHtml(v.code)} — £${parseFloat(v.discount_amount || 10).toFixed(2)} GBP OFF (Available)
+                  </option>
+                `).join('')}
+              `;
+            }
+
+            if (pillsContainer) {
+              pillsContainer.innerHTML = activeVouchers.map(v => `
+                <button type="button" class="btn-action" onclick="applyCustomerVoucherDirectly('${escapeHtml(v.code)}')" title="Click to auto-apply voucher ${escapeHtml(v.code)}" style="font-size: 11.5px; padding: 3px 8px; background: rgba(198, 156, 84, 0.12); color: #8F6B27; border: 1px solid rgba(198, 156, 84, 0.35); font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; border-radius: 6px;">
+                  <i data-lucide="tag" style="width: 12px; height: 12px;"></i>
+                  <span>${escapeHtml(v.code)}</span>
+                  <span style="font-size: 10px; background: #C69C54; color: #164B3B; padding: 1px 5px; border-radius: 4px; font-weight: 800;">-£${parseFloat(v.discount_amount || 10).toFixed(2)}</span>
+                </button>
+              `).join('');
+            }
+          } else {
+            container.style.display = 'none';
+            if (emptyNotice) {
+              emptyNotice.style.display = 'block';
+              emptyNotice.innerHTML = `<i data-lucide="info" style="width: 13px; height: 13px; vertical-align: -1px; display: inline-block;"></i> This customer account currently has no active voucher codes.`;
+            }
+          }
+        } else {
+          container.style.display = 'none';
+          if (emptyNotice) emptyNotice.style.display = 'none';
+        }
+      } catch (err) {
+        console.error('Error loading customer vouchers:', err);
+      }
+      lucide.createIcons();
+    }
+
+    function handleAssistedVoucherSelect() {
+      const select = document.getElementById('asst-voucher-select');
+      if (!select) return;
+      const code = select.value;
+      if (code) {
+        applyCustomerVoucherDirectly(code);
+      } else {
+        appliedAssistedPromo = null;
+        document.getElementById('asst-promo-code').value = '';
+        const fb = document.getElementById('asst-promo-feedback');
+        if (fb) fb.style.display = 'none';
+        recalculateAssistedFare();
+      }
+    }
+
+    function applyCustomerVoucherDirectly(code) {
+      if (!code) return;
+      const codeInput = document.getElementById('asst-promo-code');
+      if (codeInput) codeInput.value = code;
+      const select = document.getElementById('asst-voucher-select');
+      if (select && select.value !== code) select.value = code;
+      verifyAndApplyAssistedPromo();
     }
     const TABLE_8_RATES = {
       'Airport transfer': { 4: 45.00, 7: 65.00 },
@@ -2216,6 +2315,9 @@
           document.getElementById('asst-promo-code').value = '';
           const fb = document.getElementById('asst-promo-feedback');
           if (fb) fb.style.display = 'none';
+          const vSelect = document.getElementById('asst-voucher-select');
+          if (vSelect) vSelect.value = '';
+          if (cId) loadCustomerVouchersForAssistedBooking(cId);
           recalculateAssistedFare();
           loadDispatchQueue();
         } else {

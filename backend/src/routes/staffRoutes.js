@@ -17,6 +17,7 @@ router.post('/bookings/:id/collect-cash', StaffController.collectCash);
 // Caller lookup
 router.get('/customers/search', StaffController.searchCustomer);
 router.get('/caller-lookup', StaffController.searchCustomer);
+router.get('/customers/:id/vouchers', StaffController.getCustomerVouchers);
 
 // Account Management & Role Administration (Admin editable)
 router.get('/accounts', StaffController.getAllAccounts);
