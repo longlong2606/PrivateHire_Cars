@@ -1176,6 +1176,8 @@
             </tbody>
           </table>
         </div>
+        <!-- Pagination for Pending Refunds (Shown when > 10 items) -->
+        <div id="refunds-pending-pagination" class="table-pagination-container" style="display: none;"></div>
       </div>
 
       <!-- Section 2: Processed Refund Audit History -->
@@ -1212,6 +1214,8 @@
             </tbody>
           </table>
         </div>
+        <!-- Pagination for Processed Refunds (Shown when > 10 items) -->
+        <div id="refunds-processed-pagination" class="table-pagination-container" style="display: none;"></div>
       </div>
     </section>
 
@@ -2659,10 +2663,13 @@
 
     // Refunds Queue & Audit History (Request 15, 16 & Prompt 8)
     let allRefundsCache = [];
+    const REFUNDS_PAGE_SIZE = 10;
+    let pendingRefundPage = 1;
+    let processedRefundPage = 1;
+    let currentPendingRefunds = [];
+    let currentProcessedRefunds = [];
 
     async function loadRefundQueue() {
-      const pendingTbody = document.getElementById('refunds-pending-table-body') || document.getElementById('refunds-table-body');
-      const processedTbody = document.getElementById('refunds-processed-table-body');
       const pendingBadge = document.getElementById('refunds-pending-count-badge');
       const processedBadge = document.getElementById('refunds-processed-count-badge');
 
@@ -2672,103 +2679,210 @@
         if (res.ok && data.success && Array.isArray(data.refunds)) {
           allRefundsCache = data.refunds;
 
-          const pendingList = allRefundsCache.filter(r => (r.status || '').toUpperCase() === 'PENDING');
-          const processedList = allRefundsCache.filter(r => (r.status || '').toUpperCase() === 'PROCESSED');
+          currentPendingRefunds = allRefundsCache.filter(r => (r.status || '').toUpperCase() === 'PENDING');
+          currentProcessedRefunds = allRefundsCache.filter(r => (r.status || '').toUpperCase() === 'PROCESSED');
 
-          if (pendingBadge) pendingBadge.textContent = `${pendingList.length} Pending`;
-          if (processedBadge) processedBadge.textContent = `${processedList.length} Processed`;
+          if (pendingBadge) pendingBadge.textContent = `${currentPendingRefunds.length} Pending`;
+          if (processedBadge) processedBadge.textContent = `${currentProcessedRefunds.length} Processed`;
 
-          // 1. Render Pending Table
-          if (pendingTbody) {
-            if (pendingList.length > 0) {
-              pendingTbody.innerHTML = pendingList.map(r => {
-                const customerName = r.customer_name || 'Customer';
-                const customerEmail = r.customer_email ? `<br><span style="font-size: 11px; color: var(--text-dim);">${escapeHtml(r.customer_email)}</span>` : '';
+          // Keep page index within bounds
+          const maxPendingPages = Math.ceil(currentPendingRefunds.length / REFUNDS_PAGE_SIZE) || 1;
+          if (pendingRefundPage > maxPendingPages) pendingRefundPage = maxPendingPages;
+          if (pendingRefundPage < 1) pendingRefundPage = 1;
 
-                return `
-                  <tr>
-                    <td><strong style="font-family: var(--font-mono); color: var(--primary);">${escapeHtml(r.booking_code || ('#' + r.booking_id))}</strong></td>
-                    <td>${escapeHtml(customerName)}${customerEmail}</td>
-                    <td>
-                      <span style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 12.5px;">
-                        ${escapeHtml(r.reason || 'Customer refund requested')}
-                      </span>
-                    </td>
-                    <td><strong style="color: #DC2626; font-size: 14px;">£${parseFloat(r.amount).toFixed(2)} GBP</strong></td>
-                    <td><span class="badge badge-pending">PENDING</span></td>
-                    <td>
-                      <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
-                        <button class="btn-action" onclick="viewRefundDetail(${r.id})">
-                          <i data-lucide="eye" style="width: 13px; height: 13px;"></i> View Detail
-                        </button>
-                        <button class="btn-action btn-primary" onclick="processRefund(${r.id})">
-                          <i data-lucide="check-circle" style="width: 13px; height: 13px;"></i> Process Refund
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                `;
-              }).join('');
-            } else {
-              pendingTbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 24px; color: var(--text-muted);">No pending refund requests awaiting action.</td></tr>';
-            }
-          }
+          const maxProcessedPages = Math.ceil(currentProcessedRefunds.length / REFUNDS_PAGE_SIZE) || 1;
+          if (processedRefundPage > maxProcessedPages) processedRefundPage = maxProcessedPages;
+          if (processedRefundPage < 1) processedRefundPage = 1;
 
-          // 2. Render Processed History Table
-          if (processedTbody) {
-            if (processedList.length > 0) {
-              processedTbody.innerHTML = processedList.map(r => {
-                const customerName = r.customer_name || 'Customer';
-                const customerEmail = r.customer_email ? `<br><span style="font-size: 11px; color: var(--text-dim);">${escapeHtml(r.customer_email)}</span>` : '';
-                const staffProcessor = r.staff_name || 'Operations Staff';
-                const staffEmail = r.staff_email ? `<br><span style="font-size: 11px; color: var(--text-dim);">${escapeHtml(r.staff_email)}</span>` : '';
-                const processedDateStr = r.processed_at ? new Date(r.processed_at).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A';
-                const staffNotes = r.staff_notes || 'Authorized per policy';
-
-                return `
-                  <tr>
-                    <td><strong style="font-family: var(--font-mono); color: var(--primary);">${escapeHtml(r.booking_code || ('#' + r.booking_id))}</strong></td>
-                    <td>${escapeHtml(customerName)}${customerEmail}</td>
-                    <td>
-                      <span style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 12.5px;">
-                        ${escapeHtml(r.reason || 'Customer refund requested')}
-                      </span>
-                    </td>
-                    <td><strong style="color: var(--accent-emerald); font-size: 14px;">£${parseFloat(r.amount).toFixed(2)} GBP</strong></td>
-                    <td>
-                      <div style="display: flex; align-items: center; gap: 6px;">
-                        <span class="badge badge-info" style="font-size: 11.5px; padding: 3px 8px;">
-                          <i data-lucide="user-check" style="width: 12px; height: 12px;"></i> ${escapeHtml(staffProcessor)}
-                        </span>
-                      </div>
-                      ${staffEmail}
-                    </td>
-                    <td style="font-size: 12px; color: var(--text-main); white-space: nowrap;">
-                      ${processedDateStr}
-                    </td>
-                    <td>
-                      <div style="max-width: 260px; font-size: 12px; color: var(--text-main); background: var(--bg-surface-subtle, #FAF7F2); border: 1px solid var(--border-subtle, #E6DEC9); border-radius: 6px; padding: 6px 10px; font-style: italic;">
-                        "${escapeHtml(staffNotes)}"
-                      </div>
-                    </td>
-                    <td>
-                      <button class="btn-action" onclick="viewRefundDetail(${r.id})">
-                        <i data-lucide="eye" style="width: 13px; height: 13px;"></i> View Detail
-                      </button>
-                    </td>
-                  </tr>
-                `;
-              }).join('');
-            } else {
-              processedTbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 24px; color: var(--text-muted);">No processed refund records found in system history.</td></tr>';
-            }
-          }
+          renderPendingRefundsTable();
+          renderProcessedRefundsTable();
         } else {
-          if (pendingTbody) pendingTbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 24px; color: var(--text-muted);">No pending refund requests.</td></tr>';
-          if (processedTbody) processedTbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 24px; color: var(--text-muted);">No processed refund records found.</td></tr>';
+          renderPendingRefundsTable();
+          renderProcessedRefundsTable();
         }
         lucide.createIcons();
       } catch (err) {
+        console.error('Error loading refund queue:', err);
+      }
+    }
+
+    function renderPendingRefundsTable() {
+      const pendingTbody = document.getElementById('refunds-pending-table-body') || document.getElementById('refunds-table-body');
+      const paginationElem = document.getElementById('refunds-pending-pagination');
+      if (!pendingTbody) return;
+
+      if (!currentPendingRefunds || currentPendingRefunds.length === 0) {
+        pendingTbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 24px; color: var(--text-muted);">No pending refund requests awaiting action.</td></tr>';
+        if (paginationElem) paginationElem.style.display = 'none';
+        return;
+      }
+
+      const totalItems = currentPendingRefunds.length;
+      const totalPages = Math.ceil(totalItems / REFUNDS_PAGE_SIZE);
+      const startIndex = (pendingRefundPage - 1) * REFUNDS_PAGE_SIZE;
+      const endIndex = Math.min(startIndex + REFUNDS_PAGE_SIZE, totalItems);
+      const pagedRefunds = currentPendingRefunds.slice(startIndex, endIndex);
+
+      pendingTbody.innerHTML = pagedRefunds.map(r => {
+        const customerName = r.customer_name || 'Customer';
+        const customerEmail = r.customer_email ? `<br><span style="font-size: 11px; color: var(--text-dim);">${escapeHtml(r.customer_email)}</span>` : '';
+
+        return `
+          <tr>
+            <td><strong style="font-family: var(--font-mono); color: var(--primary);">${escapeHtml(r.booking_code || ('#' + r.booking_id))}</strong></td>
+            <td>${escapeHtml(customerName)}${customerEmail}</td>
+            <td>
+              <span style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 12.5px;">
+                ${escapeHtml(r.reason || 'Customer refund requested')}
+              </span>
+            </td>
+            <td><strong style="color: #DC2626; font-size: 14px;">£${parseFloat(r.amount).toFixed(2)} GBP</strong></td>
+            <td><span class="badge badge-pending">PENDING</span></td>
+            <td>
+              <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
+                <button class="btn-action" onclick="viewRefundDetail(${r.id})">
+                  <i data-lucide="eye" style="width: 13px; height: 13px;"></i> View Detail
+                </button>
+                <button class="btn-action btn-primary" onclick="processRefund(${r.id})">
+                  <i data-lucide="check-circle" style="width: 13px; height: 13px;"></i> Process Refund
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      // Render Pagination (if > 10 items)
+      if (paginationElem) {
+        if (totalItems > REFUNDS_PAGE_SIZE) {
+          paginationElem.style.display = 'flex';
+          let pageBtns = '';
+          for (let p = 1; p <= totalPages; p++) {
+            pageBtns += `<button type="button" class="pagination-btn ${p === pendingRefundPage ? 'active' : ''}" onclick="changePendingRefundPage(${p})">${p}</button>`;
+          }
+          paginationElem.innerHTML = `
+            <div class="pagination-info">
+              Showing <strong>${startIndex + 1}</strong> to <strong>${endIndex}</strong> of <strong>${totalItems}</strong> pending refunds
+            </div>
+            <div class="pagination-controls">
+              <button type="button" class="pagination-btn" onclick="changePendingRefundPage(${pendingRefundPage - 1})" ${pendingRefundPage === 1 ? 'disabled' : ''} aria-label="Previous Page">
+                <i data-lucide="chevron-left" style="width: 14px; height: 14px;"></i>
+              </button>
+              ${pageBtns}
+              <button type="button" class="pagination-btn" onclick="changePendingRefundPage(${pendingRefundPage + 1})" ${pendingRefundPage === totalPages ? 'disabled' : ''} aria-label="Next Page">
+                <i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>
+              </button>
+            </div>
+          `;
+        } else {
+          paginationElem.style.display = 'none';
+        }
+      }
+    }
+
+    function renderProcessedRefundsTable() {
+      const processedTbody = document.getElementById('refunds-processed-table-body');
+      const paginationElem = document.getElementById('refunds-processed-pagination');
+      if (!processedTbody) return;
+
+      if (!currentProcessedRefunds || currentProcessedRefunds.length === 0) {
+        processedTbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 24px; color: var(--text-muted);">No processed refund records found in system history.</td></tr>';
+        if (paginationElem) paginationElem.style.display = 'none';
+        return;
+      }
+
+      const totalItems = currentProcessedRefunds.length;
+      const totalPages = Math.ceil(totalItems / REFUNDS_PAGE_SIZE);
+      const startIndex = (processedRefundPage - 1) * REFUNDS_PAGE_SIZE;
+      const endIndex = Math.min(startIndex + REFUNDS_PAGE_SIZE, totalItems);
+      const pagedRefunds = currentProcessedRefunds.slice(startIndex, endIndex);
+
+      processedTbody.innerHTML = pagedRefunds.map(r => {
+        const customerName = r.customer_name || 'Customer';
+        const customerEmail = r.customer_email ? `<br><span style="font-size: 11px; color: var(--text-dim);">${escapeHtml(r.customer_email)}</span>` : '';
+        const staffProcessor = r.staff_name || 'Operations Staff';
+        const staffEmail = r.staff_email ? `<br><span style="font-size: 11px; color: var(--text-dim);">${escapeHtml(r.staff_email)}</span>` : '';
+        const processedDateStr = r.processed_at ? new Date(r.processed_at).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'N/A';
+        const staffNotes = r.staff_notes || 'Authorized per policy';
+
+        return `
+          <tr>
+            <td><strong style="font-family: var(--font-mono); color: var(--primary);">${escapeHtml(r.booking_code || ('#' + r.booking_id))}</strong></td>
+            <td>${escapeHtml(customerName)}${customerEmail}</td>
+            <td>
+              <span style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 12.5px;">
+                ${escapeHtml(r.reason || 'Customer refund requested')}
+              </span>
+            </td>
+            <td><strong style="color: var(--accent-emerald); font-size: 14px;">£${parseFloat(r.amount).toFixed(2)} GBP</strong></td>
+            <td>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <span class="badge badge-info" style="font-size: 11.5px; padding: 3px 8px;">
+                  <i data-lucide="user-check" style="width: 12px; height: 12px;"></i> ${escapeHtml(staffProcessor)}
+                </span>
+              </div>
+              ${staffEmail}
+            </td>
+            <td style="font-size: 12px; color: var(--text-main); white-space: nowrap;">
+              ${processedDateStr}
+            </td>
+            <td>
+              <div style="max-width: 260px; font-size: 12px; color: var(--text-main); background: var(--bg-surface-subtle, #FAF7F2); border: 1px solid var(--border-subtle, #E6DEC9); border-radius: 6px; padding: 6px 10px; font-style: italic;">
+                "${escapeHtml(staffNotes)}"
+              </div>
+            </td>
+            <td>
+              <button class="btn-action" onclick="viewRefundDetail(${r.id})">
+                <i data-lucide="eye" style="width: 13px; height: 13px;"></i> View Detail
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      // Render Pagination (if > 10 items)
+      if (paginationElem) {
+        if (totalItems > REFUNDS_PAGE_SIZE) {
+          paginationElem.style.display = 'flex';
+          let pageBtns = '';
+          for (let p = 1; p <= totalPages; p++) {
+            pageBtns += `<button type="button" class="pagination-btn ${p === processedRefundPage ? 'active' : ''}" onclick="changeProcessedRefundPage(${p})">${p}</button>`;
+          }
+          paginationElem.innerHTML = `
+            <div class="pagination-info">
+              Showing <strong>${startIndex + 1}</strong> to <strong>${endIndex}</strong> of <strong>${totalItems}</strong> processed refunds
+            </div>
+            <div class="pagination-controls">
+              <button type="button" class="pagination-btn" onclick="changeProcessedRefundPage(${processedRefundPage - 1})" ${processedRefundPage === 1 ? 'disabled' : ''} aria-label="Previous Page">
+                <i data-lucide="chevron-left" style="width: 14px; height: 14px;"></i>
+              </button>
+              ${pageBtns}
+              <button type="button" class="pagination-btn" onclick="changeProcessedRefundPage(${processedRefundPage + 1})" ${processedRefundPage === totalPages ? 'disabled' : ''} aria-label="Next Page">
+                <i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>
+              </button>
+            </div>
+          `;
+        } else {
+          paginationElem.style.display = 'none';
+        }
+      }
+    }
+
+    function changePendingRefundPage(p) {
+      const maxPages = Math.ceil(currentPendingRefunds.length / REFUNDS_PAGE_SIZE) || 1;
+      if (p < 1 || p > maxPages) return;
+      pendingRefundPage = p;
+      renderPendingRefundsTable();
+      lucide.createIcons();
+    }
+
+    function changeProcessedRefundPage(p) {
+      const maxPages = Math.ceil(currentProcessedRefunds.length / REFUNDS_PAGE_SIZE) || 1;
+      if (p < 1 || p > maxPages) return;
+      processedRefundPage = p;
+      renderProcessedRefundsTable();
+      lucide.createIcons();
+    }
         console.error('Error loading refund queue:', err);
       }
     }
