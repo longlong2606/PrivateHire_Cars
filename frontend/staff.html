@@ -450,6 +450,57 @@
     }
     .btn-primary:hover { background: var(--primary-hover); }
 
+    /* Table Pagination Styles */
+    .table-pagination-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 16px;
+      margin-top: 8px;
+      border-top: 1px solid var(--border-subtle);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .pagination-info {
+      font-size: 12.5px;
+      color: var(--text-muted);
+    }
+    .pagination-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .pagination-btn {
+      min-width: 32px;
+      height: 32px;
+      padding: 0 8px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-medium);
+      background: #FFFFFF;
+      color: var(--text-main);
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition-smooth);
+    }
+    .pagination-btn:hover:not(:disabled) {
+      background: var(--bg-card-hover);
+      border-color: var(--primary);
+    }
+    .pagination-btn.active {
+      background: var(--primary);
+      color: #FFFFFF;
+      border-color: var(--primary);
+      font-weight: 700;
+    }
+    .pagination-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
     /* Polished Status & Audit Badges */
     .badge {
       display: inline-flex;
@@ -722,6 +773,8 @@
             </tbody>
           </table>
         </div>
+        <!-- Pagination for Active Operations (Shown when > 10 items) -->
+        <div id="dispatch-active-pagination" class="table-pagination-container" style="display: none;"></div>
       </div>
 
       <!-- Section 2: Processed & Finalised Operations -->
@@ -757,6 +810,8 @@
             </tbody>
           </table>
         </div>
+        <!-- Pagination for Processed Operations (Shown when > 10 items) -->
+        <div id="dispatch-processed-pagination" class="table-pagination-container" style="display: none;"></div>
       </div>
     </section>
 
@@ -1606,10 +1661,13 @@
 
     // 1. Dispatch Queue & Journey State Simulation
     let allBookingsCache = [];
+    const DISPATCH_PAGE_SIZE = 10;
+    let activeDispatchPage = 1;
+    let processedDispatchPage = 1;
+    let currentActiveBookings = [];
+    let currentProcessedBookings = [];
 
     async function loadDispatchQueue() {
-      const activeTbody = document.getElementById('dispatch-active-table-body');
-      const processedTbody = document.getElementById('dispatch-processed-table-body');
       const activeBadge = document.getElementById('dispatch-active-count-badge');
       const processedBadge = document.getElementById('dispatch-processed-count-badge');
 
@@ -1619,141 +1677,248 @@
         if (res.ok && data.success && Array.isArray(data.bookings)) {
           allBookingsCache = data.bookings;
 
-          const activeBookings = allBookingsCache.filter(b => {
+          currentActiveBookings = allBookingsCache.filter(b => {
             const st = (b.status || '').toUpperCase();
             return st !== 'COMPLETED' && st !== 'CANCELLED';
           });
 
-          const processedBookings = allBookingsCache.filter(b => {
+          currentProcessedBookings = allBookingsCache.filter(b => {
             const st = (b.status || '').toUpperCase();
             return st === 'COMPLETED' || st === 'CANCELLED';
           });
 
-          if (activeBadge) activeBadge.textContent = `${activeBookings.length} Pending`;
-          if (processedBadge) processedBadge.textContent = `${processedBookings.length} Processed`;
+          if (activeBadge) activeBadge.textContent = `${currentActiveBookings.length} Pending`;
+          if (processedBadge) processedBadge.textContent = `${currentProcessedBookings.length} Processed`;
 
-          // Render Active Bookings
-          if (activeTbody) {
-            if (activeBookings.length === 0) {
-              activeTbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 24px;">No active journeys currently awaiting dispatch or en route.</td></tr>';
-            } else {
-              activeTbody.innerHTML = activeBookings.map(b => {
-                const bStatus = (b.status || 'PENDING').toUpperCase();
-                const pStatus = (b.payment_status || 'UNPAID').toUpperCase();
+          // Keep page index within bounds
+          const maxActivePages = Math.ceil(currentActiveBookings.length / DISPATCH_PAGE_SIZE) || 1;
+          if (activeDispatchPage > maxActivePages) activeDispatchPage = maxActivePages;
+          if (activeDispatchPage < 1) activeDispatchPage = 1;
 
-                let statusBadgeClass = 'badge-pending';
-                if (bStatus === 'CONFIRMED') statusBadgeClass = 'badge-confirmed';
-                else if (bStatus === 'ASSIGNED') statusBadgeClass = 'badge-assigned';
-                else if (bStatus === 'ENROUTE') statusBadgeClass = 'badge-enroute';
+          const maxProcessedPages = Math.ceil(currentProcessedBookings.length / DISPATCH_PAGE_SIZE) || 1;
+          if (processedDispatchPage > maxProcessedPages) processedDispatchPage = maxProcessedPages;
+          if (processedDispatchPage < 1) processedDispatchPage = 1;
 
-                const paymentBadgeClass = pStatus === 'PAID' ? 'badge-confirmed' : 'badge-pending';
-
-                let flowBtns = '';
-                if (bStatus === 'CONFIRMED') {
-                  flowBtns = `<button class="btn-action btn-primary" onclick="openAssignDriverModal(${b.id})"><i data-lucide="user-plus" style="width: 13px; height: 13px;"></i> Assign Driver</button>`;
-                } else if (bStatus === 'ASSIGNED') {
-                  flowBtns = `<button class="btn-action" onclick="progressJourney(${b.id}, 'ENROUTE')"><i data-lucide="navigation" style="width: 13px; height: 13px;"></i> Set EnRoute</button>`;
-                } else if (bStatus === 'ENROUTE') {
-                  flowBtns = `
-                    <button class="btn-action" style="color: var(--accent-emerald);" onclick="sendApproachingAlert(${b.id})"><i data-lucide="bell" style="width: 13px; height: 13px;"></i> Notify Customer</button>
-                    <button class="btn-action btn-primary" onclick="progressJourney(${b.id}, 'COMPLETED')"><i data-lucide="check" style="width: 13px; height: 13px;"></i> Complete</button>
-                  `;
-                } else if (pStatus === 'UNPAID') {
-                  flowBtns = `<button class="btn-action btn-primary" onclick="confirmCashCollected(${b.id}, ${b.fare_amount})"><i data-lucide="check-circle" style="width: 13px; height: 13px;"></i> Collect Cash (£${parseFloat(b.fare_amount).toFixed(2)})</button>`;
-                }
-
-                return `
-                  <tr>
-                    <td>
-                      <strong style="font-family: var(--font-mono); color: var(--primary);">${escapeHtml(b.booking_code)}</strong>
-                      <div style="font-size: 11px; color: var(--text-muted);">${escapeHtml(b.customer_name || 'Customer')}</div>
-                      ${b.staff_name ? `<div style="font-size: 10.5px; color: var(--primary); font-weight: 600; margin-top: 2px;"><i data-lucide="headset" style="width: 10px; height: 10px; vertical-align: -1px; display: inline-block;"></i> Assisted: ${escapeHtml(b.staff_name)}</div>` : ''}
-                    </td>
-                    <td>
-                      <strong>${escapeHtml(b.service_name || 'Standard')}</strong>
-                      <br><span style="font-size: 11px; color: var(--text-dim);">${escapeHtml(b.car_type || 'Saloon')}</span>
-                    </td>
-                    <td style="max-width: 240px; font-size: 12.5px;">
-                      <div><strong style="color: var(--accent-emerald);">From:</strong> ${escapeHtml(b.pickup_address)}</div>
-                      <div style="margin-top: 2px;"><strong style="color: var(--accent-gold);">To:</strong> ${escapeHtml(b.dropoff_address)}</div>
-                    </td>
-                    <td style="font-size: 12px; white-space: nowrap;">
-                      ${new Date(b.pickup_time).toLocaleString('en-GB')}
-                    </td>
-                    <td><span class="badge ${statusBadgeClass}">${bStatus}</span></td>
-                    <td><span class="badge ${paymentBadgeClass}">${pStatus}</span></td>
-                    <td>
-                      <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
-                        <button class="btn-action" onclick="viewJourneyDetail(${b.id})">
-                          <i data-lucide="eye" style="width: 13px; height: 13px;"></i> View Detail
-                        </button>
-                        ${flowBtns}
-                      </div>
-                    </td>
-                  </tr>
-                `;
-              }).join('');
-            }
-          }
-
-          // Render Processed Bookings
-          if (processedTbody) {
-            if (processedBookings.length === 0) {
-              processedTbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 24px;">No processed or completed journeys found.</td></tr>';
-            } else {
-              processedTbody.innerHTML = processedBookings.map(b => {
-                const bStatus = (b.status || 'COMPLETED').toUpperCase();
-                const pStatus = (b.payment_status || 'PAID').toUpperCase();
-
-                const isCancelled = bStatus === 'CANCELLED';
-                const statusBadge = isCancelled
-                  ? '<span class="badge" style="background: rgba(220, 38, 38, 0.1); color: #DC2626; border: 1px solid rgba(220, 38, 38, 0.25);">CANCELLED</span>'
-                  : '<span class="badge badge-confirmed">COMPLETED</span>';
-
-                const paymentBadgeClass = pStatus === 'PAID' ? 'badge-confirmed' : (pStatus === 'REFUNDED' ? 'badge' : 'badge-pending');
-                const paymentBadgeStyle = pStatus === 'REFUNDED' ? 'style="background: rgba(100, 116, 139, 0.15); color: #475569; border: 1px solid #CBD5E1;"' : '';
-
-                let extraAction = '';
-                if (!isCancelled && pStatus === 'UNPAID') {
-                  extraAction = `<button class="btn-action btn-primary" onclick="confirmCashCollected(${b.id}, ${b.fare_amount})">Collect Cash</button>`;
-                }
-
-                return `
-                  <tr>
-                    <td>
-                      <strong style="font-family: var(--font-mono); color: var(--primary);">${escapeHtml(b.booking_code)}</strong>
-                      <div style="font-size: 11px; color: var(--text-muted);">${escapeHtml(b.customer_name || 'Customer')}</div>
-                      ${b.staff_name ? `<div style="font-size: 10.5px; color: var(--primary); font-weight: 600; margin-top: 2px;"><i data-lucide="headset" style="width: 10px; height: 10px; vertical-align: -1px; display: inline-block;"></i> Assisted: ${escapeHtml(b.staff_name)}</div>` : ''}
-                    </td>
-                    <td>
-                      <strong>${escapeHtml(b.service_name || 'Standard')}</strong>
-                      <br><span style="font-size: 11px; color: var(--text-dim);">${escapeHtml(b.car_type || 'Saloon')}</span>
-                    </td>
-                    <td style="max-width: 240px; font-size: 12.5px;">
-                      <div><strong style="color: var(--accent-emerald);">From:</strong> ${escapeHtml(b.pickup_address)}</div>
-                      <div style="margin-top: 2px;"><strong style="color: var(--accent-gold);">To:</strong> ${escapeHtml(b.dropoff_address)}</div>
-                    </td>
-                    <td style="font-size: 12px; white-space: nowrap;">
-                      ${new Date(b.pickup_time).toLocaleString('en-GB')}
-                    </td>
-                    <td>${statusBadge}</td>
-                    <td><span class="badge ${paymentBadgeClass}" ${paymentBadgeStyle}>${pStatus}</span></td>
-                    <td>
-                      <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
-                        <button class="btn-action" onclick="viewJourneyDetail(${b.id})">
-                          <i data-lucide="eye" style="width: 13px; height: 13px;"></i> View Detail
-                        </button>
-                        ${extraAction}
-                      </div>
-                    </td>
-                  </tr>
-                `;
-              }).join('');
-            }
-          }
-
-          lucide.createIcons();
+          renderActiveDispatchTable();
+          renderProcessedDispatchTable();
         }
+      } catch (err) {
+        console.error('Error loading dispatch queue:', err);
+      }
+      lucide.createIcons();
+    }
+
+    function renderActiveDispatchTable() {
+      const activeTbody = document.getElementById('dispatch-active-table-body');
+      const paginationElem = document.getElementById('dispatch-active-pagination');
+      if (!activeTbody) return;
+
+      if (currentActiveBookings.length === 0) {
+        activeTbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 24px;">No active journeys currently awaiting dispatch or en route.</td></tr>';
+        if (paginationElem) paginationElem.style.display = 'none';
+        return;
+      }
+
+      const totalItems = currentActiveBookings.length;
+      const totalPages = Math.ceil(totalItems / DISPATCH_PAGE_SIZE);
+      const startIndex = (activeDispatchPage - 1) * DISPATCH_PAGE_SIZE;
+      const endIndex = Math.min(startIndex + DISPATCH_PAGE_SIZE, totalItems);
+      const pagedBookings = currentActiveBookings.slice(startIndex, endIndex);
+
+      activeTbody.innerHTML = pagedBookings.map(b => {
+        const bStatus = (b.status || 'PENDING').toUpperCase();
+        const pStatus = (b.payment_status || 'UNPAID').toUpperCase();
+
+        let statusBadgeClass = 'badge-pending';
+        if (bStatus === 'CONFIRMED') statusBadgeClass = 'badge-confirmed';
+        else if (bStatus === 'ASSIGNED') statusBadgeClass = 'badge-assigned';
+        else if (bStatus === 'ENROUTE') statusBadgeClass = 'badge-enroute';
+
+        const paymentBadgeClass = pStatus === 'PAID' ? 'badge-confirmed' : 'badge-pending';
+
+        let flowBtns = '';
+        if (bStatus === 'CONFIRMED') {
+          flowBtns = `<button class="btn-action btn-primary" onclick="openAssignDriverModal(${b.id})"><i data-lucide="user-plus" style="width: 13px; height: 13px;"></i> Assign Driver</button>`;
+        } else if (bStatus === 'ASSIGNED') {
+          flowBtns = `<button class="btn-action" onclick="progressJourney(${b.id}, 'ENROUTE')"><i data-lucide="navigation" style="width: 13px; height: 13px;"></i> Set EnRoute</button>`;
+        } else if (bStatus === 'ENROUTE') {
+          flowBtns = `
+            <button class="btn-action" style="color: var(--accent-emerald);" onclick="sendApproachingAlert(${b.id})"><i data-lucide="bell" style="width: 13px; height: 13px;"></i> Notify Customer</button>
+            <button class="btn-action btn-primary" onclick="progressJourney(${b.id}, 'COMPLETED')"><i data-lucide="check" style="width: 13px; height: 13px;"></i> Complete</button>
+          `;
+        } else if (pStatus === 'UNPAID') {
+          flowBtns = `<button class="btn-action btn-primary" onclick="confirmCashCollected(${b.id}, ${b.fare_amount})"><i data-lucide="check-circle" style="width: 13px; height: 13px;"></i> Collect Cash (£${parseFloat(b.fare_amount).toFixed(2)})</button>`;
+        }
+
+        return `
+          <tr>
+            <td>
+              <strong style="font-family: var(--font-mono); color: var(--primary);">${escapeHtml(b.booking_code)}</strong>
+              <div style="font-size: 11px; color: var(--text-muted);">${escapeHtml(b.customer_name || 'Customer')}</div>
+              ${b.staff_name ? `<div style="font-size: 10.5px; color: var(--primary); font-weight: 600; margin-top: 2px;"><i data-lucide="headset" style="width: 10px; height: 10px; vertical-align: -1px; display: inline-block;"></i> Assisted: ${escapeHtml(b.staff_name)}</div>` : ''}
+            </td>
+            <td>
+              <strong>${escapeHtml(b.service_name || 'Standard')}</strong>
+              <br><span style="font-size: 11px; color: var(--text-dim);">${escapeHtml(b.car_type || 'Saloon')}</span>
+            </td>
+            <td style="max-width: 240px; font-size: 12.5px;">
+              <div><strong style="color: var(--accent-emerald);">From:</strong> ${escapeHtml(b.pickup_address)}</div>
+              <div style="margin-top: 2px;"><strong style="color: var(--accent-gold);">To:</strong> ${escapeHtml(b.dropoff_address)}</div>
+            </td>
+            <td style="font-size: 12px; white-space: nowrap;">
+              ${new Date(b.pickup_time).toLocaleString('en-GB')}
+            </td>
+            <td><span class="badge ${statusBadgeClass}">${bStatus}</span></td>
+            <td><span class="badge ${paymentBadgeClass}">${pStatus}</span></td>
+            <td>
+              <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
+                <button class="btn-action" onclick="viewJourneyDetail(${b.id})">
+                  <i data-lucide="eye" style="width: 13px; height: 13px;"></i> View Detail
+                </button>
+                ${flowBtns}
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      // Render Pagination (if > 10 items)
+      if (paginationElem) {
+        if (totalItems > DISPATCH_PAGE_SIZE) {
+          paginationElem.style.display = 'flex';
+          let pageBtns = '';
+          for (let p = 1; p <= totalPages; p++) {
+            pageBtns += `<button type="button" class="pagination-btn ${p === activeDispatchPage ? 'active' : ''}" onclick="changeActiveDispatchPage(${p})">${p}</button>`;
+          }
+          paginationElem.innerHTML = `
+            <div class="pagination-info">
+              Showing <strong>${startIndex + 1}</strong> to <strong>${endIndex}</strong> of <strong>${totalItems}</strong> active journeys
+            </div>
+            <div class="pagination-controls">
+              <button type="button" class="pagination-btn" onclick="changeActiveDispatchPage(${activeDispatchPage - 1})" ${activeDispatchPage === 1 ? 'disabled' : ''} aria-label="Previous Page">
+                <i data-lucide="chevron-left" style="width: 14px; height: 14px;"></i>
+              </button>
+              ${pageBtns}
+              <button type="button" class="pagination-btn" onclick="changeActiveDispatchPage(${activeDispatchPage + 1})" ${activeDispatchPage === totalPages ? 'disabled' : ''} aria-label="Next Page">
+                <i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>
+              </button>
+            </div>
+          `;
+        } else {
+          paginationElem.style.display = 'none';
+        }
+      }
+    }
+
+    function renderProcessedDispatchTable() {
+      const processedTbody = document.getElementById('dispatch-processed-table-body');
+      const paginationElem = document.getElementById('dispatch-processed-pagination');
+      if (!processedTbody) return;
+
+      if (currentProcessedBookings.length === 0) {
+        processedTbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 24px;">No processed or completed journeys found.</td></tr>';
+        if (paginationElem) paginationElem.style.display = 'none';
+        return;
+      }
+
+      const totalItems = currentProcessedBookings.length;
+      const totalPages = Math.ceil(totalItems / DISPATCH_PAGE_SIZE);
+      const startIndex = (processedDispatchPage - 1) * DISPATCH_PAGE_SIZE;
+      const endIndex = Math.min(startIndex + DISPATCH_PAGE_SIZE, totalItems);
+      const pagedBookings = currentProcessedBookings.slice(startIndex, endIndex);
+
+      processedTbody.innerHTML = pagedBookings.map(b => {
+        const bStatus = (b.status || 'COMPLETED').toUpperCase();
+        const pStatus = (b.payment_status || 'PAID').toUpperCase();
+
+        const isCancelled = bStatus === 'CANCELLED';
+        const statusBadge = isCancelled
+          ? '<span class="badge" style="background: rgba(220, 38, 38, 0.1); color: #DC2626; border: 1px solid rgba(220, 38, 38, 0.25);">CANCELLED</span>'
+          : '<span class="badge badge-confirmed">COMPLETED</span>';
+
+        const paymentBadgeClass = pStatus === 'PAID' ? 'badge-confirmed' : (pStatus === 'REFUNDED' ? 'badge' : 'badge-pending');
+        const paymentBadgeStyle = pStatus === 'REFUNDED' ? 'style="background: rgba(100, 116, 139, 0.15); color: #475569; border: 1px solid #CBD5E1;"' : '';
+
+        let extraAction = '';
+        if (!isCancelled && pStatus === 'UNPAID') {
+          extraAction = `<button class="btn-action btn-primary" onclick="confirmCashCollected(${b.id}, ${b.fare_amount})">Collect Cash</button>`;
+        }
+
+        return `
+          <tr>
+            <td>
+              <strong style="font-family: var(--font-mono); color: var(--primary);">${escapeHtml(b.booking_code)}</strong>
+              <div style="font-size: 11px; color: var(--text-muted);">${escapeHtml(b.customer_name || 'Customer')}</div>
+              ${b.staff_name ? `<div style="font-size: 10.5px; color: var(--primary); font-weight: 600; margin-top: 2px;"><i data-lucide="headset" style="width: 10px; height: 10px; vertical-align: -1px; display: inline-block;"></i> Assisted: ${escapeHtml(b.staff_name)}</div>` : ''}
+            </td>
+            <td>
+              <strong>${escapeHtml(b.service_name || 'Standard')}</strong>
+              <br><span style="font-size: 11px; color: var(--text-dim);">${escapeHtml(b.car_type || 'Saloon')}</span>
+            </td>
+            <td style="max-width: 240px; font-size: 12.5px;">
+              <div><strong style="color: var(--accent-emerald);">From:</strong> ${escapeHtml(b.pickup_address)}</div>
+              <div style="margin-top: 2px;"><strong style="color: var(--accent-gold);">To:</strong> ${escapeHtml(b.dropoff_address)}</div>
+            </td>
+            <td style="font-size: 12px; white-space: nowrap;">
+              ${new Date(b.pickup_time).toLocaleString('en-GB')}
+            </td>
+            <td>${statusBadge}</td>
+            <td><span class="badge ${paymentBadgeClass}" ${paymentBadgeStyle}>${pStatus}</span></td>
+            <td>
+              <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
+                <button class="btn-action" onclick="viewJourneyDetail(${b.id})">
+                  <i data-lucide="eye" style="width: 13px; height: 13px;"></i> View Detail
+                </button>
+                ${extraAction}
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      // Render Pagination (if > 10 items)
+      if (paginationElem) {
+        if (totalItems > DISPATCH_PAGE_SIZE) {
+          paginationElem.style.display = 'flex';
+          let pageBtns = '';
+          for (let p = 1; p <= totalPages; p++) {
+            pageBtns += `<button type="button" class="pagination-btn ${p === processedDispatchPage ? 'active' : ''}" onclick="changeProcessedDispatchPage(${p})">${p}</button>`;
+          }
+          paginationElem.innerHTML = `
+            <div class="pagination-info">
+              Showing <strong>${startIndex + 1}</strong> to <strong>${endIndex}</strong> of <strong>${totalItems}</strong> processed journeys
+            </div>
+            <div class="pagination-controls">
+              <button type="button" class="pagination-btn" onclick="changeProcessedDispatchPage(${processedDispatchPage - 1})" ${processedDispatchPage === 1 ? 'disabled' : ''} aria-label="Previous Page">
+                <i data-lucide="chevron-left" style="width: 14px; height: 14px;"></i>
+              </button>
+              ${pageBtns}
+              <button type="button" class="pagination-btn" onclick="changeProcessedDispatchPage(${processedDispatchPage + 1})" ${processedDispatchPage === totalPages ? 'disabled' : ''} aria-label="Next Page">
+                <i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>
+              </button>
+            </div>
+          `;
+        } else {
+          paginationElem.style.display = 'none';
+        }
+      }
+    }
+
+    function changeActiveDispatchPage(p) {
+      const maxPages = Math.ceil(currentActiveBookings.length / DISPATCH_PAGE_SIZE) || 1;
+      if (p < 1 || p > maxPages) return;
+      activeDispatchPage = p;
+      renderActiveDispatchTable();
+      lucide.createIcons();
+    }
+
+    function changeProcessedDispatchPage(p) {
+      const maxPages = Math.ceil(currentProcessedBookings.length / DISPATCH_PAGE_SIZE) || 1;
+      if (p < 1 || p > maxPages) return;
+      processedDispatchPage = p;
+      renderProcessedDispatchTable();
+      lucide.createIcons();
+    }
       } catch (err) {
         console.error('Error loading dispatch queue:', err);
       }

@@ -1771,6 +1771,32 @@ body[data-user-role="STAFF"] .staff-portal-btn {
   color: #94A3B8 !important;
 }
 
+[data-theme="dark"] .table-pagination-container {
+  border-color: #264738 !important;
+}
+
+[data-theme="dark"] .pagination-btn {
+  background: #182E24 !important;
+  border-color: #264738 !important;
+  color: #F2F7F4 !important;
+}
+
+[data-theme="dark"] .pagination-btn:hover:not(:disabled) {
+  background: #1F3D30 !important;
+  border-color: #3A8B68 !important;
+}
+
+[data-theme="dark"] .pagination-btn.active {
+  background: #C69C54 !important;
+  color: #164B3B !important;
+  border-color: #C69C54 !important;
+  font-weight: 800 !important;
+}
+
+[data-theme="dark"] .pagination-info {
+  color: #94A3B8 !important;
+}
+
 [data-theme="dark"] #refunds-processed-table-body td [style*="background: var(--bg-surface-subtle"],
 [data-theme="dark"] #refunds-processed-table-body td [style*="background: #FAF7F2"] {
   background: #182E24 !important;
