@@ -663,16 +663,16 @@
 
     <!-- 1. Dispatch & Journey Operations Tab (Split into Pending vs Processed) -->
     <section id="tab-dispatch" class="tab-content">
-      <!-- Phần 1: Chuyến đi đang chờ xử lý (Active / Pending Operations) -->
+      <!-- Section 1: Active & Pending Operations -->
       <div class="card-panel" style="margin-bottom: 24px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
           <h2 class="panel-title" style="margin-bottom: 0;">
             <i data-lucide="compass" style="width: 20px; height: 20px; color: var(--primary);"></i>
-            Chuyến Đi Đang Chờ Xử Lý (Active &amp; Pending Operations)
+            Active &amp; Pending Operations
           </h2>
           <div style="display: flex; align-items: center; gap: 8px;">
             <span class="badge" style="background: rgba(198, 156, 84, 0.15); color: #8F6B27; border: 1px solid var(--accent-gold); font-weight: 700; font-size: 12px;" id="dispatch-active-count-badge">
-              0 Đang Chờ
+              0 Pending
             </span>
             <button class="btn-action" onclick="loadDispatchQueue()" style="font-size: 12px; padding: 4px 10px;">
               <i data-lucide="refresh-cw" style="width: 13px; height: 13px;"></i> Refresh
@@ -680,7 +680,7 @@
           </div>
         </div>
         <p style="font-size: 12.5px; color: var(--text-muted); margin-top: -8px; margin-bottom: 14px;">
-          Các chuyến xe đang chờ điều phối tài xế, đang trên đường di chuyển (En Route), hoặc chờ thanh toán tiền mặt.
+          Journeys awaiting chauffeur dispatch, actively en route to pickup/destination, or pending cash settlement.
         </p>
 
         <div class="table-container">
@@ -703,19 +703,19 @@
         </div>
       </div>
 
-      <!-- Phần 2: Chuyến đi đã xử lý (Processed / Finalised Operations) -->
+      <!-- Section 2: Processed & Finalised Operations -->
       <div class="card-panel">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
           <h2 class="panel-title" style="margin-bottom: 0;">
             <i data-lucide="check-circle" style="width: 20px; height: 20px; color: var(--accent-emerald);"></i>
-            Chuyến Đi Đã Xử Lý (Processed &amp; Finalised Operations)
+            Processed &amp; Finalised Operations
           </h2>
           <span class="badge" style="background: rgba(58, 139, 104, 0.12); color: var(--accent-emerald); border: 1px solid rgba(58, 139, 104, 0.25); font-weight: 700; font-size: 12px;" id="dispatch-processed-count-badge">
-            0 Đã Xử Lý
+            0 Processed
           </span>
         </div>
         <p style="font-size: 12.5px; color: var(--text-muted); margin-top: -8px; margin-bottom: 14px;">
-          Các chuyến đi đã hoàn thành xuất sắc (Completed) hoặc các cuốc đã bị hủy (Cancelled).
+          Completed journeys and cancelled booking records.
         </p>
 
         <div class="table-container">
@@ -791,14 +791,14 @@
               </div>
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                 <div class="field-group">
-                  <label class="field-label">Vehicle Capacity (Chỗ ngồi) *</label>
+                  <label class="field-label">Vehicle Capacity *</label>
                   <select id="asst-capacity" class="field-select" onchange="recalculateAssistedFare()">
-                    <option value="4" selected>4-Seat Saloon (4 Chỗ)</option>
-                    <option value="7">7-Seat MPV (7 Chỗ)</option>
+                    <option value="4" selected>4-Seat Executive Saloon</option>
+                    <option value="7">7-Seat Luxury MPV</option>
                   </select>
                 </div>
                 <div class="field-group">
-                  <label class="field-label">Passenger Count (Số khách) *</label>
+                  <label class="field-label">Passenger Count *</label>
                   <select id="asst-passengers" class="field-select" onchange="handleAssistedPassengerChange()">
                     <option value="1">1 Passenger</option>
                     <option value="2" selected>2 Passengers</option>
@@ -811,15 +811,15 @@
                 </div>
               </div>
               <div class="field-group">
-                <label class="field-label">Payment Method (Phương thức thanh toán) *</label>
+                <label class="field-label">Payment Method *</label>
                 <select id="asst-payment-method" class="field-select">
-                  <option value="CASH" selected>💵 Cash Payment to Chauffeur (Tiền mặt)</option>
-                  <option value="MOCK_CARD">💳 Card on File / Simulated Card (Thẻ ngân hàng)</option>
-                  <option value="INVOICE">📑 Corporate Account Invoice (Hóa đơn trả sau)</option>
+                  <option value="CASH" selected>💵 Cash Payment to Chauffeur</option>
+                  <option value="MOCK_CARD">💳 Card on File / Simulated Card</option>
+                  <option value="INVOICE">📑 Corporate Account Invoice</option>
                 </select>
               </div>
               <div class="field-group">
-                <label class="field-label">Special Offer / Voucher Code (Áp mã giảm giá)</label>
+                <label class="field-label">Special Offer / Voucher Code</label>
                 <div style="display: flex; gap: 8px;">
                   <input type="text" id="asst-promo-code" class="field-input" placeholder="e.g. PHC-OFFER-XXXX or SAVE10" style="text-transform: uppercase;" />
                   <button type="button" class="btn-action" onclick="verifyAndApplyAssistedPromo()" style="white-space: nowrap; font-size: 12px; padding: 0 12px;">
@@ -1226,10 +1226,10 @@
           </div>
           <div style="width: 190px;">
             <select id="account-role-filter" class="field-select" onchange="filterAccounts()">
-              <option value="ALL">All Roles (Tất cả vai trò)</option>
-              <option value="ADMIN">ADMIN (Quản trị viên)</option>
-              <option value="STAFF">STAFF (Nhân viên)</option>
-              <option value="CUSTOMER">CUSTOMER (Khách hàng)</option>
+              <option value="ALL">All Roles</option>
+              <option value="ADMIN">ADMIN (Administrator)</option>
+              <option value="STAFF">STAFF (Call Centre)</option>
+              <option value="CUSTOMER">CUSTOMER (Passenger)</option>
             </select>
           </div>
         </div>
@@ -1546,13 +1546,13 @@
             return st === 'COMPLETED' || st === 'CANCELLED';
           });
 
-          if (activeBadge) activeBadge.textContent = `${activeBookings.length} Đang Chờ`;
-          if (processedBadge) processedBadge.textContent = `${processedBookings.length} Đã Xử Lý`;
+          if (activeBadge) activeBadge.textContent = `${activeBookings.length} Pending`;
+          if (processedBadge) processedBadge.textContent = `${processedBookings.length} Processed`;
 
           // Render Active Bookings
           if (activeTbody) {
             if (activeBookings.length === 0) {
-              activeTbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 24px;">Hiện không có chuyến xe nào đang chờ điều phối hoặc đang di chuyển.</td></tr>';
+              activeTbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 24px;">No active journeys currently awaiting dispatch or en route.</td></tr>';
             } else {
               activeTbody.innerHTML = activeBookings.map(b => {
                 const bStatus = (b.status || 'PENDING').toUpperCase();
@@ -1615,7 +1615,7 @@
           // Render Processed Bookings
           if (processedTbody) {
             if (processedBookings.length === 0) {
-              processedTbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 24px;">Chưa có chuyến đi nào đã xử lý hoàn tất hoặc bị hủy.</td></tr>';
+              processedTbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 24px;">No processed or completed journeys found.</td></tr>';
             } else {
               processedTbody.innerHTML = processedBookings.map(b => {
                 const bStatus = (b.status || 'COMPLETED').toUpperCase();
@@ -2383,18 +2383,18 @@
       const reasonLower = (r.reason || '').toLowerCase();
       const bStatus = (r.booking_status || '').toUpperCase();
       let categoryTag = 'General Customer Refund';
-      let categoryExplanation = 'Yêu cầu hoàn trả tiền cho khách hàng.';
+      let categoryExplanation = 'Customer payment refund authorization request.';
       let categoryColor = '#3A8B68';
       let categoryBg = 'rgba(58, 139, 104, 0.12)';
 
       if (reasonLower.includes('cancel') || bStatus === 'CANCELLED') {
-        categoryTag = 'Do Cancel chuyến đi sau khi đã thanh toán (Cancellation Prepayment Refund)';
-        categoryExplanation = 'Chuyến đi đã bị hủy sau khi khách hàng đã thanh toán thành công trực tuyến. Theo chính sách hủy trước >= 24 giờ, hệ thống giải phóng 100% số tiền đã thanh toán để hoàn trả về phương thức thanh toán của khách.';
+        categoryTag = 'Cancellation Prepayment Refund (>= 24h Advance Notice)';
+        categoryExplanation = 'The journey was cancelled after online payment was processed. Under the >= 24-hour advance notice cancellation policy, the booking is entitled to a 100% full refund returned to the customer payment method.';
         categoryColor = '#DC2626';
         categoryBg = 'rgba(220, 38, 38, 0.1)';
       } else if (reasonLower.includes('amend') || reasonLower.includes('change') || reasonLower.includes('fare reduced') || reasonLower.includes('vehicle')) {
-        categoryTag = 'Do thay đổi loại xe hoặc lộ trình chuyến đi (Vehicle / Route Amendment Refund)';
-        categoryExplanation = 'Chuyến đi đã được điều chỉnh loại xe (hoặc thay đổi lộ trình) sau khi đã thanh toán trước, làm cho tổng cước phí mới thấp hơn số tiền đã trả trước đó. Phần cước chênh lệch cần được hoàn lại cho khách hàng.';
+        categoryTag = 'Vehicle Class / Route Amendment Refund';
+        categoryExplanation = 'The journey vehicle class or route was amended after prepayment, resulting in a lower final fare. The difference is queued for customer reimbursement.';
         categoryColor = '#C69C54';
         categoryBg = 'rgba(198, 156, 84, 0.15)';
       }
@@ -2411,7 +2411,7 @@
             ${categoryExplanation}
           </div>
           <div style="background: var(--bg-surface, #FFFFFF); border: 1px solid var(--border-subtle, #E6DEC9); border-radius: 6px; padding: 8px 12px; font-size: 12.5px;">
-            <span style="font-weight: 700; color: var(--text-muted);">Ghi chú hệ thống:</span>
+            <span style="font-weight: 700; color: var(--text-muted);">System Audit Note:</span>
             <span style="color: var(--text-main); font-weight: 600;">"${escapeHtml(r.reason || 'No description provided')}"</span>
           </div>
         </div>
