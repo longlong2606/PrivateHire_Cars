@@ -215,7 +215,14 @@
 
     [data-theme="dark"] .app-header {
       background: #12211A !important;
-      border-bottom-color: #1F362C !important;
+      background-color: #12211A !important;
+      border-bottom: 1px solid #1F362C !important;
+    }
+
+    [data-theme="dark"] .app-header .container,
+    [data-theme="dark"] .header-inner {
+      background: transparent !important;
+      background-color: transparent !important;
     }
 
     .header-inner {
@@ -1268,134 +1275,18 @@
         </p>
       </div>
 
-      <div class="services-grid">
-        <!-- Service 1: Heathrow -->
-        <div class="service-card">
+      <div class="services-grid" id="home-services-grid">
+        <!-- Service 1: Airport transfer (Most Booked: MOST POPULAR badge) -->
+        <div class="service-card" data-service="Airport transfer">
           <div class="service-card-top">
             <div class="service-icon-box">
               <i data-lucide="plane-takeoff" style="width: 24px; height: 24px;"></i>
             </div>
-            <span class="service-badge">Most Popular</span>
+            <span class="service-badge" style="background: linear-gradient(135deg, #F59E0B, #B45309); color: #FFFFFF; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;">MOST POPULAR</span>
           </div>
-          <h3 class="service-name">Heathrow Airport Transfer</h3>
+          <h3 class="service-name">Airport transfer</h3>
           <p class="service-desc">
-            Direct executive transfer to and from all Heathrow Terminals (2, 3, 4 &amp; 5). Real-time flight arrival monitoring, 45-minute complimentary wait time, and terminal meet &amp; greet.
-          </p>
-          <div class="service-meta-row">
-            <span><i data-lucide="clock" style="width: 14px; height: 14px;"></i> 90 mins</span>
-            <span><i data-lucide="users" style="width: 14px; height: 14px;"></i> 4 or 7 Pax</span>
-            <span><i data-lucide="wifi" style="width: 14px; height: 14px;"></i> Free Wi-Fi</span>
-          </div>
-          <div class="service-pricing-row">
-            <div>
-              <div class="price-orig">Standard £45.00</div>
-              <div class="price-online">£38.25 <span style="font-size: 14px; font-weight: 600; color: var(--text-dim);">GBP</span></div>
-            </div>
-            <span class="price-discount-lbl">15% Online Off</span>
-          </div>
-          <a href="booking.html" class="btn btn-primary" style="width: 100%; justify-content: center;">
-            Book Heathrow Transfer
-          </a>
-        </div>
-
-        <!-- Service 2: Gatwick -->
-        <div class="service-card">
-          <div class="service-card-top">
-            <div class="service-icon-box">
-              <i data-lucide="plane" style="width: 24px; height: 24px;"></i>
-            </div>
-            <span class="service-badge">Airport VIP</span>
-          </div>
-          <h3 class="service-name">Gatwick Airport Transfer</h3>
-          <p class="service-desc">
-            Long-range luxury saloon or MPV between Central London and Gatwick North &amp; South Terminals. Quiet, comfortable motorway transit avoiding public train delays.
-          </p>
-          <div class="service-meta-row">
-            <span><i data-lucide="clock" style="width: 14px; height: 14px;"></i> 120 mins</span>
-            <span><i data-lucide="users" style="width: 14px; height: 14px;"></i> 4 or 7 Pax</span>
-            <span><i data-lucide="coffee" style="width: 14px; height: 14px;"></i> Refreshments</span>
-          </div>
-          <div class="service-pricing-row">
-            <div>
-              <div class="price-orig">Standard £70.00</div>
-              <div class="price-online">£59.50 <span style="font-size: 14px; font-weight: 600; color: var(--text-dim);">GBP</span></div>
-            </div>
-            <span class="price-discount-lbl">15% Online Off</span>
-          </div>
-          <a href="booking.html" class="btn btn-primary" style="width: 100%; justify-content: center;">
-            Book Gatwick Transfer
-          </a>
-        </div>
-
-        <!-- Service 3: London City -->
-        <div class="service-card">
-          <div class="service-card-top">
-            <div class="service-icon-box">
-              <i data-lucide="building-2" style="width: 24px; height: 24px;"></i>
-            </div>
-            <span class="service-badge">Corporate Fav</span>
-          </div>
-          <h3 class="service-name">London City Business Express</h3>
-          <p class="service-desc">
-            Fast, discrete transit between the Square Mile, Canary Wharf financial hubs, and London City Airport (LCY). Work on the go with dedicated mobile Wi-Fi and power outlets.
-          </p>
-          <div class="service-meta-row">
-            <span><i data-lucide="clock" style="width: 14px; height: 14px;"></i> 60 mins</span>
-            <span><i data-lucide="users" style="width: 14px; height: 14px;"></i> 4 Pax</span>
-            <span><i data-lucide="zap" style="width: 14px; height: 14px;"></i> Express</span>
-          </div>
-          <div class="service-pricing-row">
-            <div>
-              <div class="price-orig">Standard £35.00</div>
-              <div class="price-online">£29.75 <span style="font-size: 14px; font-weight: 600; color: var(--text-dim);">GBP</span></div>
-            </div>
-            <span class="price-discount-lbl">15% Online Off</span>
-          </div>
-          <a href="booking.html" class="btn btn-primary" style="width: 100%; justify-content: center;">
-            Book City Express
-          </a>
-        </div>
-
-        <!-- Service 4: West End -->
-        <div class="service-card">
-          <div class="service-card-top">
-            <div class="service-icon-box">
-              <i data-lucide="sparkles" style="width: 24px; height: 24px;"></i>
-            </div>
-            <span class="service-badge">Luxury Night</span>
-          </div>
-          <h3 class="service-name">West End Luxury Chauffeur</h3>
-          <p class="service-desc">
-            An entire evening of elegance. Multi-stop chauffeur service for West End theatre performances, Michelin-starred dining, and luxury shopping along Bond Street.
-          </p>
-          <div class="service-meta-row">
-            <span><i data-lucide="clock" style="width: 14px; height: 14px;"></i> 180 mins</span>
-            <span><i data-lucide="users" style="width: 14px; height: 14px;"></i> 4 or 7 Pax</span>
-            <span><i data-lucide="map-pin" style="width: 14px; height: 14px;"></i> Multi-Stop</span>
-          </div>
-          <div class="service-pricing-row">
-            <div>
-              <div class="price-orig">Standard £120.00</div>
-              <div class="price-online">£102.00 <span style="font-size: 14px; font-weight: 600; color: var(--text-dim);">GBP</span></div>
-            </div>
-            <span class="price-discount-lbl">15% Online Off</span>
-          </div>
-          <a href="booking.html" class="btn btn-primary" style="width: 100%; justify-content: center;">
-            Book West End Chauffeur
-          </a>
-        </div>
-
-        <!-- Service 5: Stansted -->
-        <div class="service-card">
-          <div class="service-card-top">
-            <div class="service-icon-box">
-              <i data-lucide="send" style="width: 24px; height: 24px;"></i>
-            </div>
-            <span class="service-badge">North London</span>
-          </div>
-          <h3 class="service-name">Stansted Airport VIP</h3>
-          <p class="service-desc">
-            Seamless point-to-point connections to London Stansted Airport (STN). Reliable timetable-matched pickups for early-morning or late-night departures.
+            Punctual point-to-point airport dropoff or pickup. Flight monitoring, 45-minute complimentary wait time, and terminal luggage handling included.
           </p>
           <div class="service-meta-row">
             <span><i data-lucide="clock" style="width: 14px; height: 14px;"></i> 90 mins</span>
@@ -1404,42 +1295,153 @@
           </div>
           <div class="service-pricing-row">
             <div>
-              <div class="price-orig">Standard £65.00</div>
-              <div class="price-online">£55.25 <span style="font-size: 14px; font-weight: 600; color: var(--text-dim);">GBP</span></div>
+              <div class="price-orig">Standard £45.00</div>
+              <div class="price-online">£38.25 <span style="font-size: 14px; font-weight: 600; color: var(--text-dim);">GBP</span></div>
             </div>
             <span class="price-discount-lbl">15% Online Off</span>
           </div>
-          <a href="booking.html" class="btn btn-primary" style="width: 100%; justify-content: center;">
-            Book Stansted VIP
+          <a href="booking.html?service=Airport%20transfer" class="btn btn-primary" style="width: 100%; justify-content: center;">
+            Book Airport Transfer
           </a>
         </div>
 
-        <!-- Service 6: Luton -->
-        <div class="service-card">
+        <!-- Service 2: Local journey -->
+        <div class="service-card" data-service="Local journey">
           <div class="service-card-top">
             <div class="service-icon-box">
-              <i data-lucide="compass" style="width: 24px; height: 24px;"></i>
+              <i data-lucide="map-pin" style="width: 24px; height: 24px;"></i>
             </div>
-            <span class="service-badge">Business Hub</span>
           </div>
-          <h3 class="service-name">Luton Corporate Express</h3>
+          <h3 class="service-name">Local journey</h3>
           <p class="service-desc">
-            Executive transport serving London Luton Airport (LTN) and signature private jet terminals (Harrods Aviation &amp; Signature Flight Support).
+            Standard urban travel within local city boundaries. Fast dispatch for meetings, shopping, and everyday luxury transit across Central London.
           </p>
           <div class="service-meta-row">
-            <span><i data-lucide="clock" style="width: 14px; height: 14px;"></i> 90 mins</span>
+            <span><i data-lucide="clock" style="width: 14px; height: 14px;"></i> 60 mins</span>
             <span><i data-lucide="users" style="width: 14px; height: 14px;"></i> 4 or 7 Pax</span>
-            <span><i data-lucide="award" style="width: 14px; height: 14px;"></i> Private Jet Gate</span>
+            <span><i data-lucide="zap" style="width: 14px; height: 14px;"></i> City Express</span>
           </div>
           <div class="service-pricing-row">
             <div>
-              <div class="price-orig">Standard £60.00</div>
-              <div class="price-online">£51.00 <span style="font-size: 14px; font-weight: 600; color: var(--text-dim);">GBP</span></div>
+              <div class="price-orig">Standard £20.00</div>
+              <div class="price-online">£17.00 <span style="font-size: 14px; font-weight: 600; color: var(--text-dim);">GBP</span></div>
             </div>
             <span class="price-discount-lbl">15% Online Off</span>
           </div>
-          <a href="booking.html" class="btn btn-primary" style="width: 100%; justify-content: center;">
-            Book Luton Express
+          <a href="booking.html?service=Local%20journey" class="btn btn-primary" style="width: 100%; justify-content: center;">
+            Book Local Journey
+          </a>
+        </div>
+
+        <!-- Service 3: Long-distance journey -->
+        <div class="service-card" data-service="Long-distance journey">
+          <div class="service-card-top">
+            <div class="service-icon-box">
+              <i data-lucide="navigation" style="width: 24px; height: 24px;"></i>
+            </div>
+          </div>
+          <h3 class="service-name">Long-distance journey</h3>
+          <p class="service-desc">
+            Intercity transit and long-range chauffeured travel. Quiet motorway comfort, bottled refreshments, and uninterrupted travel across the United Kingdom.
+          </p>
+          <div class="service-meta-row">
+            <span><i data-lucide="clock" style="width: 14px; height: 14px;"></i> 180 mins</span>
+            <span><i data-lucide="users" style="width: 14px; height: 14px;"></i> 4 or 7 Pax</span>
+            <span><i data-lucide="coffee" style="width: 14px; height: 14px;"></i> Refreshments</span>
+          </div>
+          <div class="service-pricing-row">
+            <div>
+              <div class="price-orig">Standard £80.00</div>
+              <div class="price-online">£68.00 <span style="font-size: 14px; font-weight: 600; color: var(--text-dim);">GBP</span></div>
+            </div>
+            <span class="price-discount-lbl">15% Online Off</span>
+          </div>
+          <a href="booking.html?service=Long-distance%20journey" class="btn btn-primary" style="width: 100%; justify-content: center;">
+            Book Long-distance Journey
+          </a>
+        </div>
+
+        <!-- Service 4: Hotel transfer -->
+        <div class="service-card" data-service="Hotel transfer">
+          <div class="service-card-top">
+            <div class="service-icon-box">
+              <i data-lucide="building-2" style="width: 24px; height: 24px;"></i>
+            </div>
+          </div>
+          <h3 class="service-name">Hotel transfer</h3>
+          <p class="service-desc">
+            Hotel pickup, door-to-door luggage assistance, and premier hospitality transfers across all premier Central London hotels and private residences.
+          </p>
+          <div class="service-meta-row">
+            <span><i data-lucide="clock" style="width: 14px; height: 14px;"></i> 60 mins</span>
+            <span><i data-lucide="users" style="width: 14px; height: 14px;"></i> 4 or 7 Pax</span>
+            <span><i data-lucide="sparkles" style="width: 14px; height: 14px;"></i> Concierge</span>
+          </div>
+          <div class="service-pricing-row">
+            <div>
+              <div class="price-orig">Standard £30.00</div>
+              <div class="price-online">£25.50 <span style="font-size: 14px; font-weight: 600; color: var(--text-dim);">GBP</span></div>
+            </div>
+            <span class="price-discount-lbl">15% Online Off</span>
+          </div>
+          <a href="booking.html?service=Hotel%20transfer" class="btn btn-primary" style="width: 100%; justify-content: center;">
+            Book Hotel Transfer
+          </a>
+        </div>
+
+        <!-- Service 5: Airport meet-and-greet -->
+        <div class="service-card" data-service="Airport meet-and-greet">
+          <div class="service-card-top">
+            <div class="service-icon-box">
+              <i data-lucide="user-check" style="width: 24px; height: 24px;"></i>
+            </div>
+          </div>
+          <h3 class="service-name">Airport meet-and-greet</h3>
+          <p class="service-desc">
+            Terminal personalized arrival greeting with custom name board, live flight delay monitoring, and dedicated luggage escort directly to the executive car.
+          </p>
+          <div class="service-meta-row">
+            <span><i data-lucide="clock" style="width: 14px; height: 14px;"></i> 120 mins</span>
+            <span><i data-lucide="users" style="width: 14px; height: 14px;"></i> 4 or 7 Pax</span>
+            <span><i data-lucide="award" style="width: 14px; height: 14px;"></i> Name Board VIP</span>
+          </div>
+          <div class="service-pricing-row">
+            <div>
+              <div class="price-orig">Standard £55.00</div>
+              <div class="price-online">£46.75 <span style="font-size: 14px; font-weight: 600; color: var(--text-dim);">GBP</span></div>
+            </div>
+            <span class="price-discount-lbl">15% Online Off</span>
+          </div>
+          <a href="booking.html?service=Airport%20meet-and-greet" class="btn btn-primary" style="width: 100%; justify-content: center;">
+            Book Meet &amp; Greet
+          </a>
+        </div>
+
+        <!-- Service 6: Driver and car daily hire -->
+        <div class="service-card" data-service="Driver and car daily hire">
+          <div class="service-card-top">
+            <div class="service-icon-box">
+              <i data-lucide="clock" style="width: 24px; height: 24px;"></i>
+            </div>
+          </div>
+          <h3 class="service-name">Driver and car daily hire</h3>
+          <p class="service-desc">
+            Full-day dedicated chauffeur and vehicle hire at client disposal (8-hour booked duration). Multi-stop itineraries, roadshows, and bespoke VIP day tours.
+          </p>
+          <div class="service-meta-row">
+            <span><i data-lucide="clock" style="width: 14px; height: 14px;"></i> 480 mins (8h)</span>
+            <span><i data-lucide="users" style="width: 14px; height: 14px;"></i> 4 or 7 Pax</span>
+            <span><i data-lucide="compass" style="width: 14px; height: 14px;"></i> All-Day Chauffeur</span>
+          </div>
+          <div class="service-pricing-row">
+            <div>
+              <div class="price-orig">Standard £200.00</div>
+              <div class="price-online">£170.00 <span style="font-size: 14px; font-weight: 600; color: var(--text-dim);">GBP</span></div>
+            </div>
+            <span class="price-discount-lbl">15% Online Off</span>
+          </div>
+          <a href="booking.html?service=Driver%20and%20car%20daily%20hire" class="btn btn-primary" style="width: 100%; justify-content: center;">
+            Book Daily Hire
           </a>
         </div>
       </div>
@@ -1952,7 +1954,44 @@
       }
 
       loadRealHomeStats();
+      loadRealServices();
     });
+
+    async function loadRealServices() {
+      try {
+        const res = await fetch('/api/services');
+        const data = await res.json();
+        if (!data || !data.success || !Array.isArray(data.services)) return;
+
+        const cards = document.querySelectorAll('#home-services-grid .service-card');
+        const mostPopName = (data.mostPopularService || 'Airport transfer').toLowerCase();
+
+        cards.forEach(card => {
+          const sName = (card.getAttribute('data-service') || '').toLowerCase();
+          const cardTop = card.querySelector('.service-card-top');
+          if (!cardTop) return;
+
+          // Remove any existing badge
+          const oldBadge = cardTop.querySelector('.service-badge');
+          if (oldBadge) oldBadge.remove();
+
+          // ONLY the most popular service gets the MOST POPULAR badge!
+          if (mostPopName && sName === mostPopName) {
+            const badge = document.createElement('span');
+            badge.className = 'service-badge';
+            badge.style.background = 'linear-gradient(135deg, #F59E0B, #B45309)';
+            badge.style.color = '#FFFFFF';
+            badge.style.fontWeight = '800';
+            badge.style.letterSpacing = '0.5px';
+            badge.style.textTransform = 'uppercase';
+            badge.textContent = 'MOST POPULAR';
+            cardTop.appendChild(badge);
+          }
+        });
+      } catch (err) {
+        console.warn('Could not sync dynamic service popularity:', err);
+      }
+    }
 
     function escapeHtml(str) {
       if (!str) return '';

@@ -44,11 +44,26 @@ html[data-theme="dark"] body {
 [data-theme="dark"] .main-layout,
 [data-theme="dark"] .app-main,
 [data-theme="dark"] .main-body-container,
-[data-theme="dark"] .container,
 [data-theme="dark"] .app-container,
 [data-theme="dark"] .auth-main-wrapper {
   background-color: #0A1410 !important;
   color: #F2F7F4 !important;
+}
+
+/* Ensure containers, navbars and inner headers remain transparent so the luxury green header background is continuous */
+[data-theme="dark"] .container,
+[data-theme="dark"] .header-inner,
+[data-theme="dark"] .nav-container,
+[data-theme="dark"] .top-header-inner,
+[data-theme="dark"] .top-navbar,
+[data-theme="dark"] .top-navbar-wrapper .top-navbar,
+[data-theme="dark"] .top-header .container,
+[data-theme="dark"] .app-header .container,
+[data-theme="dark"] header .container,
+[data-theme="dark"] .app-footer .container,
+[data-theme="dark"] footer .container {
+  background: transparent !important;
+  background-color: transparent !important;
 }
 
 /* 3. Navigation Headers, Topbars & Sidebars */
@@ -89,6 +104,32 @@ html[data-theme="dark"] body {
 [data-theme="dark"] .app-header .nav-link:hover,
 [data-theme="dark"] .app-header .nav-link.active {
   color: #D4AF37 !important;
+}
+
+[data-theme="dark"] .app-header .nav-link.active::after,
+[data-theme="dark"] .top-header .nav-link.active::after {
+  background: #D4AF37 !important;
+}
+
+[data-theme="dark"] #user-display,
+[data-theme="dark"] .user-pill {
+  background-color: rgba(45, 106, 79, 0.35) !important;
+  border-color: #2D4E40 !important;
+  color: #74C69D !important;
+}
+
+[data-theme="dark"] .staff-portal-btn {
+  background-color: #182E24 !important;
+  border-color: #2D4E40 !important;
+  color: #F2F7F4 !important;
+}
+
+[data-theme="dark"] #btn-logout,
+[data-theme="dark"] .top-header .btn-outline-sm,
+[data-theme="dark"] .app-header .btn-outline-sm {
+  background-color: #182E24 !important;
+  border-color: #2D4E40 !important;
+  color: #F2F7F4 !important;
 }
 
 [data-theme="dark"] .mobile-hamburger-btn {
