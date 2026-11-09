@@ -136,23 +136,6 @@ html[data-theme="dark"] body {
   color: #F2F7F4 !important;
 }
 
-[data-theme="dark"] .mobile-quick-nav-strip {
-  background-color: #12211A !important;
-  border-bottom: 1px solid #1F362C !important;
-}
-
-[data-theme="dark"] .mobile-quick-tab {
-  background-color: #182E24 !important;
-  border-color: #2B483B !important;
-  color: #A3BCB0 !important;
-}
-
-[data-theme="dark"] .mobile-quick-tab.active {
-  background-color: #2D6A4F !important;
-  color: #FFFFFF !important;
-  border-color: #4ADE80 !important;
-}
-
 [data-theme="dark"] .brand-left,
 [data-theme="dark"] .brand-left span,
 [data-theme="dark"] .brand-text h1,
