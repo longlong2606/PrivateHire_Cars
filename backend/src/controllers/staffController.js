@@ -132,6 +132,9 @@ class StaffController {
 
       const paymentStatus = paymentMethod === 'MOCK_CARD' ? 'PAID' : 'UNPAID';
 
+      const resolvedStaffName = (req.user && req.user.name) || req.body.staffName || req.body.staff_name || 'Call Centre Operations';
+      const resolvedStaffId = (req.user && req.user.id) || req.body.staffId || req.body.staff_id || null;
+
       const booking = await BookingModel.create({
         bookingCode,
         accountId: customer.id,
@@ -160,6 +163,8 @@ class StaffController {
         voucherCode: validPromoCode,
         voucherId: validVoucherId,
         finalFare: finalFare,
+        staffId: resolvedStaffId,
+        staffName: resolvedStaffName,
       });
 
       res.status(201).json({

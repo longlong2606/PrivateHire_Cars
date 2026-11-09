@@ -274,6 +274,9 @@ ALTER TABLE bookings ADD COLUMN IF NOT EXISTS promo_code VARCHAR(50);
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS promo_discount NUMERIC(10, 2) DEFAULT 0.00;
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS final_fare NUMERIC(10, 2) DEFAULT 0.00;
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS approaching_alert BOOLEAN DEFAULT FALSE;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS staff_id INTEGER;
+ALTER TABLE bookings DROP CONSTRAINT IF EXISTS bookings_staff_id_fkey;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS staff_name VARCHAR(100);
 
 -- ===================================================================
 -- 8. SPECIAL OFFERS & LOYALTY (P09)

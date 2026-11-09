@@ -45,6 +45,11 @@ test('Sprint Feature: Phone Booking Desk Step 2 & Staff Account/Role Management'
 
   await t.test('1. Staff Phone Booking with 7-Seat MPV, passenger count, and payment method', async () => {
     const req = {
+      user: {
+        id: 99,
+        name: 'Agent Sarah Connor',
+        role: 'STAFF',
+      },
       body: {
         customerId: testCustomer.id,
         pickupAddress: 'Paddington Station, London',
@@ -66,6 +71,12 @@ test('Sprint Feature: Phone Booking Desk Step 2 & Staff Account/Role Management'
     assert.equal(res.body.booking.payment_method, 'INVOICE');
     assert.equal(res.body.booking.card_ref_used, 'Corporate Invoice Net-30');
     assert.equal(parseFloat(res.body.booking.final_fare), 65.00);
+    assert.equal(res.body.booking.staff_name, 'Agent Sarah Connor');
+
+    const customerBookings = await BookingModel.findByAccountId(testCustomer.id);
+    const saved = customerBookings.find(b => b.booking_code === res.body.booking.booking_code);
+    assert.ok(saved);
+    assert.equal(saved.staff_name, 'Agent Sarah Connor');
   });
 
   await t.test('2. Staff Phone Booking with Voucher Code applies discount to Table 8 fare', async () => {

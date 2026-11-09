@@ -1741,6 +1741,25 @@ body[data-user-role="STAFF"] .staff-portal-btn {
   border: 1px solid rgba(245, 158, 11, 0.45) !important;
 }
 
+.badge-staff-assisted {
+  background: rgba(22, 75, 59, 0.08);
+  color: var(--primary);
+  border: 1px solid rgba(22, 75, 59, 0.25);
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+[data-theme="dark"] .badge-staff-assisted {
+  background: rgba(58, 139, 104, 0.2) !important;
+  color: #6EE7B7 !important;
+  border-color: rgba(58, 139, 104, 0.45) !important;
+}
+
 [data-theme="dark"] #refunds-processed-table-body td [style*="background: var(--bg-surface-subtle"],
 [data-theme="dark"] #refunds-processed-table-body td [style*="background: #FAF7F2"] {
   background: #182E24 !important;

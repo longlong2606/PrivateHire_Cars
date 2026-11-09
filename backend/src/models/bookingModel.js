@@ -34,6 +34,8 @@ class BookingModel {
     finalFare = 45.00,
     vehicleId = null,
     driverId = null,
+    staffId = null,
+    staffName = null,
   }) {
     const resolvedVoucherCode = voucherCode || promoCode || null;
     const resolvedVoucherId = voucherId || null;
@@ -67,9 +69,11 @@ class BookingModel {
         voucher_id,
         final_fare,
         vehicle_id,
-        driver_id
+        driver_id,
+        staff_id,
+        staff_name
       ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31
       )
       RETURNING *
     `;
@@ -103,6 +107,8 @@ class BookingModel {
       finalFare,
       vehicleId,
       driverId,
+      staffId,
+      staffName,
     ];
     const result = await db.query(sql, values);
     return result.rows[0];

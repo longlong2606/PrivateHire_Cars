@@ -863,6 +863,11 @@
               <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
                 <span class="booking-ref-badge">${b.booking_code}</span>
                 <span style="font-size: 14px; font-weight: 700; color: var(--text-main);">${escapeHtml(b.service_name || 'Standard Service')}</span>
+                ${b.staff_name ? `
+                  <span class="badge-staff-assisted" title="Assisted by Staff: ${escapeHtml(b.staff_name)}">
+                    <i data-lucide="headset" style="width: 12px; height: 12px;"></i> Assisted by: <strong>${escapeHtml(b.staff_name)}</strong>
+                  </span>
+                ` : ''}
               </div>
               <div style="display: flex; gap: 8px;">
                 <span class="badge-status ${statusClass}">${bStatus}</span>
@@ -892,6 +897,11 @@
                 <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px;">
                   ${driverSummary}
                 </div>
+                ${b.staff_name ? `
+                  <div style="font-size: 11px; color: var(--primary); font-weight: 600; margin-top: 3px; display: flex; align-items: center; gap: 4px;">
+                    <i data-lucide="headset" style="width: 12px; height: 12px; color: var(--accent-gold);"></i> Staff: <strong>${escapeHtml(b.staff_name)}</strong>
+                  </div>
+                ` : ''}
               </div>
 
               <div style="text-align: right;">
@@ -1012,6 +1022,18 @@
 
       const content = document.getElementById('booking-detail-modal-content');
       content.innerHTML = `
+        ${b.staff_name ? `
+          <div style="background: rgba(22, 75, 59, 0.05); border: 1px solid rgba(22, 75, 59, 0.18); border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
+            <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--primary); color: #FFFFFF; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <i data-lucide="headset" style="width: 16px; height: 16px;"></i>
+            </div>
+            <div>
+              <div style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--text-dim); letter-spacing: 0.5px;">Assisted Phone Booking</div>
+              <div style="font-size: 13.5px; font-weight: 700; color: var(--primary);">Assisted by Call Centre Staff: <strong>${escapeHtml(b.staff_name)}</strong></div>
+            </div>
+          </div>
+        ` : ''}
+
         <!-- Route & Pickup Schedule -->
         <div style="background: var(--bg-surface, #FAF7F2); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 16px; margin-bottom: 16px;">
           <div style="font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--text-dim); margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
@@ -1207,6 +1229,12 @@
             <span style="color: var(--text-muted);">Payment Status:</span>
             <strong style="color: ${isPaid ? '#0F5132' : '#856404'};">${b.payment_status}</strong>
           </div>
+          ${b.staff_name ? `
+            <div style="display: flex; justify-content: space-between;">
+              <span style="color: var(--text-muted);">Assisted by Staff:</span>
+              <strong style="color: var(--primary);">${escapeHtml(b.staff_name)} (Dispatch Desk)</strong>
+            </div>
+          ` : ''}
         </div>
 
         <div style="background: var(--bg-surface, #FAF7F2); padding: 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
