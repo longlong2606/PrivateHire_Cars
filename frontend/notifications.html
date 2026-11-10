@@ -589,7 +589,7 @@
                   ${refundAuditHtml}
                   <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
                     <span class="notif-time" style="font-size: 11.5px; color: var(--text-dim);">${new Date(n.created_at).toLocaleString('en-GB')}</span>
-                    ${n.booking_id ? `<a href="my-bookings.html" class="btn-outline-sm" style="font-size: 11.5px; padding: 4px 10px;">View Booking</a>` : ''}
+                    ${n.booking_id ? `<a href="my-bookings.html?bookingId=${n.booking_id}${n.booking_code ? '&bookingCode=' + encodeURIComponent(n.booking_code) : ''}#booking-${n.booking_id}" class="btn-outline-sm" style="font-size: 11.5px; padding: 4px 10px; display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="arrow-right" style="width: 12px; height: 12px;"></i> View Booking</a>` : ''}
                   </div>
                 </div>
               </div>

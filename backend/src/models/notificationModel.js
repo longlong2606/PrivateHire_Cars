@@ -15,6 +15,7 @@ class NotificationModel {
     const sql = `
       SELECT 
         n.*,
+        b.booking_code,
         rr.amount AS refund_amount,
         rr.reason AS refund_trigger_reason,
         rr.staff_notes,
@@ -22,6 +23,7 @@ class NotificationModel {
         sa.name AS processed_by_staff_name,
         sa.email AS processed_by_staff_email
       FROM notifications n
+      LEFT JOIN bookings b ON n.booking_id = b.id
       LEFT JOIN refund_requests rr ON (n.type = 'REFUND_PROCESSED' AND n.booking_id = rr.booking_id)
       LEFT JOIN accounts sa ON rr.processed_by_staff_id = sa.id
       WHERE n.account_id = $1

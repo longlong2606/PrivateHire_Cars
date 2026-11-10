@@ -217,6 +217,38 @@
       border-color: var(--primary-light);
     }
 
+    @keyframes cardFocusGlow {
+      0% {
+        box-shadow: 0 0 0 0 rgba(22, 75, 59, 0.45), 0 14px 40px rgba(22, 75, 59, 0.2);
+        border-color: var(--primary);
+        transform: scale(1.01);
+      }
+      30% {
+        box-shadow: 0 0 0 6px rgba(198, 156, 84, 0.4), 0 16px 45px rgba(22, 75, 59, 0.25);
+        border-color: var(--accent-gold);
+        transform: scale(1.015);
+      }
+      70% {
+        box-shadow: 0 0 0 4px rgba(22, 75, 59, 0.2), 0 14px 40px rgba(22, 75, 59, 0.15);
+        border-color: var(--primary);
+      }
+      100% {
+        box-shadow: var(--shadow-card);
+        border-color: var(--border-subtle);
+        transform: scale(1);
+      }
+    }
+
+    .booking-card-highlighted {
+      animation: cardFocusGlow 3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      border: 2px solid var(--primary) !important;
+    }
+
+    [data-theme="dark"] .booking-card-highlighted {
+      animation: cardFocusGlow 3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      border: 2px solid var(--accent-gold) !important;
+    }
+
     .booking-card-top {
       display: flex;
       justify-content: space-between;
@@ -858,7 +890,7 @@
         const driverSummary = b.driver_name ? `Chauffeur: <strong>${escapeHtml(b.driver_name)}</strong>` : 'Chauffeur: Pending dispatch';
 
         return `
-          <div class="booking-card">
+          <div class="booking-card" id="booking-${b.id}" data-booking-id="${b.id}" data-booking-code="${b.booking_code}">
             <div class="booking-card-top">
               <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
                 <span class="booking-ref-badge">${b.booking_code}</span>
@@ -959,7 +991,42 @@
       }).join('');
 
       lucide.createIcons();
+      highlightTargetBooking();
     }
+
+    function highlightTargetBooking() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const targetId = urlParams.get('bookingId') || urlParams.get('id');
+      const targetCode = urlParams.get('bookingCode') || urlParams.get('code');
+      const hashId = window.location.hash ? window.location.hash.replace(/^#booking-/, '').replace(/^#/, '') : null;
+
+      const targetKey = targetId || targetCode || hashId;
+      if (!targetKey) return;
+
+      let targetCard = document.getElementById(`booking-${targetKey}`);
+      if (!targetCard) {
+        targetCard = document.querySelector(`[data-booking-id="${targetKey}"]`) || 
+                     document.querySelector(`[data-booking-code="${targetKey}"]`);
+      }
+
+      if (targetCard) {
+        setTimeout(() => {
+          targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          targetCard.classList.add('booking-card-highlighted');
+
+          const code = targetCard.getAttribute('data-booking-code') || targetKey;
+          if (typeof triggerToast === 'function') {
+            triggerToast(`Viewing booking #${code}`, 'info');
+          }
+
+          setTimeout(() => {
+            targetCard.classList.remove('booking-card-highlighted');
+          }, 3500);
+        }, 180);
+      }
+    }
+
+    window.addEventListener('hashchange', highlightTargetBooking);
 
     // View detailed journey modal
     function openBookingDetailModal(bookingCode) {
