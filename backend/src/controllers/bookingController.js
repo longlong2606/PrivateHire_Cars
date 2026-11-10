@@ -34,6 +34,7 @@ const createBooking = async (req, res) => {
       serviceCode,
       serviceName,
       vehicleCapacity,
+      vehicleId,
       notes,
       paymentMethod,
       promoCode,
@@ -146,7 +147,15 @@ const createBooking = async (req, res) => {
 
     let assignedVehicleId = null;
     let assignedDriverId = null;
-    if (availableVehicles.length > 0) {
+    if (vehicleId) {
+      const chosen = availableVehicles.find(v => parseInt(v.id, 10) === parseInt(vehicleId, 10));
+      if (chosen) {
+        assignedVehicleId = chosen.id;
+        assignedDriverId = chosen.driver_id || null;
+      } else {
+        assignedVehicleId = parseInt(vehicleId, 10);
+      }
+    } else if (availableVehicles.length > 0) {
       assignedVehicleId = availableVehicles[0].id;
       assignedDriverId = availableVehicles[0].driver_id || null;
     }
@@ -816,10 +825,10 @@ const clearBookingDraft = async (req, res) => {
  */
 const checkVehicleAvailability = async (req, res) => {
   try {
-    const { pickupTime, service, vehicleCapacity = 4 } = req.query;
-    const capacity = parseInt(vehicleCapacity, 10) || 4;
+    const { pickupTime, service, vehicleCapacity, capacity: queryCapacity, durationMinutes: queryDuration } = req.query;
+    const capacity = parseInt(vehicleCapacity || queryCapacity, 10) || 4;
 
-    let durationMinutes = 60;
+    let durationMinutes = parseInt(queryDuration, 10) || 60;
     if (service) {
       try {
         const quote = await ServiceModel.calculateFareAndDuration(service, capacity);

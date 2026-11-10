@@ -291,6 +291,11 @@
       color: #9A302E;
       border: 1px solid rgba(185, 74, 72, 0.25);
     }
+    .availability-indicator.neutral {
+      background: #FAF7F2;
+      color: var(--text-muted);
+      border: 1px dashed var(--border-medium, #E2DCD5);
+    }
 
     /* Price Summary Card */
     .price-row {
@@ -616,13 +621,13 @@
               <label class="field-label" for="bk-pickup-time">
                 Pickup Date &amp; Time *
               </label>
-              <input type="datetime-local" id="bk-pickup-time" class="field-input" required onchange="onBookingInputsChanged()" />
+              <input type="datetime-local" id="bk-pickup-time" class="field-input" required onchange="onBookingInputsChanged()" oninput="onBookingInputsChanged()" />
             </div>
             <div class="field-group">
               <label class="field-label" for="bk-passengers">
                 Passengers (1–7) *
               </label>
-              <input type="number" id="bk-passengers" class="field-input" min="1" max="7" value="1" required onchange="onPassengerCountChanged()" />
+              <input type="number" id="bk-passengers" class="field-input" min="1" max="7" placeholder="e.g. 1–7" required onchange="onPassengerCountChanged()" oninput="onPassengerCountChanged()" />
             </div>
           </div>
 
@@ -632,15 +637,59 @@
               Vehicle Capacity Class *
             </label>
             <select id="bk-capacity" class="field-select" onchange="onBookingInputsChanged()" required>
-              <option value="4" selected>4-passenger Saloon (Up to 4 passengers)</option>
+              <option value="" disabled selected>-- Select Vehicle Capacity Class --</option>
+              <option value="4">4-passenger Saloon (Up to 4 passengers)</option>
               <option value="7">7-passenger MPV (Up to 7 passengers)</option>
             </select>
           </div>
 
+          <!-- Dynamic Vehicle Selection (Shown only when Pickup Date & Time, Passengers, and Vehicle Capacity Class are all entered) -->
+          <div id="vehicle-selection-group" class="field-group" style="display: none; margin-top: 14px; padding: 16px; background: #FAF7F2; border: 1.5px solid var(--border-medium, #E2DCD5); border-radius: var(--radius-md); box-shadow: 0 4px 14px rgba(0,0,0,0.03);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+              <label class="field-label" for="bk-vehicle-select" style="font-weight: 700; margin-bottom: 0; color: var(--primary); display: flex; align-items: center; gap: 6px;">
+                <i data-lucide="car" style="width: 17px; height: 17px; color: var(--accent-gold, #C5A059);"></i>
+                <span>Choose Your Preferred Vehicle *</span>
+              </label>
+              <span id="vehicle-count-badge" style="font-size: 11px; padding: 3px 9px; border-radius: 12px; font-weight: 700; background: rgba(20, 63, 51, 0.1); color: var(--primary);">
+                Calculating...
+              </span>
+            </div>
+
+            <p style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 10px; line-height: 1.45;">
+              Select from available non-conflicting executive vehicles calculated for your requested date/time, <span id="calc-pax-count">1</span> passenger(s), and <span id="calc-cap-count">4</span>-seat capacity class.
+            </p>
+
+            <select id="bk-vehicle-select" class="field-select" onchange="onVehicleSelectChanged(this.value)" style="background: #FFFFFF; font-weight: 600; cursor: pointer;" required>
+              <option value="">-- Choose your preferred vehicle --</option>
+            </select>
+
+            <!-- Selected Vehicle Summary Card -->
+            <div id="selected-vehicle-detail" style="display: none; margin-top: 12px; padding: 12px 14px; background: #FFFFFF; border: 1px solid rgba(20, 63, 51, 0.15); border-radius: var(--radius-sm);">
+              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                <div>
+                  <div style="font-size: 13.5px; font-weight: 700; color: var(--primary);" id="detail-vehicle-model">—</div>
+                  <div style="font-size: 11.5px; color: var(--text-muted); margin-top: 2px;" id="detail-vehicle-chauffeur">Chauffeur: —</div>
+                </div>
+                <div style="display: flex; gap: 6px; align-items: center;">
+                  <span id="detail-vehicle-reg" style="font-family: monospace; font-size: 11.5px; font-weight: 700; padding: 3px 8px; background: #143F33; color: #E7C97F; border-radius: 4px;">—</span>
+                  <span id="detail-vehicle-capacity" style="font-size: 11px; font-weight: 600; padding: 3px 8px; background: rgba(58,139,104,0.12); color: #3A8B68; border-radius: 4px;">—</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Empty Fleet Notice -->
+            <div id="vehicle-none-alert" style="display: none; margin-top: 10px; padding: 10px 14px; background: rgba(185, 74, 72, 0.08); border: 1px solid rgba(185, 74, 72, 0.25); border-radius: var(--radius-sm); font-size: 12.5px; color: #B94A48;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="alert-circle" style="width: 16px; height: 16px; flex-shrink: 0;"></i>
+                <span>No vehicles available for this requested time window and capacity. Please choose another pickup time or capacity.</span>
+              </div>
+            </div>
+          </div>
+
           <!-- Live Fleet Availability Indicator -->
-          <div id="availability-box" class="availability-indicator available">
-            <i data-lucide="check-circle" style="width: 16px; height: 16px;"></i>
-            <span id="availability-text">Checking live fleet availability...</span>
+          <div id="availability-box" class="availability-indicator neutral">
+            <i data-lucide="info" style="width: 16px; height: 16px;"></i>
+            <span id="availability-text">Please enter Pickup Date &amp; Time, Passengers, and Vehicle Capacity to check availability &amp; choose your vehicle.</span>
           </div>
 
           <!-- Special Offer Voucher Code Section -->
@@ -922,15 +971,16 @@
     let currentUser = null;
     let appliedOffer = null;
     let autoSaveTimer = null;
+    let selectedVehicleId = null;
+    let currentAvailableVehicles = [];
 
     let userAvailableOffers = [];
 
     // Initialize application state
     window.addEventListener('DOMContentLoaded', () => {
       checkAuthSession();
-      setDefaultPickupTime();
-      onBookingInputsChanged();
       restoreSavedDraft();
+      onBookingInputsChanged();
     });
 
     // Check customer authentication
@@ -965,7 +1015,7 @@
       }
     }
 
-    // Set default pickup time to Tomorrow 10:00 AM (Europe/London)
+    // Set default pickup time helper (Tomorrow 10:00 AM Europe/London)
     function setDefaultPickupTime() {
       const input = document.getElementById('bk-pickup-time');
       if (input && !input.value) {
@@ -976,11 +1026,29 @@
       }
     }
 
+    // Check if user has entered all 3 criteria required to reveal vehicle selection
+    function hasRequiredVehicleCriteria() {
+      const timeInput = document.getElementById('bk-pickup-time');
+      const paxInput = document.getElementById('bk-passengers');
+      const capSelect = document.getElementById('bk-capacity');
+
+      const timeVal = timeInput ? timeInput.value : '';
+      const paxVal = paxInput ? parseInt(paxInput.value, 10) : NaN;
+      const capVal = capSelect ? capSelect.value : '';
+
+      return (
+        Boolean(timeVal && timeVal.trim()) &&
+        !isNaN(paxVal) && paxVal >= 1 && paxVal <= 7 &&
+        Boolean(capVal && (capVal === '4' || capVal === '7'))
+      );
+    }
+
     // Handle passenger count change (auto-switch capacity)
     function onPassengerCountChanged() {
-      const pax = parseInt(document.getElementById('bk-passengers').value, 10) || 1;
+      const paxInput = document.getElementById('bk-passengers');
+      const pax = parseInt(paxInput.value, 10);
       const capSelect = document.getElementById('bk-capacity');
-      if (pax > 4 && capSelect.value !== '7') {
+      if (!isNaN(pax) && pax > 4 && capSelect.value !== '7') {
         capSelect.value = '7';
         triggerToast("Capacity switched to 7-passenger MPV for parties > 4.");
       }
@@ -991,7 +1059,8 @@
     async function onBookingInputsChanged() {
       const serviceEl = document.getElementById('bk-service');
       const selectedOption = serviceEl.options[serviceEl.selectedIndex];
-      const capacity = parseInt(document.getElementById('bk-capacity').value, 10) || 4;
+      const capSelect = document.getElementById('bk-capacity');
+      const capacity = parseInt(capSelect.value, 10) || 4;
 
       const fourFare = parseFloat(selectedOption.getAttribute('data-four')) || 20.00;
       const sevenFare = parseFloat(selectedOption.getAttribute('data-seven')) || 30.00;
@@ -1019,37 +1088,165 @@
 
       document.getElementById('price-final-total').textContent = `£${finalTotal.toFixed(2)} GBP`;
 
-      // Live vehicle availability check
-      checkVehicleAvailability(capacity, duration);
+      // Live vehicle availability and dynamic selection
+      await checkVehicleAvailability(capacity, duration);
       debounceAutoSave();
     }
 
     async function checkVehicleAvailability(capacity, duration) {
-      const timeInput = document.getElementById('bk-pickup-time').value;
+      const vehicleGroup = document.getElementById('vehicle-selection-group');
       const box = document.getElementById('availability-box');
-      const text = document.getElementById('availability-text');
-      const btn = document.getElementById('btn-proceed');
+      const btnProceed = document.getElementById('btn-proceed');
+      const vehicleSelect = document.getElementById('bk-vehicle-select');
+      const countBadge = document.getElementById('vehicle-count-badge');
+      const noneAlert = document.getElementById('vehicle-none-alert');
+      const detailCard = document.getElementById('selected-vehicle-detail');
 
-      if (!timeInput) return;
+      if (!hasRequiredVehicleCriteria()) {
+        if (vehicleGroup) vehicleGroup.style.display = 'none';
+        if (box) {
+          box.className = 'availability-indicator neutral';
+          box.innerHTML = `<i data-lucide="info" style="width: 16px; height: 16px;"></i> <span>Please enter Pickup Date &amp; Time, Passengers, and Vehicle Capacity to check availability &amp; choose your vehicle.</span>`;
+        }
+        if (btnProceed) btnProceed.disabled = false;
+        currentAvailableVehicles = [];
+        selectedVehicleId = null;
+        lucide.createIcons();
+        return;
+      }
+
+      // ALL 3 criteria satisfied -> show the vehicle selection section!
+      if (vehicleGroup) vehicleGroup.style.display = 'block';
+      const pax = parseInt(document.getElementById('bk-passengers').value, 10) || 1;
+      const timeVal = document.getElementById('bk-pickup-time').value;
+      const serviceVal = document.getElementById('bk-service').value;
+
+      const calcPax = document.getElementById('calc-pax-count');
+      if (calcPax) calcPax.textContent = pax;
+      const calcCap = document.getElementById('calc-cap-count');
+      if (calcCap) calcCap.textContent = capacity;
+
+      if (countBadge) {
+        countBadge.textContent = 'Calculating...';
+        countBadge.style.background = 'rgba(20, 63, 51, 0.1)';
+        countBadge.style.color = 'var(--primary)';
+      }
+      if (vehicleSelect) {
+        vehicleSelect.innerHTML = `<option value="">Calculating available vehicles for ${capacity}-seat capacity...</option>`;
+      }
+      if (noneAlert) noneAlert.style.display = 'none';
+      if (detailCard) detailCard.style.display = 'none';
 
       try {
-        const res = await fetch(`${API_BASE}/api/bookings/available-vehicles?capacity=${capacity}&pickupTime=${encodeURIComponent(timeInput)}&durationMinutes=${duration}`);
+        const res = await fetch(`${API_BASE}/api/bookings/available-vehicles?capacity=${capacity}&vehicleCapacity=${capacity}&pickupTime=${encodeURIComponent(timeVal)}&durationMinutes=${duration}&service=${encodeURIComponent(serviceVal)}`);
         const data = await res.json();
 
-        if (data.success && data.count > 0) {
-          box.className = 'availability-indicator available';
-          text.textContent = `✓ Suitable vehicle available (${data.count} minicab${data.count > 1 ? 's' : ''} ready for this slot)`;
-          btn.disabled = false;
+        if (data.success && data.vehicles && data.vehicles.length > 0) {
+          currentAvailableVehicles = data.vehicles;
+          if (countBadge) {
+            countBadge.textContent = `${data.vehicles.length} Available`;
+            countBadge.style.background = 'rgba(58, 139, 104, 0.15)';
+            countBadge.style.color = '#2D6A4F';
+          }
+
+          if (box) {
+            box.className = 'availability-indicator available';
+            box.innerHTML = `<i data-lucide="check-circle" style="width: 16px; height: 16px;"></i> <span>✓ Suitable vehicle available (${data.vehicles.length} minicab${data.vehicles.length > 1 ? 's' : ''} ready for this slot)</span>`;
+          }
+          if (btnProceed) btnProceed.disabled = false;
+
+          let optionsHtml = `<option value="">-- Click to choose your preferred vehicle --</option>`;
+          data.vehicles.forEach(v => {
+            const model = v.make_model || (v.make ? `${v.make} ${v.model || ''}` : 'Executive Chauffeur Vehicle');
+            const reg = v.reg_number || v.registration_number || 'TfL Reg';
+            const driver = v.driver_name ? ` • Chauffeur: ${v.driver_name}` : '';
+            const seats = `${v.capacity || capacity} Seats`;
+            const colour = v.colour ? ` (${v.colour})` : '';
+            optionsHtml += `<option value="${v.id}">${model}${colour} [${reg}] - ${seats}${driver}</option>`;
+          });
+          if (vehicleSelect) vehicleSelect.innerHTML = optionsHtml;
+
+          if (selectedVehicleId && currentAvailableVehicles.some(v => v.id === selectedVehicleId)) {
+            if (vehicleSelect) vehicleSelect.value = selectedVehicleId;
+            renderSelectedVehicleDetail(selectedVehicleId);
+          } else {
+            selectedVehicleId = currentAvailableVehicles[0].id;
+            if (vehicleSelect) vehicleSelect.value = selectedVehicleId;
+            renderSelectedVehicleDetail(selectedVehicleId);
+          }
         } else {
-          box.className = 'availability-indicator unavailable';
-          text.textContent = `⚠ No suitable ${capacity}-passenger vehicles available for this requested time window.`;
-          btn.disabled = true;
+          currentAvailableVehicles = [];
+          selectedVehicleId = null;
+          if (countBadge) {
+            countBadge.textContent = `0 Available`;
+            countBadge.style.background = 'rgba(185, 74, 72, 0.12)';
+            countBadge.style.color = '#B94A48';
+          }
+
+          if (vehicleSelect) vehicleSelect.innerHTML = `<option value="">No suitable ${capacity}-passenger vehicles available for this slot</option>`;
+          if (noneAlert) noneAlert.style.display = 'block';
+
+          if (box) {
+            box.className = 'availability-indicator unavailable';
+            box.innerHTML = `<i data-lucide="alert-circle" style="width: 16px; height: 16px;"></i> <span>⚠ No suitable ${capacity}-passenger vehicles available for this requested time window.</span>`;
+          }
+          if (btnProceed) btnProceed.disabled = true;
         }
-      } catch (_) {
-        box.className = 'availability-indicator available';
-        text.textContent = `✓ Fleet vehicle ready for dispatch`;
-        btn.disabled = false;
+      } catch (err) {
+        console.error('Error fetching available vehicles:', err);
+        if (countBadge) countBadge.textContent = 'Fleet Ready';
+        if (box) {
+          box.className = 'availability-indicator available';
+          box.innerHTML = `<i data-lucide="check-circle" style="width: 16px; height: 16px;"></i> <span>✓ Fleet vehicle ready for dispatch</span>`;
+        }
+        if (btnProceed) btnProceed.disabled = false;
       }
+      lucide.createIcons();
+    }
+
+    function onVehicleSelectChanged(vehicleId) {
+      if (!vehicleId) {
+        selectedVehicleId = null;
+        const detailCard = document.getElementById('selected-vehicle-detail');
+        if (detailCard) detailCard.style.display = 'none';
+        return;
+      }
+      selectedVehicleId = parseInt(vehicleId, 10);
+      renderSelectedVehicleDetail(selectedVehicleId);
+      debounceAutoSave();
+    }
+
+    function renderSelectedVehicleDetail(vehId) {
+      const detailCard = document.getElementById('selected-vehicle-detail');
+      if (!detailCard) return;
+
+      if (!vehId || !currentAvailableVehicles || currentAvailableVehicles.length === 0) {
+        detailCard.style.display = 'none';
+        return;
+      }
+
+      const v = currentAvailableVehicles.find(x => parseInt(x.id, 10) === parseInt(vehId, 10));
+      if (!v) {
+        detailCard.style.display = 'none';
+        return;
+      }
+
+      const model = v.make_model || (v.make ? `${v.make} ${v.model || ''}` : 'Executive Chauffeur Vehicle');
+      const reg = v.reg_number || v.registration_number || 'TfL Reg';
+      const driver = v.driver_name ? `Assigned Chauffeur: ${v.driver_name} (TfL Lic #${v.driver_ref || v.driver_code || 'PHV-VERIFIED'})` : 'Chauffeur: TfL Executive Chauffeur assigned upon dispatch';
+      const cap = `${v.capacity || 4} Passenger Seats`;
+      const colour = v.colour ? ` • ${v.colour}` : '';
+
+      const modelEl = document.getElementById('detail-vehicle-model');
+      if (modelEl) modelEl.textContent = `${model}${colour}`;
+      const chaufEl = document.getElementById('detail-vehicle-chauffeur');
+      if (chaufEl) chaufEl.textContent = driver;
+      const regEl = document.getElementById('detail-vehicle-reg');
+      if (regEl) regEl.textContent = reg;
+      const capEl = document.getElementById('detail-vehicle-capacity');
+      if (capEl) capEl.textContent = cap;
+
+      detailCard.style.display = 'block';
       lucide.createIcons();
     }
 
@@ -1316,18 +1513,32 @@
         return;
       }
 
+      if (!hasRequiredVehicleCriteria()) {
+        triggerToast("Please enter Pickup Date & Time, Passengers, and Vehicle Capacity Class.", "error");
+        return;
+      }
+
       const pickupTime = new Date(document.getElementById('bk-pickup-time').value);
       if (pickupTime.getTime() <= Date.now()) {
         triggerToast("Pickup date and time must be set in the future.", "error");
         return;
       }
 
+      if (!selectedVehicleId && currentAvailableVehicles.length > 0) {
+        selectedVehicleId = currentAvailableVehicles[0].id;
+      }
+
       const total = document.getElementById('price-final-total').textContent;
       const serviceName = document.getElementById('bk-service').value;
       const capacity = document.getElementById('bk-capacity').value;
 
+      const chosenVeh = currentAvailableVehicles.find(v => parseInt(v.id, 10) === parseInt(selectedVehicleId, 10));
+      const vehLabel = chosenVeh 
+        ? `${chosenVeh.make_model || 'Executive Vehicle'} [${chosenVeh.reg_number || ''}]` 
+        : `${capacity}-passenger vehicle`;
+
       document.getElementById('modal-due-amount').textContent = total;
-      document.getElementById('modal-journey-summary').textContent = `${serviceName} • ${capacity}-passenger vehicle`;
+      document.getElementById('modal-journey-summary').textContent = `${serviceName} • ${vehLabel}`;
       
       document.getElementById('payment-modal').classList.add('open');
       lucide.createIcons();
@@ -1370,6 +1581,7 @@
         pickupTime: document.getElementById('bk-pickup-time').value,
         passengerCount: parseInt(document.getElementById('bk-passengers').value, 10) || 1,
         vehicleCapacity: parseInt(document.getElementById('bk-capacity').value, 10) || 4,
+        vehicleId: selectedVehicleId || null,
         paymentMethod: method,
         offerCode: appliedOffer ? appliedOffer.code : null,
         promoCode: appliedOffer ? appliedOffer.code : null,
@@ -1421,7 +1633,8 @@
           dropoff: document.getElementById('bk-dropoff').value,
           pickupTime: document.getElementById('bk-pickup-time').value,
           passengers: document.getElementById('bk-passengers').value,
-          capacity: document.getElementById('bk-capacity').value
+          capacity: document.getElementById('bk-capacity').value,
+          vehicleId: selectedVehicleId
         };
         localStorage.setItem('saved_booking_draft', JSON.stringify(draft));
       }, 500);
@@ -1438,7 +1651,7 @@
           if (draft.pickupTime) document.getElementById('bk-pickup-time').value = draft.pickupTime;
           if (draft.passengers) document.getElementById('bk-passengers').value = draft.passengers;
           if (draft.capacity) document.getElementById('bk-capacity').value = draft.capacity;
-          onBookingInputsChanged();
+          if (draft.vehicleId) selectedVehicleId = parseInt(draft.vehicleId, 10);
         } catch (_) {}
       }
     }
