@@ -1498,6 +1498,43 @@ body[data-user-role="STAFF"] .staff-portal-btn {
   padding: 0 24px;
 }
 
+.app-footer .brand-logo {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  text-decoration: none !important;
+  margin-bottom: 18px !important;
+}
+
+.app-footer .brand-shield {
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  max-width: 36px !important;
+  border-radius: 8px !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+}
+
+.app-footer .brand-text-name {
+  font-family: var(--font-heading, 'Outfit', sans-serif) !important;
+  font-size: 17px !important;
+  font-weight: 700 !important;
+  color: #FFFFFF !important;
+  line-height: 1.1 !important;
+}
+
+.app-footer .brand-text-sub {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  color: var(--accent-gold, #C5A059) !important;
+  letter-spacing: 1px !important;
+  text-transform: uppercase !important;
+}
+
 .footer-grid {
   display: grid;
   grid-template-columns: 1.4fr 1fr 1fr 1.2fr;
