@@ -618,10 +618,46 @@
           <!-- Date/Time and Passenger Count -->
           <div class="responsive-grid-2col">
             <div class="field-group">
-              <label class="field-label" for="bk-pickup-time">
-                Pickup Date &amp; Time *
+              <label class="field-label" for="bk-pickup-date" style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Pickup Date &amp; Time (London Time) *</span>
+                <span style="font-size: 11px; font-weight: 700; color: var(--accent-gold, #C5A059); background: rgba(197,160,89,0.12); padding: 2px 8px; border-radius: 10px;">London GMT</span>
               </label>
-              <input type="datetime-local" id="bk-pickup-time" class="field-input" required onchange="onBookingInputsChanged()" oninput="onBookingInputsChanged()" />
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <input type="date" id="bk-pickup-date" class="field-input" style="flex: 1.3; min-width: 140px; cursor: pointer;" required onchange="syncCombinedPickupDateTime()" />
+                <div style="display: flex; gap: 4px; flex: 1.4; min-width: 180px;">
+                  <select id="bk-pickup-hour" class="field-select" style="padding: 0 6px; text-align: center; font-weight: 700; cursor: pointer;" onchange="syncCombinedPickupDateTime()" title="Hour">
+                    <option value="10" selected>10</option>
+                    <option value="01">01</option>
+                    <option value="02">02</option>
+                    <option value="03">03</option>
+                    <option value="04">04</option>
+                    <option value="05">05</option>
+                    <option value="06">06</option>
+                    <option value="07">07</option>
+                    <option value="08">08</option>
+                    <option value="09">09</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                  </select>
+                  <span style="display: flex; align-items: center; font-weight: 700; color: var(--text-dim);">:</span>
+                  <select id="bk-pickup-minute" class="field-select" style="padding: 0 6px; text-align: center; font-weight: 700; cursor: pointer;" onchange="syncCombinedPickupDateTime()" title="Minute">
+                    <option value="00" selected>00</option>
+                    <option value="15">15</option>
+                    <option value="30">30</option>
+                    <option value="45">45</option>
+                  </select>
+                  <select id="bk-pickup-ampm" class="field-select" style="padding: 0 8px; text-align: center; font-weight: 800; color: var(--primary); background: #FAF7F2; cursor: pointer;" onchange="syncCombinedPickupDateTime()" title="AM / PM">
+                    <option value="AM" selected>AM</option>
+                    <option value="PM">PM</option>
+                  </select>
+                </div>
+              </div>
+              <!-- Hidden underlying pickup-time input for syncing and payload submission -->
+              <input type="hidden" id="bk-pickup-time" />
+              <div id="pickup-time-preview-box" style="font-size: 11.5px; color: var(--text-muted); margin-top: 6px; display: flex; align-items: center; gap: 5px;">
+                <i data-lucide="clock" style="width: 13px; height: 13px; color: var(--accent-gold, #C5A059);"></i>
+                <span>Journey Scheduled: <strong id="preview-formatted-time" style="color: var(--primary);">Please choose pickup date</strong></span>
+              </div>
             </div>
             <div class="field-group">
               <label class="field-label" for="bk-passengers">
@@ -1015,29 +1051,76 @@
       }
     }
 
-    // Set default pickup time helper (Tomorrow 10:00 AM Europe/London)
+    // Synchronize pickup Date, Hour, Minute, and AM/PM into ISO London time string
+    function syncCombinedPickupDateTime() {
+      const dateInput = document.getElementById('bk-pickup-date');
+      const hourSelect = document.getElementById('bk-pickup-hour');
+      const minSelect = document.getElementById('bk-pickup-minute');
+      const ampmSelect = document.getElementById('bk-pickup-ampm');
+      const hiddenInput = document.getElementById('bk-pickup-time');
+      const preview = document.getElementById('preview-formatted-time');
+
+      if (!dateInput || !dateInput.value) {
+        if (hiddenInput) hiddenInput.value = '';
+        if (preview) preview.textContent = 'Please choose pickup date';
+        onBookingInputsChanged();
+        return;
+      }
+
+      const dateVal = dateInput.value;
+      const hourVal = hourSelect ? hourSelect.value : '10';
+      const minVal = minSelect ? minSelect.value : '00';
+      const ampmVal = ampmSelect ? ampmSelect.value : 'AM';
+
+      let h = parseInt(hourVal, 10);
+      if (ampmVal === 'PM' && h !== 12) h += 12;
+      if (ampmVal === 'AM' && h === 12) h = 0;
+      const h24 = String(h).padStart(2, '0');
+
+      // Standard ISO string representing London journey pickup time (UTC/GMT)
+      const isoPickup = `${dateVal}T${h24}:${minVal}:00.000Z`;
+      if (hiddenInput) {
+        hiddenInput.value = isoPickup;
+      }
+
+      if (preview) {
+        if (window.formatBookingDateTime) {
+          preview.textContent = `${window.formatBookingDateTime(isoPickup, { withWeekday: true })} (London GMT)`;
+        } else {
+          preview.textContent = `${dateVal} ${hourVal}:${minVal} ${ampmVal} (London GMT)`;
+        }
+      }
+
+      onBookingInputsChanged();
+    }
+
+    // Set default pickup time helper (Tomorrow 10:00 AM London Time)
     function setDefaultPickupTime() {
-      const input = document.getElementById('bk-pickup-time');
-      if (input && !input.value) {
+      const dateInput = document.getElementById('bk-pickup-date');
+      if (dateInput && !dateInput.value) {
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
-        tomorrow.setHours(10, 0, 0, 0);
-        input.value = tomorrow.toISOString().slice(0, 16);
+        const yyyy = tomorrow.getFullYear();
+        const mm = String(tomorrow.getMonth() + 1).padStart(2, '0');
+        const dd = String(tomorrow.getDate()).padStart(2, '0');
+        dateInput.value = `${yyyy}-${mm}-${dd}`;
+        syncCombinedPickupDateTime();
       }
     }
 
     // Check if user has entered all 3 criteria required to reveal vehicle selection
     function hasRequiredVehicleCriteria() {
+      const dateInput = document.getElementById('bk-pickup-date');
       const timeInput = document.getElementById('bk-pickup-time');
       const paxInput = document.getElementById('bk-passengers');
       const capSelect = document.getElementById('bk-capacity');
 
-      const timeVal = timeInput ? timeInput.value : '';
+      const hasDate = (dateInput && dateInput.value) || (timeInput && timeInput.value && timeInput.value.trim() !== '');
       const paxVal = paxInput ? parseInt(paxInput.value, 10) : NaN;
       const capVal = capSelect ? capSelect.value : '';
 
       return (
-        Boolean(timeVal && timeVal.trim()) &&
+        Boolean(hasDate) &&
         !isNaN(paxVal) && paxVal >= 1 && paxVal <= 7 &&
         Boolean(capVal && (capVal === '4' || capVal === '7'))
       );
@@ -1518,7 +1601,8 @@
         return;
       }
 
-      const pickupTime = new Date(document.getElementById('bk-pickup-time').value);
+      const pickupTimeVal = document.getElementById('bk-pickup-time').value;
+      const pickupTime = new Date(pickupTimeVal);
       if (pickupTime.getTime() <= Date.now()) {
         triggerToast("Pickup date and time must be set in the future.", "error");
         return;
@@ -1537,8 +1621,12 @@
         ? `${chosenVeh.make_model || 'Executive Vehicle'} [${chosenVeh.reg_number || ''}]` 
         : `${capacity}-passenger vehicle`;
 
+      const formattedPickup = window.formatBookingDateTime 
+        ? window.formatBookingDateTime(pickupTimeVal, { withWeekday: true })
+        : pickupTimeVal;
+
       document.getElementById('modal-due-amount').textContent = total;
-      document.getElementById('modal-journey-summary').textContent = `${serviceName} • ${vehLabel}`;
+      document.getElementById('modal-journey-summary').textContent = `${serviceName} • ${vehLabel} • Pickup: ${formattedPickup}`;
       
       document.getElementById('payment-modal').classList.add('open');
       lucide.createIcons();
@@ -1631,6 +1719,10 @@
           service: document.getElementById('bk-service').value,
           pickup: document.getElementById('bk-pickup').value,
           dropoff: document.getElementById('bk-dropoff').value,
+          pickupDate: document.getElementById('bk-pickup-date') ? document.getElementById('bk-pickup-date').value : '',
+          pickupHour: document.getElementById('bk-pickup-hour') ? document.getElementById('bk-pickup-hour').value : '10',
+          pickupMinute: document.getElementById('bk-pickup-minute') ? document.getElementById('bk-pickup-minute').value : '00',
+          pickupAmPm: document.getElementById('bk-pickup-ampm') ? document.getElementById('bk-pickup-ampm').value : 'AM',
           pickupTime: document.getElementById('bk-pickup-time').value,
           passengers: document.getElementById('bk-passengers').value,
           capacity: document.getElementById('bk-capacity').value,
@@ -1648,7 +1740,15 @@
           if (draft.service) document.getElementById('bk-service').value = draft.service;
           if (draft.pickup) document.getElementById('bk-pickup').value = draft.pickup;
           if (draft.dropoff) document.getElementById('bk-dropoff').value = draft.dropoff;
-          if (draft.pickupTime) document.getElementById('bk-pickup-time').value = draft.pickupTime;
+          if (draft.pickupDate && document.getElementById('bk-pickup-date')) {
+            document.getElementById('bk-pickup-date').value = draft.pickupDate;
+            if (draft.pickupHour && document.getElementById('bk-pickup-hour')) document.getElementById('bk-pickup-hour').value = draft.pickupHour;
+            if (draft.pickupMinute && document.getElementById('bk-pickup-minute')) document.getElementById('bk-pickup-minute').value = draft.pickupMinute;
+            if (draft.pickupAmPm && document.getElementById('bk-pickup-ampm')) document.getElementById('bk-pickup-ampm').value = draft.pickupAmPm;
+            syncCombinedPickupDateTime();
+          } else if (draft.pickupTime) {
+            document.getElementById('bk-pickup-time').value = draft.pickupTime;
+          }
           if (draft.passengers) document.getElementById('bk-passengers').value = draft.passengers;
           if (draft.capacity) document.getElementById('bk-capacity').value = draft.capacity;
           if (draft.vehicleId) selectedVehicleId = parseInt(draft.vehicleId, 10);

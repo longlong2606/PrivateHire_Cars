@@ -648,7 +648,7 @@
                       <span style="color: var(--text-muted);">Processed by Staff:</span>
                       <strong style="color: var(--primary);">${escapeHtml(staffName)}</strong>
                     </div>
-                    ${n.refund_processed_at ? `<span style="font-size: 11.5px; color: var(--text-dim);">${new Date(n.refund_processed_at).toLocaleString('en-GB')}</span>` : ''}
+                    ${n.refund_processed_at ? `<span style="font-size: 11.5px; color: var(--text-dim);">${window.formatBookingDateTime ? window.formatBookingDateTime(n.refund_processed_at) : new Date(n.refund_processed_at).toLocaleString('en-GB')}</span>` : ''}
                   </div>
                   <div style="background: var(--bg-card, #FFFFFF); border: 1px solid var(--border-subtle, #E6DEC9); border-radius: 6px; padding: 9px 12px; font-size: 12.5px; margin-bottom: ${triggerReason ? '8px' : '0'};">
                     <span style="font-weight: 700; color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 2px;">
@@ -678,7 +678,7 @@
                   <div class="notif-body" style="font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 6px;">${escapeHtml(bodyText)}</div>
                   ${refundAuditHtml}
                   <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
-                    <span class="notif-time" style="font-size: 11.5px; color: var(--text-dim);">${new Date(n.created_at).toLocaleString('en-GB')}</span>
+                    <span class="notif-time" style="font-size: 11.5px; color: var(--text-dim);">${window.formatBookingDateTime ? window.formatBookingDateTime(n.created_at) : new Date(n.created_at).toLocaleString('en-GB')}</span>
                     ${actionBtnHtml}
                   </div>
                 </div>

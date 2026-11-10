@@ -138,7 +138,14 @@ const createBooking = async (req, res) => {
     const finalFare = Math.max(0, Math.round((baseFare - onlineDiscount - promoDiscount) * 100) / 100);
 
     // 4. [P02]: Check vehicle availability
-    const pickupDate = pickupTime ? new Date(pickupTime) : new Date();
+    let pickupDate = new Date();
+    if (pickupTime) {
+      if (typeof pickupTime === 'string' && pickupTime.length === 16 && !pickupTime.includes('Z') && !pickupTime.includes('+')) {
+        pickupDate = new Date(`${pickupTime}:00.000Z`);
+      } else {
+        pickupDate = new Date(pickupTime);
+      }
+    }
     const availableVehicles = await VehicleModel.getAvailableVehicles({
       capacity: resolvedCapacity,
       pickupTime: pickupDate,
@@ -836,7 +843,14 @@ const checkVehicleAvailability = async (req, res) => {
       } catch (_) {}
     }
 
-    const pickupDate = pickupTime ? new Date(pickupTime) : new Date();
+    let pickupDate = new Date();
+    if (pickupTime) {
+      if (typeof pickupTime === 'string' && pickupTime.length === 16 && !pickupTime.includes('Z') && !pickupTime.includes('+')) {
+        pickupDate = new Date(`${pickupTime}:00.000Z`);
+      } else {
+        pickupDate = new Date(pickupTime);
+      }
+    }
     const available = await VehicleModel.getAvailableVehicles({
       capacity,
       pickupTime: pickupDate,

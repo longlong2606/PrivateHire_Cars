@@ -491,6 +491,40 @@
     }
   };
 
+  // 8. Global Standardized Date & Time Formatter (London Operations GMT/BST)
+  // Fixes the +7 hour local timezone offset and formats AM/PM (replacing SA/CH)
+  window.formatBookingDateTime = function (dateVal, options) {
+    if (!dateVal) return '—';
+    var d = new Date(dateVal);
+    if (isNaN(d.getTime())) return String(dateVal);
+
+    options = options || {};
+    var formatOptions = {
+      timeZone: 'Europe/London',
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    };
+
+    if (options.withWeekday) {
+      formatOptions.weekday = 'short';
+    }
+
+    try {
+      var formatted = d.toLocaleString('en-GB', Object.assign(formatOptions, options));
+      return formatted
+        .replace(/\s*sa/gi, ' AM')
+        .replace(/\s*ch/gi, ' PM')
+        .replace(/\s*am/gi, ' AM')
+        .replace(/\s*pm/gi, ' PM');
+    } catch (_) {
+      return d.toUTCString();
+    }
+  };
+
   function syncDomTheme() {
     var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
     if (isDark && document.body) {

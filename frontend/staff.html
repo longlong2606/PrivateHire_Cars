@@ -1770,7 +1770,7 @@
               <div style="margin-top: 2px;"><strong style="color: var(--accent-gold);">To:</strong> ${escapeHtml(b.dropoff_address)}</div>
             </td>
             <td style="font-size: 12px; white-space: nowrap;">
-              ${new Date(b.pickup_time).toLocaleString('en-GB')}
+              ${window.formatBookingDateTime ? window.formatBookingDateTime(b.pickup_time) : new Date(b.pickup_time).toLocaleString('en-GB')}
             </td>
             <td><span class="badge ${statusBadgeClass}">${bStatus}</span></td>
             <td><span class="badge ${paymentBadgeClass}">${pStatus}</span></td>
@@ -1864,7 +1864,7 @@
               <div style="margin-top: 2px;"><strong style="color: var(--accent-gold);">To:</strong> ${escapeHtml(b.dropoff_address)}</div>
             </td>
             <td style="font-size: 12px; white-space: nowrap;">
-              ${new Date(b.pickup_time).toLocaleString('en-GB')}
+              ${window.formatBookingDateTime ? window.formatBookingDateTime(b.pickup_time) : new Date(b.pickup_time).toLocaleString('en-GB')}
             </td>
             <td>${statusBadge}</td>
             <td><span class="badge ${paymentBadgeClass}" ${paymentBadgeStyle}>${pStatus}</span></td>
@@ -1977,7 +1977,7 @@
             </div>
             <div style="display: flex; gap: 10px; border-top: 1px dashed var(--border-subtle); padding-top: 6px; margin-top: 2px;">
               <span style="font-size: 12px; font-weight: 700; color: var(--text-dim); width: 65px; flex-shrink: 0;">TIME:</span>
-              <span><strong>${new Date(b.pickup_time).toLocaleString('en-GB')}</strong></span>
+              <span><strong>${window.formatBookingDateTime ? window.formatBookingDateTime(b.pickup_time) : new Date(b.pickup_time).toLocaleString('en-GB')}</strong></span>
             </div>
             ${b.flight_number ? `
               <div style="display: flex; gap: 10px;">
@@ -2997,7 +2997,7 @@
           <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border-subtle); font-size: 12px;">
             <div><strong style="color: var(--accent-emerald);">Pickup:</strong> <span>${escapeHtml(r.pickup_address || 'N/A')}</span></div>
             <div style="margin-top: 3px;"><strong style="color: var(--accent-gold);">Dropoff:</strong> <span>${escapeHtml(r.dropoff_address || 'N/A')}</span></div>
-            ${r.pickup_time ? `<div style="margin-top: 3px;"><strong style="color: var(--text-muted);">Scheduled:</strong> <span>${new Date(r.pickup_time).toLocaleString('en-GB')}</span></div>` : ''}
+            ${r.pickup_time ? `<div style="margin-top: 3px;"><strong style="color: var(--text-muted);">Scheduled:</strong> <span>${window.formatBookingDateTime ? window.formatBookingDateTime(r.pickup_time) : new Date(r.pickup_time).toLocaleString('en-GB')}</span></div>` : ''}
           </div>
         </div>
       `;
