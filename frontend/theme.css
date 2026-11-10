@@ -140,7 +140,7 @@ html[data-theme="dark"] body {
   color: #74C69D !important;
 }
 
-[data-theme="dark"] .staff-portal-btn {
+[data-theme="dark"] .staff-portal-btn:not(.sidebar-link) {
   background-color: #182E24 !important;
   border-color: #2D4E40 !important;
   color: #F2F7F4 !important;
@@ -779,7 +779,9 @@ html:not([data-theme="dark"]) .nav-link.active {
 .top-header #btn-auth-action,
 .app-header #btn-auth-action,
 .theme-toggle-btn,
-.staff-portal-btn,
+.main-topbar .staff-portal-btn,
+.top-header .staff-portal-btn,
+.app-header .staff-portal-btn,
 .user-pill {
   border-radius: 8px !important;
   height: 36px !important;
@@ -2068,6 +2070,48 @@ body.has-sidebar-layout .app-sidebar {
 .sidebar-link:hover {
   background: rgba(255, 255, 255, 0.08);
   color: #FFFFFF;
+}
+
+/* Ensure Staff Portal link in sidebar footer seamlessly matches all other sidebar links */
+.sidebar-link.staff-portal-btn,
+.sidebar-footer .staff-portal-btn,
+.app-sidebar .sidebar-footer .staff-portal-btn {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: #A9C2B5 !important;
+  height: auto !important;
+  display: flex !important;
+  width: 100% !important;
+  padding: 6px 8px !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  border-radius: var(--radius-sm, 6px) !important;
+}
+
+.sidebar-link.staff-portal-btn:hover,
+.sidebar-footer .staff-portal-btn:hover,
+.app-sidebar .sidebar-footer .staff-portal-btn:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #FFFFFF !important;
+}
+
+[data-theme="dark"] .sidebar-link.staff-portal-btn,
+[data-theme="dark"] .sidebar-footer .staff-portal-btn,
+[data-theme="dark"] .app-sidebar .sidebar-footer .staff-portal-btn {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: #A9C2B5 !important;
+}
+
+[data-theme="dark"] .sidebar-link.staff-portal-btn:hover,
+[data-theme="dark"] .sidebar-footer .staff-portal-btn:hover,
+[data-theme="dark"] .app-sidebar .sidebar-footer .staff-portal-btn:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #FFFFFF !important;
 }
 
 /* Main Area Container */

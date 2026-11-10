@@ -227,7 +227,11 @@
       }
       if (isAdmin) {
         el.style.removeProperty('display');
-        el.style.display = 'inline-flex';
+        if (el.classList.contains('sidebar-link')) {
+          el.style.display = 'flex';
+        } else {
+          el.style.display = 'inline-flex';
+        }
       } else {
         el.style.setProperty('display', 'none', 'important');
       }
