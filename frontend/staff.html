@@ -1760,6 +1760,9 @@
               <strong style="font-family: var(--font-mono); color: var(--primary);">${escapeHtml(b.booking_code)}</strong>
               <div style="font-size: 11px; color: var(--text-muted);">${escapeHtml(b.customer_name || 'Customer')}</div>
               ${b.staff_name ? `<div style="font-size: 10.5px; color: var(--primary); font-weight: 600; margin-top: 2px;"><i data-lucide="headset" style="width: 10px; height: 10px; vertical-align: -1px; display: inline-block;"></i> Assisted: ${escapeHtml(b.staff_name)}</div>` : ''}
+              <div style="font-size: 10.5px; color: var(--text-dim); margin-top: 3px;" title="Booking Creation Date & Time">
+                <i data-lucide="clock" style="width: 10px; height: 10px; vertical-align: -1px; display: inline-block; color: var(--accent-gold);"></i> Booked: <strong>${window.formatBookingDateTime ? window.formatBookingDateTime(b.created_at) : (b.created_at ? new Date(b.created_at).toLocaleString() : '—')}</strong>
+              </div>
             </td>
             <td>
               <strong>${escapeHtml(b.service_name || 'Standard')}</strong>
@@ -1770,7 +1773,8 @@
               <div style="margin-top: 2px;"><strong style="color: var(--accent-gold);">To:</strong> ${escapeHtml(b.dropoff_address)}</div>
             </td>
             <td style="font-size: 12px; white-space: nowrap;">
-              ${window.formatBookingDateTime ? window.formatBookingDateTime(b.pickup_time) : new Date(b.pickup_time).toLocaleString('en-GB')}
+              <div>${window.formatBookingDateTime ? window.formatBookingDateTime(b.pickup_time) : new Date(b.pickup_time).toLocaleString('en-GB')}</div>
+              <div style="font-size: 10.5px; color: var(--text-dim); margin-top: 3px;"><span style="color: var(--text-muted);">Created:</span> ${window.formatBookingDateTime ? window.formatBookingDateTime(b.created_at) : '—'}</div>
             </td>
             <td><span class="badge ${statusBadgeClass}">${bStatus}</span></td>
             <td><span class="badge ${paymentBadgeClass}">${pStatus}</span></td>
@@ -1854,6 +1858,9 @@
               <strong style="font-family: var(--font-mono); color: var(--primary);">${escapeHtml(b.booking_code)}</strong>
               <div style="font-size: 11px; color: var(--text-muted);">${escapeHtml(b.customer_name || 'Customer')}</div>
               ${b.staff_name ? `<div style="font-size: 10.5px; color: var(--primary); font-weight: 600; margin-top: 2px;"><i data-lucide="headset" style="width: 10px; height: 10px; vertical-align: -1px; display: inline-block;"></i> Assisted: ${escapeHtml(b.staff_name)}</div>` : ''}
+              <div style="font-size: 10.5px; color: var(--text-dim); margin-top: 3px;" title="Booking Creation Date & Time">
+                <i data-lucide="clock" style="width: 10px; height: 10px; vertical-align: -1px; display: inline-block; color: var(--accent-gold);"></i> Booked: <strong>${window.formatBookingDateTime ? window.formatBookingDateTime(b.created_at) : (b.created_at ? new Date(b.created_at).toLocaleString() : '—')}</strong>
+              </div>
             </td>
             <td>
               <strong>${escapeHtml(b.service_name || 'Standard')}</strong>
@@ -1864,7 +1871,8 @@
               <div style="margin-top: 2px;"><strong style="color: var(--accent-gold);">To:</strong> ${escapeHtml(b.dropoff_address)}</div>
             </td>
             <td style="font-size: 12px; white-space: nowrap;">
-              ${window.formatBookingDateTime ? window.formatBookingDateTime(b.pickup_time) : new Date(b.pickup_time).toLocaleString('en-GB')}
+              <div>${window.formatBookingDateTime ? window.formatBookingDateTime(b.pickup_time) : new Date(b.pickup_time).toLocaleString('en-GB')}</div>
+              <div style="font-size: 10.5px; color: var(--text-dim); margin-top: 3px;"><span style="color: var(--text-muted);">Created:</span> ${window.formatBookingDateTime ? window.formatBookingDateTime(b.created_at) : '—'}</div>
             </td>
             <td>${statusBadge}</td>
             <td><span class="badge ${paymentBadgeClass}" ${paymentBadgeStyle}>${pStatus}</span></td>
@@ -1978,6 +1986,10 @@
             <div style="display: flex; gap: 10px; border-top: 1px dashed var(--border-subtle); padding-top: 6px; margin-top: 2px;">
               <span style="font-size: 12px; font-weight: 700; color: var(--text-dim); width: 65px; flex-shrink: 0;">TIME:</span>
               <span><strong>${window.formatBookingDateTime ? window.formatBookingDateTime(b.pickup_time) : new Date(b.pickup_time).toLocaleString('en-GB')}</strong></span>
+            </div>
+            <div style="display: flex; gap: 10px;">
+              <span style="font-size: 12px; font-weight: 700; color: var(--text-dim); width: 65px; flex-shrink: 0;">CREATED:</span>
+              <span style="font-size: 12.5px; color: var(--text-muted);"><i data-lucide="clock" style="width: 12px; height: 12px; color: var(--accent-gold); vertical-align: middle;"></i> ${window.formatBookingDateTime ? window.formatBookingDateTime(b.created_at) : (b.created_at ? new Date(b.created_at).toLocaleString() : '—')}</span>
             </div>
             ${b.flight_number ? `
               <div style="display: flex; gap: 10px;">

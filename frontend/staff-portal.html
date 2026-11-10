@@ -1480,7 +1480,10 @@
 
             return `
               <tr>
-                <td><strong>${b.booking_code}</strong></td>
+                <td>
+                  <strong>${b.booking_code}</strong>
+                  <div style="font-size: 10.5px; color: var(--text-dim); margin-top: 2px;"><i data-lucide="clock" style="width: 10px; height: 10px; vertical-align: -1px; display: inline-block;"></i> Created: ${window.formatBookingDateTime ? window.formatBookingDateTime(b.created_at) : '—'}</div>
+                </td>
                 <td>${b.service_name || 'Standard'}<br><span style="font-size: 11px; color: var(--text-dim);">${b.car_type || 'Saloon'}</span></td>
                 <td>${b.pickup_address} → ${b.dropoff_address}</td>
                 <td>${window.formatBookingDateTime ? window.formatBookingDateTime(b.pickup_time) : new Date(b.pickup_time).toLocaleString('en-GB')}</td>

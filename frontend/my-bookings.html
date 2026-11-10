@@ -895,6 +895,10 @@
               <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
                 <span class="booking-ref-badge">${b.booking_code}</span>
                 <span style="font-size: 14px; font-weight: 700; color: var(--text-main);">${escapeHtml(b.service_name || 'Standard Service')}</span>
+                <span class="badge-booking-created" style="font-size: 11.5px; color: var(--text-muted); display: inline-flex; align-items: center; gap: 4px; background: rgba(0,0,0,0.03); padding: 3px 8px; border-radius: 6px; border: 1px solid var(--border-subtle);">
+                  <i data-lucide="clock" style="width: 12px; height: 12px; color: var(--accent-gold);"></i>
+                  Booked on: <strong style="color: var(--text-main); font-weight: 600;">${window.formatBookingDateTime ? window.formatBookingDateTime(b.created_at) : (b.created_at ? new Date(b.created_at).toLocaleString() : '—')}</strong>
+                </span>
                 ${b.staff_name ? `
                   <span class="badge-staff-assisted" title="Assisted by Staff: ${escapeHtml(b.staff_name)}">
                     <i data-lucide="headset" style="width: 12px; height: 12px;"></i> Assisted by: <strong>${escapeHtml(b.staff_name)}</strong>
@@ -1127,6 +1131,10 @@
               <div>
                 <span style="font-size: 12px; color: var(--text-dim);">Scheduled Pickup Time: </span>
                 <strong style="font-size: 13px; color: var(--text-main);">${escapeHtml(pickupDateFormatted)}</strong>
+              </div>
+              <div>
+                <span style="font-size: 12px; color: var(--text-dim);">Booking Created: </span>
+                <strong style="font-size: 13px; color: var(--primary);">${window.formatBookingDateTime ? window.formatBookingDateTime(b.created_at) : (b.created_at ? new Date(b.created_at).toLocaleString() : '—')}</strong>
               </div>
               <div>
                 <span style="font-size: 12px; color: var(--text-dim);">Estimated Duration: </span>
