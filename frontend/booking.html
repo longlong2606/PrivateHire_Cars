@@ -392,6 +392,18 @@
       gap: 12px;
     }
 
+    /* Print Stylesheet for Official Paid Receipt */
+    @media print {
+      body * { visibility: hidden; }
+      #printable-receipt-modal, #printable-receipt-modal * { visibility: visible; }
+      #printable-receipt-modal {
+        position: absolute; left: 0; top: 0; width: 100%; height: auto;
+        background: none; display: block !important; padding: 0;
+      }
+      .modal-box { box-shadow: none; border: none; max-width: 100%; }
+      .no-print { display: none !important; }
+    }
+
     /* Toast Container */
     #toast-rack {
       position: fixed;
@@ -991,6 +1003,35 @@
         </button>
       </div>
 
+    </div>
+  </div>
+
+  <!-- Receipt Modal for Successful Transaction -->
+  <div id="printable-receipt-modal" class="modal-backdrop">
+    <div class="modal-box" style="max-width: 600px;">
+      <div class="modal-header">
+        <div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; background: #D1E7DD; color: #0F5132; border-radius: 50%; font-size: 13px; font-weight: 800;">✓</span>
+            <h3 style="font-family: var(--font-heading); font-size: 17px; font-weight: 700; margin: 0;">Payment Successful — Official VAT Receipt</h3>
+          </div>
+          <span style="font-size: 12px; color: var(--text-muted);">PrivateHire Cars London &bull; Transaction Approved</span>
+        </div>
+        <button onclick="closeReceiptModalAndRedirect()" class="no-print" style="border: none; background: none; cursor: pointer; color: var(--text-muted);">
+          <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+        </button>
+      </div>
+      <div class="modal-body" id="receipt-modal-content">
+        <!-- Rendered via JS -->
+      </div>
+      <div class="modal-footer no-print" style="display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
+        <button type="button" class="btn-outline-sm" onclick="closeReceiptModalAndRedirect()">
+          <i data-lucide="calendar" style="width: 14px; height: 14px;"></i> View My Bookings
+        </button>
+        <button type="button" class="btn-outline-sm" style="background: var(--primary); color: #fff; border: none; font-weight: 600;" onclick="window.print()">
+          <i data-lucide="printer" style="width: 15px; height: 15px;"></i> Print Official Receipt
+        </button>
+      </div>
     </div>
   </div>
 
@@ -1692,15 +1733,21 @@
         const data = await res.json();
 
         if (res.ok && data.success) {
-          triggerToast(method === 'CASH' 
-            ? "Booking Confirmed! You can pay cash at end of journey." 
-            : "Simulated Payment Successful! Booking Confirmed.");
-          closePaymentModal();
+          const booking = data.booking || {};
           // Clear draft form persistence
           localStorage.removeItem('saved_booking_draft');
-          setTimeout(() => {
-            window.location.href = "my-bookings.html";
-          }, 1000);
+          closePaymentModal();
+
+          if (method === 'CASH') {
+            triggerToast("Booking Confirmed! You can pay cash at end of journey.");
+            setTimeout(() => {
+              window.location.href = `my-bookings.html#booking-${booking.id || ''}`;
+            }, 1000);
+          } else {
+            // Electronic Payment Success (MOCK_CARD / PAYPAL) -> Display Payment Receipt!
+            triggerToast("🎉 Giao dịch thanh toán thành công! Đang hiển thị biên lai...");
+            showSuccessfulPaymentReceipt(booking, bookingPayload);
+          }
         } else {
           triggerToast(data.message || "Failed to confirm booking. Please try again.", "error");
           submitBtn.disabled = false;
@@ -1711,6 +1758,116 @@
         submitBtn.disabled = false;
         submitBtn.innerHTML = `<span>Confirm Booking</span>`;
       }
+    }
+
+    // View official printable receipt upon successful payment transaction
+    function showSuccessfulPaymentReceipt(b, payload) {
+      const modal = document.getElementById('printable-receipt-modal');
+      const content = document.getElementById('receipt-modal-content');
+      if (!modal || !content) return;
+
+      const pickupDate = window.formatBookingDateTime 
+        ? window.formatBookingDateTime(b.pickupTime || payload.pickupTime, { withWeekday: true })
+        : new Date(b.pickupTime || payload.pickupTime).toLocaleString('en-GB');
+
+      const bookingCode = b.bookingCode || 'BK-SUCCESS';
+      const receiptNo = 'REC-' + bookingCode.replace('BK-', '');
+      const baseFare = parseFloat(b.fareAmount || b.baseFare || document.getElementById('price-base-fare')?.textContent.replace(/[^0-9.]/g, '') || 45).toFixed(2);
+      const onlineDiscount = parseFloat(b.discountAmount || document.getElementById('price-online-discount')?.textContent.replace(/[^0-9.]/g, '') || 0).toFixed(2);
+      const promoDiscount = parseFloat(b.promoDiscount || (appliedOffer ? appliedOffer.discount_amount : 0) || 0).toFixed(2);
+      const finalFare = parseFloat(b.finalFare || document.getElementById('price-final-total')?.textContent.replace(/[^0-9.]/g, '') || baseFare).toFixed(2);
+      const vatIncluded = (parseFloat(finalFare) * 0.20).toFixed(2);
+      const cardRef = b.cardRefUsed || currentUser?.mockCardRef || '•••• •••• •••• 4242 (Visa Test Card)';
+      const payMethod = b.paymentMethod || payload.paymentMethod || 'MOCK_CARD';
+
+      const html = `
+        <div style="background: rgba(46, 125, 50, 0.08); border: 1px solid rgba(46, 125, 50, 0.25); border-radius: 8px; padding: 12px 16px; margin-bottom: 18px; display: flex; align-items: center; gap: 12px;">
+          <div style="width: 36px; height: 36px; border-radius: 50%; background: #2E7D32; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800; flex-shrink: 0;">✓</div>
+          <div>
+            <div style="font-weight: 700; color: #1B5E20; font-size: 14.5px;">Giao dịch thanh toán thành công!</div>
+            <div style="font-size: 12px; color: var(--text-muted);">Cuốc xe đã được xác nhận và biên lai thanh toán VAT chính thức đã được phát hành.</div>
+          </div>
+        </div>
+
+        <div style="text-align: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 16px;">
+          <h2 style="font-family: var(--font-heading); font-size: 20px; font-weight: 800; color: var(--primary); margin: 0;">PRIVATEHIRE CARS LONDON</h2>
+          <p style="font-size: 12px; color: var(--text-muted); margin: 4px 0 0 0;">Licensed London Minicab Dispatch Service &bull; Transport for London</p>
+          <div style="margin-top: 10px; font-family: var(--font-mono); font-size: 13.5px; font-weight: 700; color: var(--primary);">
+            Receipt No: ${receiptNo}
+          </div>
+        </div>
+
+        <div style="font-size: 13px; line-height: 1.8; margin-bottom: 20px;">
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">Booking Reference:</span>
+            <strong style="color: var(--primary);">${escapeHtml(bookingCode)}</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">Passenger Name:</span>
+            <strong>${escapeHtml(currentUser?.name || b.passengerName || 'Customer')}</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">Journey Date &amp; Time:</span>
+            <span>${pickupDate}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">Service Type:</span>
+            <span>${escapeHtml(payload.serviceName || b.serviceName || 'Executive Journey')}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">Pickup Address:</span>
+            <span>${escapeHtml(payload.pickupAddress || b.pickupAddress)}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">Dropoff Destination:</span>
+            <span>${escapeHtml(payload.dropoffAddress || b.dropoffAddress)}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">Payment Method:</span>
+            <span>${escapeHtml(payMethod)} (${escapeHtml(cardRef)})</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="color: var(--text-muted);">Payment Status:</span>
+            <span style="background: #D1E7DD; color: #0F5132; padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 12px;">PAID ✓ (Transaction Approved)</span>
+          </div>
+        </div>
+
+        <div style="background: var(--bg-surface, #FAF7F2); padding: 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+          <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--text-muted); margin-bottom: 6px;">
+            <span>Standard Base Fare:</span>
+            <span>£${baseFare} GBP</span>
+          </div>
+          ${parseFloat(onlineDiscount) > 0 ? `
+            <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--accent-emerald, #3A8B68); margin-bottom: 6px;">
+              <span>Online Self-Service Discount (15%):</span>
+              <span>-£${onlineDiscount} GBP</span>
+            </div>
+          ` : ''}
+          ${parseFloat(promoDiscount) > 0 ? `
+            <div style="display: flex; justify-content: space-between; font-size: 13px; color: #8F6B27; font-weight: 600; margin-bottom: 6px;">
+              <span>Loyalty Voucher (${escapeHtml(appliedOffer?.code || b.promoCode || 'VOUCHER')}):</span>
+              <span>-£${promoDiscount} GBP</span>
+            </div>
+          ` : ''}
+          <div style="border-top: 1px solid var(--border-subtle); padding-top: 8px; margin-top: 6px; display: flex; justify-content: space-between; font-size: 16px; font-weight: 800; color: var(--primary);">
+            <span>Amount Recorded as Paid:</span>
+            <span>£${finalFare} GBP</span>
+          </div>
+          <div style="display: flex; justify-content: flex-end; font-size: 11.5px; color: var(--text-muted); margin-top: 4px;">
+            (Includes 20% UK VAT: £${vatIncluded} GBP)
+          </div>
+        </div>
+      `;
+
+      content.innerHTML = html;
+      modal.classList.add('open');
+      lucide.createIcons();
+    }
+
+    function closeReceiptModalAndRedirect() {
+      const modal = document.getElementById('printable-receipt-modal');
+      if (modal) modal.classList.remove('open');
+      window.location.href = "my-bookings.html";
     }
 
     // Auto-save form draft state

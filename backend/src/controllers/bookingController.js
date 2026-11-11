@@ -530,9 +530,12 @@ const getPrintableReceipt = async (req, res) => {
     const bookingId = req.params.id;
     const customer = req.user;
 
-    const booking = await BookingModel.findById(bookingId);
+    const booking = /^\d+$/.test(bookingId)
+      ? await BookingModel.findById(bookingId)
+      : await BookingModel.findByCode(bookingId);
+
     if (!booking) return res.status(404).json({ success: false, message: 'Booking not found' });
-    if (booking.account_id !== customer.id && customer.role !== 'STAFF') {
+    if (booking.account_id !== customer.id && customer.role !== 'STAFF' && customer.role !== 'ADMIN') {
       return res.status(403).json({ success: false, message: 'Forbidden' });
     }
 

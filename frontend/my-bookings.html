@@ -837,6 +837,11 @@
         if (res.ok && data.success && data.bookings && data.bookings.length > 0) {
           customerBookings = data.bookings;
           renderBookingsList(customerBookings);
+          const urlParams = new URLSearchParams(window.location.search);
+          const receiptCode = urlParams.get('receipt');
+          if (receiptCode) {
+            openReceiptModal(receiptCode);
+          }
         } else {
           container.innerHTML = `
             <div style="background: #FFFFFF; border: 1px dashed var(--border-medium); border-radius: var(--radius-lg); padding: 50px 20px; text-align: center;">
@@ -966,8 +971,8 @@
                 <i data-lucide="eye" style="width: 14px; height: 14px;"></i> View Detail
               </button>
 
-              ${(pStatus === 'PAID' || bStatus === 'COMPLETED') ? `
-                <button type="button" class="btn-outline-sm" onclick="openReceiptModal('${b.booking_code}')">
+              ${pStatus === 'PAID' ? `
+                <button type="button" class="btn-outline-sm" onclick="openReceiptModal('${b.booking_code}')" title="Xem biên lai thanh toán (Giao dịch thành công)">
                   <i data-lucide="receipt" style="width: 14px; height: 14px;"></i> View Receipt
                 </button>
               ` : ''}
@@ -1230,8 +1235,8 @@
       const footer = document.getElementById('booking-detail-modal-footer');
       footer.innerHTML = `
         <button type="button" class="btn-outline-sm" onclick="closeBookingDetailModal()">Close</button>
-        ${(pStatus === 'PAID' || bStatus === 'COMPLETED') ? `
-          <button type="button" class="btn-outline-sm" style="background: rgba(22, 75, 59, 0.08); color: var(--primary); font-weight: 600;" onclick="closeBookingDetailModal(); openReceiptModal('${b.booking_code}')">
+        ${pStatus === 'PAID' ? `
+          <button type="button" class="btn-outline-sm" style="background: rgba(22, 75, 59, 0.08); color: var(--primary); font-weight: 600;" onclick="closeBookingDetailModal(); openReceiptModal('${b.booking_code}')" title="Xem biên lai thanh toán (Giao dịch thành công)">
             <i data-lucide="receipt" style="width: 14px; height: 14px;"></i> View Receipt
           </button>
         ` : ''}
@@ -1302,11 +1307,13 @@
           </div>
           <div style="display: flex; justify-content: space-between;">
             <span style="color: var(--text-muted);">Payment Method:</span>
-            <span>${b.payment_method || 'CARD'}</span>
+            <span>${escapeHtml(b.payment_method || 'CARD')} ${b.card_ref_used ? `(${escapeHtml(b.card_ref_used)})` : ''}</span>
           </div>
-          <div style="display: flex; justify-content: space-between;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
             <span style="color: var(--text-muted);">Payment Status:</span>
-            <strong style="color: ${isPaid ? '#0F5132' : '#856404'};">${b.payment_status}</strong>
+            <span style="background: ${isPaid ? '#D1E7DD' : '#FFF3CD'}; color: ${isPaid ? '#0F5132' : '#856404'}; padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 12px;">
+              ${isPaid ? 'PAID ✓ (Transaction Approved)' : 'UNPAID (Pending Cash Collection)'}
+            </span>
           </div>
           ${b.staff_name ? `
             <div style="display: flex; justify-content: space-between;">
@@ -1336,6 +1343,9 @@
           <div style="border-top: 1px solid var(--border-subtle); padding-top: 8px; margin-top: 6px; display: flex; justify-content: space-between; font-size: 16px; font-weight: 800; color: var(--primary);">
             <span>${isPaid ? 'Amount Recorded as Paid:' : 'Total Amount Due at End of Journey:'}</span>
             <span>£${finalFare} GBP</span>
+          </div>
+          <div style="display: flex; justify-content: flex-end; font-size: 11.5px; color: var(--text-muted); margin-top: 4px;">
+            (Includes 20% UK VAT: £${(parseFloat(finalFare) * 0.20).toFixed(2)} GBP)
           </div>
         </div>
       `;
