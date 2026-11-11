@@ -180,21 +180,7 @@ VALUES (
 )
 ON CONFLICT (email) DO UPDATE SET role = 'STAFF';
 
--- Seed Admin accounts
-INSERT INTO accounts (account_code, name, email, address, telephone, password_hash, mock_card_ref, role, status)
-VALUES (
-    'ADMIN-001', 
-    'Nguyen vu hoang long', 
-    'longhvn2006@gmail.com', 
-    'London Control Centre, Admin HQ', 
-    '+44 7700 900888', 
-    '$2b$10$XltJeJwW/Oz71H7M.m5n5uVKyNFtJ4jwe8usfhKeB7zmhedCWabdS', 
-    '•••• •••• •••• 4242 (Visa Test Card)', 
-    'ADMIN', 
-    'ACTIVE'
-)
-ON CONFLICT (email) DO UPDATE SET role = 'ADMIN';
-
+-- Seed Admin accounts (ADMIN-002 reserved for system ops)
 INSERT INTO accounts (account_code, name, email, address, telephone, password_hash, mock_card_ref, role, status)
 VALUES (
     'ADMIN-002', 
