@@ -248,6 +248,109 @@ const sendConfirmationEmail = async ({ toEmail, name, accountCode, mockCardRef }
   return emailRecord;
 };
 
+async function dispatchRealEmail({ toEmail, subject, textContent, htmlContent, label = 'Email' }) {
+  const creds = getCleanCredentials();
+  const senderName = process.env.EMAIL_FROM_NAME || 'PrivateHire Cars';
+
+  // 1. Try Brevo HTTPS API if configured
+  if (process.env.BREVO_API_KEY) {
+    try {
+      const apiKey = process.env.BREVO_API_KEY.trim();
+      const senderEmail = creds ? creds.user : 'contact@privatehirecars.co.uk';
+      const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+          'api-key': apiKey,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          sender: { name: senderName, email: senderEmail },
+          to: [{ email: toEmail }],
+          subject,
+          htmlContent,
+          textContent,
+        }),
+      });
+      if (response.ok) {
+        console.log(`✅ [${label}] Sent successfully to ${toEmail} via Brevo API`);
+        return true;
+      }
+    } catch (_) {}
+  }
+
+  // 2. Try Resend HTTPS API if configured
+  if (process.env.RESEND_API_KEY) {
+    try {
+      const apiKey = process.env.RESEND_API_KEY.trim();
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: `${senderName} <onboarding@resend.dev>`,
+          to: [toEmail],
+          subject,
+          html: htmlContent,
+          text: textContent,
+        }),
+      });
+      if (response.ok) {
+        console.log(`✅ [${label}] Sent successfully to ${toEmail} via Resend API`);
+        return true;
+      }
+    } catch (_) {}
+  }
+
+  // 3. Try Gmail SMTP (SSL Port 465 with fallback to Port 587 STARTTLS)
+  if (creds) {
+    try {
+      const transporter = createSmtpTransporter();
+      if (transporter) {
+        await transporter.sendMail({
+          from: `"${senderName}" <${creds.user}>`,
+          to: toEmail,
+          subject,
+          text: textContent,
+          html: htmlContent,
+        });
+        console.log(`✅ [${label}] Sent successfully to ${toEmail} via Gmail SMTP (465)`);
+        return true;
+      }
+    } catch (smtpErr) {
+      console.warn(`⚠️ [${label}] First attempt on Port 465 failed (${smtpErr.message}). Falling back to Port 587 STARTTLS...`);
+      try {
+        const fallbackTransporter = nodemailer.createTransport({
+          host: 'smtp.gmail.com',
+          port: 587,
+          secure: false,
+          requireTLS: true,
+          auth: { user: creds.user, pass: creds.pass },
+          connectionTimeout: 15000,
+          greetingTimeout: 15000,
+          socketTimeout: 20000,
+        });
+        await fallbackTransporter.sendMail({
+          from: `"${senderName}" <${creds.user}>`,
+          to: toEmail,
+          subject,
+          text: textContent,
+          html: htmlContent,
+        });
+        console.log(`✅ [${label}] Sent successfully to ${toEmail} via Gmail Port 587 STARTTLS`);
+        return true;
+      } catch (fallbackErr) {
+        console.warn(`⚠️ [${label}] Fallback to 587 also failed: ${fallbackErr.message}`);
+      }
+    }
+  }
+
+  console.log(`📧 [${label} Logged] Simulated delivery to ${toEmail}`);
+  return false;
+}
+
 const sendBookingConfirmationEmail = async ({
   toEmail,
   name,
@@ -290,42 +393,52 @@ const sendBookingConfirmationEmail = async ({
     </div>
   `;
 
-  try {
-    const creds = getCleanCredentials();
-    const senderName = process.env.EMAIL_FROM_NAME || 'PrivateHire Cars';
-    const transporter = createSmtpTransporter();
-    if (transporter && creds) {
-      await transporter.sendMail({
-        from: `"${senderName}" <${creds.user}>`,
-        to: toEmail,
-        subject,
-        text: textContent,
-        html: htmlContent,
-      });
-      console.log(`✅ [P04 Booking Confirmation Email] Sent to ${toEmail} for booking ${bookingCode}`);
-    }
-  } catch (err) {
-    console.warn(`⚠️ [P04 Email Warning] Booking confirmation email notice: ${err.message}`);
-  }
+  await dispatchRealEmail({
+    toEmail,
+    subject,
+    textContent,
+    htmlContent,
+    label: 'P04 Booking Confirmation Email',
+  });
 };
 
 const sendSpecialOfferEmail = async ({ toEmail, name, promoCode, discountAmount }) => {
   const subject = `[PrivateHire Cars] Special Loyalty Reward — £${discountAmount} Off Your Next Journey!`;
   const textContent = `Hello ${name},\n\nCongratulations! Because you have completed 3 or more journeys with PrivateHire Cars, we are pleased to award you a special loyalty voucher:\n\nPromo Code: ${promoCode}\nDiscount: £${discountAmount} GBP\n\nYou can apply this voucher at checkout on your next online booking!\n\nPrivateHire Cars London`;
   
-  try {
-    const creds = getCleanCredentials();
-    const senderName = process.env.EMAIL_FROM_NAME || 'PrivateHire Cars';
-    const transporter = createSmtpTransporter();
-    if (transporter && creds) {
-      await transporter.sendMail({
-        from: `"${senderName}" <${creds.user}>`,
-        to: toEmail,
-        subject,
-        text: textContent,
-      });
-    }
-  } catch (_) {}
+  const htmlContent = `
+    <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #25352e; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
+      <div style="background-color: #164B3B; color: #fff; padding: 20px; text-align: center;">
+        <h2 style="margin: 0; letter-spacing: 0.5px;">🎁 Special Loyalty Reward Voucher!</h2>
+      </div>
+      <div style="padding: 24px;">
+        <p>Hello <strong>${name}</strong>,</p>
+        <p>Congratulations! Because you have reached loyalty milestones with PrivateHire Cars London, we are pleased to award you an exclusive discount voucher:</p>
+        <div style="background: #FAF7F2; border: 2px dashed #C5A059; border-radius: 8px; padding: 18px; text-align: center; margin: 20px 0;">
+          <div style="font-size: 13px; color: #718479; text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">Your Loyalty Voucher Code</div>
+          <div style="font-size: 26px; font-weight: 800; color: #164B3B; letter-spacing: 2px; margin: 8px 0;">${promoCode}</div>
+          <div style="font-size: 16px; font-weight: 700; color: #3A8B68;">Save £${Number(discountAmount).toFixed(2)} GBP on your next booking!</div>
+        </div>
+        <p>You can apply this voucher during checkout on your next minicab journey.</p>
+        <div style="text-align: center; margin-top: 24px;">
+          <a href="http://localhost:5173/booking.html" style="background: #164B3B; color: white; padding: 12px 24px; border-radius: 6px; font-weight: bold; text-decoration: none; display: inline-block;">
+            Book Your Next Journey
+          </a>
+        </div>
+      </div>
+      <div style="background-color: #f8fafc; padding: 14px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #e2e8f0;">
+        PrivateHire Cars London &bull; Automated loyalty reward under PRD P09
+      </div>
+    </div>
+  `;
+
+  await dispatchRealEmail({
+    toEmail,
+    subject,
+    textContent,
+    htmlContent,
+    label: 'P09 Special Offer Email',
+  });
 };
 
 const getEmailHistory = () => {

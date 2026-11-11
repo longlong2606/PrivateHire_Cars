@@ -7,7 +7,7 @@ const EnquiryModel = require('../models/enquiryModel');
 const NotificationModel = require('../models/notificationModel');
 const SpecialOfferModel = require('../models/specialOfferModel');
 const ServiceModel = require('../models/serviceModel');
-const { sendSpecialOfferEmail } = require('../services/emailService');
+const { sendSpecialOfferEmail, sendBookingConfirmationEmail } = require('../services/emailService');
 
 class StaffController {
   /**
@@ -175,6 +175,23 @@ class StaffController {
         message: `Staff ${resolvedStaffName} has scheduled minicab booking #${booking.booking_code} for you from ${pickupAddress} to ${dropoffAddress}. Click to view details of your journey.`,
         type: 'BOOKING_CONFIRMED',
       }).catch(err => console.error('Error creating assisted booking notification:', err));
+
+      // Send real booking confirmation email to customer (P04)
+      if (customer && customer.email) {
+        sendBookingConfirmationEmail({
+          toEmail: customer.email,
+          name: customer.name,
+          bookingCode: booking.booking_code,
+          pickupAddress: booking.pickup_address,
+          dropoffAddress: booking.dropoff_address,
+          pickupTime: booking.pickup_time,
+          serviceName: booking.service_name || 'Staff Assisted Journey',
+          vehicleCapacity: booking.vehicle_capacity || capacity,
+          fareAmount: booking.final_fare || booking.fare_amount,
+          paymentMethod: booking.payment_method,
+          paymentStatus: booking.payment_status,
+        }).catch(err => console.warn(`⚠️ [Staff Booking Email Notice]: ${err.message}`));
+      }
 
       res.status(201).json({
         success: true,
