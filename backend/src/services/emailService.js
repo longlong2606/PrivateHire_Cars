@@ -104,93 +104,105 @@ const sendConfirmationEmail = async ({ toEmail, name, accountCode, mockCardRef }
     const creds = getCleanCredentials();
     const senderName = process.env.EMAIL_FROM_NAME || 'PrivateHIre Cars';
 
+    let delivered = false;
+
     // --- Ưu tiên 1: Gửi qua HTTPS API (Bypass 100% việc Render chặn cổng SMTP 25/465/587) ---
-    if (process.env.EMAIL_WEBHOOK_URL) {
-      // 1. Google Apps Script Webhook (Miễn phí 100%, gửi từ chính Gmail của bạn tới BẤT KỲ ai, không cần mua domain)
-      const webhookUrl = process.env.EMAIL_WEBHOOK_URL.trim();
-      const response = await fetch(webhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          to: toEmail,
-          name,
-          subject,
-          text: textContent,
-          html: htmlContent,
-        }),
-      });
-      const rawText = await response.text();
-      let data = {};
-      try { data = JSON.parse(rawText); } catch (_) { data = { message: rawText }; }
-      if (!response.ok && response.status >= 400) {
-        throw new Error(`Webhook Error (${response.status}): ${rawText}`);
-      }
-      emailRecord.deliveryStatus = 'SMTP_ACCEPTED';
-      emailRecord.messageId = data.messageId || 'WEBHOOK_HTTPS_OK';
-      console.log('======================================================');
-      console.log(`✅ [AC5 Real Email] Đã gửi email thật thành công tới: ${toEmail} qua Google Apps Script Webhook!`);
-      console.log('======================================================');
-    } else if (process.env.BREVO_API_KEY) {
-      // 2. Brevo API (Gửi được tới BẤT KỲ email nào, miễn phí 300 email/ngày, không cần custom domain)
-      const apiKey = process.env.BREVO_API_KEY.trim();
-      const senderEmail = (creds?.user || process.env.EMAIL_FROM || 'rotds123456@gmail.com').trim();
-      const response = await fetch('https://api.brevo.com/v3/smtp/email', {
-        method: 'POST',
-        headers: {
-          'accept': 'application/json',
-          'api-key': apiKey,
-          'content-type': 'application/json',
-        },
-        body: JSON.stringify({
-          sender: { name: senderName, email: senderEmail },
-          to: [{ email: toEmail, name: name }],
-          subject,
-          htmlContent,
-          textContent,
-        }),
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(`Brevo API Error (${response.status}): ${JSON.stringify(data)}`);
-      }
-      emailRecord.deliveryStatus = 'SMTP_ACCEPTED';
-      emailRecord.messageId = data.messageId || 'BREVO_HTTPS_OK';
-      console.log('======================================================');
-      console.log(`✅ [AC5 Real Email] Đã gửi email thật thành công tới: ${toEmail} qua Brevo HTTPS API!`);
-      console.log(`   MessageId: ${emailRecord.messageId}`);
-      console.log('======================================================');
-    } else if (process.env.RESEND_API_KEY) {
-      // 3. Resend API
-      const apiKey = process.env.RESEND_API_KEY.trim();
-      const response = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          from: `${senderName} <onboarding@resend.dev>`,
-          to: [toEmail],
-          subject,
-          html: htmlContent,
-          text: textContent,
-        }),
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        if (response.status === 403 && data.message && data.message.includes('only send testing emails')) {
-          throw new Error('Resend miễn phí chỉ cho gửi về chính email tạo tài khoản Resend. Để gửi cho mọi người: hãy dùng Google Apps Script Webhook hoặc Brevo API không cần mua domain.');
+    if (!delivered && process.env.EMAIL_WEBHOOK_URL) {
+      try {
+        const webhookUrl = process.env.EMAIL_WEBHOOK_URL.trim();
+        const response = await fetch(webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: toEmail,
+            name,
+            subject,
+            text: textContent,
+            html: htmlContent,
+          }),
+        });
+        const rawText = await response.text();
+        let data = {};
+        try { data = JSON.parse(rawText); } catch (_) { data = { message: rawText }; }
+        if (response.ok && response.status < 400) {
+          emailRecord.deliveryStatus = 'SMTP_ACCEPTED';
+          emailRecord.messageId = data.messageId || 'WEBHOOK_HTTPS_OK';
+          delivered = true;
+          console.log(`✅ [AC5 Real Email] Đã gửi email thật thành công tới: ${toEmail} qua Google Apps Script Webhook!`);
         }
-        throw new Error(`Resend API Error (${response.status}): ${JSON.stringify(data)}`);
+      } catch (whErr) {
+        console.warn(`⚠️ [AC5 Webhook Error] ${whErr.message}. Falling back to next provider...`);
       }
-      emailRecord.deliveryStatus = 'SMTP_ACCEPTED';
-      emailRecord.messageId = data.id || 'RESEND_HTTPS_OK';
-      console.log('======================================================');
-      console.log(`✅ [AC5 Real Email] Đã gửi email thật thành công tới: ${toEmail} qua Resend HTTPS API!`);
-      console.log(`   MessageId: ${emailRecord.messageId}`);
-      console.log('======================================================');
-    } else {
-      // --- Phương thức 2: Gửi qua Gmail SMTP (Hoạt động tốt khi chạy trên máy tính hoặc host không chặn SMTP) ---
+    }
+
+    if (!delivered && process.env.BREVO_API_KEY) {
+      // 2. Brevo API (Gửi được tới BẤT KỲ email nào, miễn phí 300 email/ngày, không cần custom domain)
+      try {
+        const apiKey = process.env.BREVO_API_KEY.trim();
+        const senderEmail = (creds?.user || process.env.EMAIL_FROM || 'rotds123456@gmail.com').trim();
+        const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+          method: 'POST',
+          headers: {
+            'accept': 'application/json',
+            'api-key': apiKey,
+            'content-type': 'application/json',
+          },
+          body: JSON.stringify({
+            sender: { name: senderName, email: senderEmail },
+            to: [{ email: toEmail, name: name }],
+            subject,
+            htmlContent,
+            textContent,
+          }),
+        });
+        const data = await response.json();
+        if (response.ok) {
+          emailRecord.deliveryStatus = 'SMTP_ACCEPTED';
+          emailRecord.messageId = data.messageId || 'BREVO_HTTPS_OK';
+          delivered = true;
+          console.log(`✅ [AC5 Real Email] Đã gửi email thật thành công tới: ${toEmail} qua Brevo HTTPS API!`);
+        } else {
+          console.warn(`⚠️ [AC5 Brevo Error] (${response.status}): ${JSON.stringify(data)}. Falling back to next provider...`);
+        }
+      } catch (brevoErr) {
+        console.warn(`⚠️ [AC5 Brevo Error] ${brevoErr.message}. Falling back to next provider...`);
+      }
+    }
+
+    if (!delivered && process.env.RESEND_API_KEY) {
+      // 3. Resend API
+      try {
+        const apiKey = process.env.RESEND_API_KEY.trim();
+        const response = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from: `${senderName} <onboarding@resend.dev>`,
+            to: [toEmail],
+            subject,
+            html: htmlContent,
+            text: textContent,
+          }),
+        });
+        const data = await response.json();
+        if (response.ok) {
+          emailRecord.deliveryStatus = 'SMTP_ACCEPTED';
+          emailRecord.messageId = data.id || 'RESEND_HTTPS_OK';
+          delivered = true;
+          console.log(`✅ [AC5 Real Email] Đã gửi email thật thành công tới: ${toEmail} qua Resend HTTPS API!`);
+        } else {
+          console.warn(`⚠️ [AC5 Resend Warning] Resend free tier restricted: ${data.message || JSON.stringify(data)}. Automatically falling back to Gmail SMTP...`);
+        }
+      } catch (resendErr) {
+        console.warn(`⚠️ [AC5 Resend Error] ${resendErr.message}. Automatically falling back to Gmail SMTP...`);
+      }
+    }
+
+    // --- Phương thức fallback: Gửi qua Gmail SMTP (Hoạt động tốt khi chạy trên máy tính hoặc host không chặn SMTP) ---
+    if (!delivered) {
       const transporter = createSmtpTransporter();
       if (transporter && creds) {
         let info;
@@ -202,6 +214,7 @@ const sendConfirmationEmail = async ({ toEmail, name, accountCode, mockCardRef }
             text: textContent,
             html: htmlContent,
           });
+          delivered = true;
         } catch (firstAttemptErr) {
           console.warn(`⚠️ [AC5 Email Info] Lần 1 gửi qua Gmail Service chưa thành công (${firstAttemptErr.message}). Đang tự động chuyển sang Port 587 STARTTLS...`);
           // Fallback to Port 587 STARTTLS
@@ -222,6 +235,7 @@ const sendConfirmationEmail = async ({ toEmail, name, accountCode, mockCardRef }
             text: textContent,
             html: htmlContent,
           });
+          delivered = true;
         }
 
         emailRecord.deliveryStatus = 'SMTP_ACCEPTED';
