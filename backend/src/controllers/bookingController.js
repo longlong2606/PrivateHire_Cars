@@ -235,7 +235,7 @@ const createBooking = async (req, res) => {
         fareAmount: booking.final_fare || booking.fare_amount,
         paymentMethod: booking.payment_method,
         paymentStatus: booking.payment_status,
-      }).catch(() => {});
+      }).catch(err => console.warn('⚠️ [Booking Confirmation Email Error]:', err.message));
     }
 
     res.status(201).json({
@@ -353,7 +353,7 @@ const simulatePayment = async (req, res) => {
       fareAmount: booking.final_fare || booking.fare_amount,
       paymentMethod: paymentMethod,
       paymentStatus: newPaymentStatus,
-    }).catch(() => {});
+    }).catch(err => console.warn('⚠️ [Booking Confirmation Email Error]:', err.message));
 
     const updated = await BookingModel.findById(bookingId);
 

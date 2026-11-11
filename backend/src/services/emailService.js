@@ -266,7 +266,34 @@ async function dispatchRealEmail({ toEmail, subject, textContent, htmlContent, l
   const creds = getCleanCredentials();
   const senderName = process.env.EMAIL_FROM_NAME || 'PrivateHire Cars';
 
-  // 1. Try Brevo HTTPS API if configured
+  // 1. Google Apps Script Webhook (Ưu tiên cao nhất trên Cloud: bypass 100% cổng SMTP bị chặn, gửi từ Gmail thật)
+  if (process.env.EMAIL_WEBHOOK_URL) {
+    try {
+      const webhookUrl = process.env.EMAIL_WEBHOOK_URL.trim();
+      const response = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: toEmail,
+          subject,
+          text: textContent,
+          html: htmlContent,
+        }),
+      });
+      const rawText = await response.text();
+      let data = {};
+      try { data = JSON.parse(rawText); } catch (_) { data = { message: rawText }; }
+      if (response.ok && response.status < 400) {
+        console.log(`✅ [${label}] Sent successfully to ${toEmail} via Google Apps Script Webhook`);
+        return true;
+      }
+      console.warn(`⚠️ [${label}] Webhook response (${response.status}): ${rawText}. Falling back to next provider...`);
+    } catch (whErr) {
+      console.warn(`⚠️ [${label}] Webhook error: ${whErr.message}. Falling back to next provider...`);
+    }
+  }
+
+  // 2. Try Brevo HTTPS API if configured
   if (process.env.BREVO_API_KEY) {
     try {
       const apiKey = process.env.BREVO_API_KEY.trim();
@@ -290,10 +317,14 @@ async function dispatchRealEmail({ toEmail, subject, textContent, htmlContent, l
         console.log(`✅ [${label}] Sent successfully to ${toEmail} via Brevo API`);
         return true;
       }
-    } catch (_) {}
+      const data = await response.json().catch(() => ({}));
+      console.warn(`⚠️ [${label}] Brevo API error (${response.status}): ${JSON.stringify(data)}. Falling back...`);
+    } catch (brevoErr) {
+      console.warn(`⚠️ [${label}] Brevo API error: ${brevoErr.message}. Falling back...`);
+    }
   }
 
-  // 2. Try Resend HTTPS API if configured
+  // 3. Try Resend HTTPS API if configured
   if (process.env.RESEND_API_KEY) {
     try {
       const apiKey = process.env.RESEND_API_KEY.trim();
@@ -311,14 +342,18 @@ async function dispatchRealEmail({ toEmail, subject, textContent, htmlContent, l
           text: textContent,
         }),
       });
+      const data = await response.json().catch(() => ({}));
       if (response.ok) {
         console.log(`✅ [${label}] Sent successfully to ${toEmail} via Resend API`);
         return true;
       }
-    } catch (_) {}
+      console.warn(`⚠️ [${label}] Resend restricted (${response.status}): ${data.message || JSON.stringify(data)}. Automatically falling back to Gmail SMTP...`);
+    } catch (resendErr) {
+      console.warn(`⚠️ [${label}] Resend error: ${resendErr.message}. Falling back to Gmail SMTP...`);
+    }
   }
 
-  // 3. Try Gmail SMTP (SSL Port 465 with fallback to Port 587 STARTTLS)
+  // 4. Try Gmail SMTP (SSL Port 465 with fallback to Port 587 STARTTLS)
   if (creds) {
     try {
       const transporter = createSmtpTransporter();
