@@ -561,6 +561,11 @@
             const nMsg = (n.message || '').toLowerCase();
 
             const isRefund = nType === 'REFUND_PROCESSED' || nTitle.includes('refund');
+            const isBookingConfirmed = nType === 'BOOKING_CONFIRMED' || 
+                                       nType === 'BOOKING_CREATED' || 
+                                       nTitle.includes('booking confirmed') || 
+                                       nTitle.includes('booking scheduled') || 
+                                       nTitle.includes('assisted booking');
             const isPromo = nType === 'PROMO_AWARDED' || 
                             nType === 'SPECIAL_OFFER' || 
                             nType.includes('PROMO') || 
@@ -598,6 +603,16 @@
               cardBorder = 'border-left: 4px solid #16A34A;';
               titleText = n.title || 'Refund Processed Successfully';
               typeBadge = `<span style="background: rgba(34, 197, 94, 0.12); color: #16A34A; border: 1px solid rgba(34, 197, 94, 0.25); font-size: 11px; padding: 2px 8px; border-radius: 12px; font-weight: 700;">REFUND PROCESSED</span>`;
+              if (n.booking_id) {
+                actionBtnHtml = `<a href="my-bookings.html?bookingId=${n.booking_id}${n.booking_code ? '&bookingCode=' + encodeURIComponent(n.booking_code) : ''}#booking-${n.booking_id}" class="btn-outline-sm" style="font-size: 11.5px; padding: 4px 10px; display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="arrow-right" style="width: 12px; height: 12px;"></i> View Booking</a>`;
+              }
+            } else if (isBookingConfirmed) {
+              iconName = 'calendar-check';
+              iconColor = '#164B3B';
+              iconBg = 'rgba(22, 75, 59, 0.12)';
+              cardBorder = 'border-left: 4px solid var(--primary, #164B3B);';
+              titleText = n.title || 'Booking Confirmed';
+              typeBadge = `<span style="background: rgba(22, 75, 59, 0.12); color: var(--primary, #164B3B); border: 1px solid rgba(22, 75, 59, 0.25); font-size: 11px; padding: 2px 8px; border-radius: 12px; font-weight: 700;"><i data-lucide="check-circle" style="width: 11px; height: 11px; vertical-align: -1px; display: inline-block;"></i> BOOKING CONFIRMED</span>`;
               if (n.booking_id) {
                 actionBtnHtml = `<a href="my-bookings.html?bookingId=${n.booking_id}${n.booking_code ? '&bookingCode=' + encodeURIComponent(n.booking_code) : ''}#booking-${n.booking_id}" class="btn-outline-sm" style="font-size: 11.5px; padding: 4px 10px; display: inline-flex; align-items: center; gap: 4px;"><i data-lucide="arrow-right" style="width: 12px; height: 12px;"></i> View Booking</a>`;
               }

@@ -212,6 +212,15 @@ const createBooking = async (req, res) => {
       await SpecialOfferModel.markUsed(validPromoCode).catch(() => {});
     }
 
+    // Send customer notification for booking confirmation
+    await NotificationModel.create({
+      accountId: customer.id,
+      bookingId: booking.id,
+      title: 'Booking Confirmed — #' + booking.booking_code,
+      message: `Your minicab booking #${booking.booking_code} from ${booking.pickup_address} to ${booking.dropoff_address} has been confirmed. Click to view details of your journey.`,
+      type: 'BOOKING_CONFIRMED',
+    }).catch(err => console.error('Error creating booking confirmation notification:', err));
+
     // [P04]: Send real booking confirmation email if status is Confirmed
     if (status === 'CONFIRMED') {
       sendBookingConfirmationEmail({

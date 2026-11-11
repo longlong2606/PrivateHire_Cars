@@ -281,33 +281,9 @@ class CustomerFeatureController {
   static async getMyOffers(req, res) {
     try {
       const customerId = req.user.id;
-      let offers = await SpecialOfferModel.getOffersForAccount(customerId);
+      // Award 1 loyalty voucher for every 3 completed trips (SCRUM-28 / P09 milestone rule)
+      const offers = await SpecialOfferModel.awardMilestoneLoyaltyOffers(customerId, req.user);
       const completedCount = await BookingModel.countCompletedByCustomer(customerId);
-
-      if (offers.length === 0 && completedCount >= 3) {
-        const promoCode = 'LOYALTY10-' + Math.random().toString(36).substring(2, 6).toUpperCase();
-        const newOffer = await SpecialOfferModel.createOffer({
-          accountId: customerId,
-          code: promoCode,
-          discountAmount: 10.00,
-          description: 'Customer Loyalty Milestone £10 Discount Voucher',
-        });
-        if (newOffer) {
-          offers = [newOffer];
-        } else {
-          offers = await SpecialOfferModel.getOffersForAccount(customerId);
-        }
-
-        // Real email recommendation (SCRUM-28 AC3)
-        if (req.user.email) {
-          await EmailService.sendSpecialOfferEmail({
-            toEmail: req.user.email,
-            name: req.user.name || 'Valued Customer',
-            promoCode,
-            discountAmount: 10.00,
-          }).catch(e => console.warn('Offer email notice:', e.message));
-        }
-      }
 
       res.json({
         success: true,

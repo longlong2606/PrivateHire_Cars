@@ -619,8 +619,8 @@
           <div class="responsive-grid-2col">
             <div class="field-group">
               <label class="field-label" for="bk-pickup-date" style="display: flex; justify-content: space-between; align-items: center;">
-                <span>Pickup Date &amp; Time (London Time) *</span>
-                <span style="font-size: 11px; font-weight: 700; color: var(--accent-gold, #C5A059); background: rgba(197,160,89,0.12); padding: 2px 8px; border-radius: 10px;">London GMT</span>
+                <span>Pickup Date &amp; Time *</span>
+                <span style="font-size: 11px; font-weight: 700; color: var(--accent-gold, #C5A059); background: rgba(197,160,89,0.12); padding: 2px 8px; border-radius: 10px;">Executive Chauffeur</span>
               </label>
               <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                 <input type="date" id="bk-pickup-date" class="field-input" style="flex: 1.3; min-width: 140px; cursor: pointer;" required onchange="syncCombinedPickupDateTime()" />
@@ -1077,17 +1077,19 @@
       if (ampmVal === 'AM' && h === 12) h = 0;
       const h24 = String(h).padStart(2, '0');
 
-      // Standard ISO string representing London journey pickup time (UTC/GMT)
-      const isoPickup = `${dateVal}T${h24}:${minVal}:00.000Z`;
+      // Standard ISO string representing journey pickup time
+      const dateParts = dateVal.split('-').map(Number);
+      const pickupDateObj = new Date(dateParts[0], dateParts[1] - 1, dateParts[2], h, parseInt(minVal, 10), 0);
+      const isoPickup = pickupDateObj.toISOString();
       if (hiddenInput) {
         hiddenInput.value = isoPickup;
       }
 
       if (preview) {
         if (window.formatBookingDateTime) {
-          preview.textContent = `${window.formatBookingDateTime(isoPickup, { withWeekday: true })} (London GMT)`;
+          preview.textContent = window.formatBookingDateTime(pickupDateObj, { withWeekday: true });
         } else {
-          preview.textContent = `${dateVal} ${hourVal}:${minVal} ${ampmVal} (London GMT)`;
+          preview.textContent = `${dateVal} ${hourVal}:${minVal} ${ampmVal}`;
         }
       }
 

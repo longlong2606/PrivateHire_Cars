@@ -45,6 +45,76 @@ class SpecialOfferModel {
     );
     return res.rows[0] || null;
   }
+
+  /**
+   * Automatically checks completed trip count and awards 1 loyalty voucher for every 3 completed trips
+   * (Milestones: 3, 6, 9, 12, 15, ... journeys completed).
+   */
+  static async awardMilestoneLoyaltyOffers(accountId, customerInfo = null) {
+    if (!accountId) return [];
+    const BookingModel = require('./bookingModel');
+    const NotificationModel = require('./notificationModel');
+    const { sendSpecialOfferEmail } = require('../services/emailService');
+
+    const completedCount = await BookingModel.countCompletedByCustomer(accountId);
+    const eligibleCount = Math.floor(completedCount / 3);
+    const currentOffers = await this.getOffersForAccount(accountId);
+
+    if (eligibleCount <= 0) {
+      return currentOffers;
+    }
+
+    const existingLoyalty = currentOffers.filter(o => o.code && o.code.toUpperCase().startsWith('LOYALTY10-'));
+    const missingCount = eligibleCount - existingLoyalty.length;
+
+    if (missingCount > 0) {
+      const AccountModel = require('./accountModel');
+      let customer = customerInfo;
+      if (!customer) {
+        customer = await AccountModel.findById(accountId);
+      }
+
+      for (let i = existingLoyalty.length + 1; i <= eligibleCount; i++) {
+        let promoCode = '';
+        let unique = false;
+        let attempts = 0;
+        while (!unique && attempts < 10) {
+          promoCode = 'LOYALTY10-' + Math.floor(1000 + Math.random() * 9000);
+          const existing = await this.findByCode(promoCode);
+          if (!existing) unique = true;
+          attempts++;
+        }
+
+        const created = await this.createOffer({
+          code: promoCode,
+          accountId,
+          discountAmount: 10.00,
+        });
+
+        if (created) {
+          await NotificationModel.create({
+            accountId,
+            bookingId: null,
+            title: 'Special Loyalty Reward Awarded!',
+            message: `Congratulations on completing ${i * 3} journeys! Use promo code ${promoCode} for £10 off your next ride.`,
+            type: 'PROMO_AWARDED',
+          }).catch(() => {});
+
+          if (customer && customer.email) {
+            sendSpecialOfferEmail({
+              toEmail: customer.email,
+              name: customer.name || 'Valued Customer',
+              promoCode,
+              discountAmount: 10.00,
+            }).catch(() => {});
+          }
+        }
+      }
+      return await this.getOffersForAccount(accountId);
+    }
+
+    return currentOffers;
+  }
 }
 
 module.exports = SpecialOfferModel;

@@ -167,6 +167,15 @@ class StaffController {
         staffName: resolvedStaffName,
       });
 
+      // Notify customer account about the assisted booking created by staff
+      await NotificationModel.create({
+        accountId: customer.id,
+        bookingId: booking.id,
+        title: 'Assisted Booking Created — #' + booking.booking_code,
+        message: `Staff ${resolvedStaffName} has scheduled minicab booking #${booking.booking_code} for you from ${pickupAddress} to ${dropoffAddress}. Click to view details of your journey.`,
+        type: 'BOOKING_CONFIRMED',
+      }).catch(err => console.error('Error creating assisted booking notification:', err));
+
       res.status(201).json({
         success: true,
         message: 'Staff assisted booking confirmed successfully (Standard Table 8 Fare, No Online Discount).',
@@ -212,39 +221,11 @@ class StaffController {
         await BookingModel.updateStatus(bookingId, status);
       }
 
-      // [P09]: If booking becomes COMPLETED, check customer loyalty metrics!
-      if (status === 'COMPLETED') {
-        const completedCount = await BookingModel.countCompletedByCustomer(booking.account_id);
-        if (completedCount >= 3) {
-          // Check if customer already has a loyalty offer
-          const existingOffers = await SpecialOfferModel.getOffersForAccount(booking.account_id);
-          if (existingOffers.length === 0) {
-            const promoCode = 'LOYALTY10-' + Math.floor(1000 + Math.random() * 9000);
-            await SpecialOfferModel.createOffer({
-              code: promoCode,
-              accountId: booking.account_id,
-              discountAmount: 10.00,
-            });
-
-            await NotificationModel.create({
-              accountId: booking.account_id,
-              bookingId: booking.id,
-              title: 'Special Loyalty Reward Awarded!',
-              message: `Congratulations on completing 3 journeys! Use promo code ${promoCode} for £10 off your next ride.`,
-              type: 'PROMO_AWARDED',
-            });
-
-            const customer = await AccountModel.findById(booking.account_id);
-            if (customer) {
-              sendSpecialOfferEmail({
-                toEmail: customer.email,
-                name: customer.name,
-                promoCode,
-                discountAmount: 10.00,
-              }).catch(() => {});
-            }
-          }
-        }
+      // [P09]: If booking becomes COMPLETED, award 1 loyalty voucher for every 3 completed trips!
+      if (status === 'COMPLETED' && booking.account_id) {
+        await SpecialOfferModel.awardMilestoneLoyaltyOffers(booking.account_id).catch(err => {
+          console.error('Error awarding milestone loyalty offer on completion:', err);
+        });
       }
 
       const updated = await BookingModel.findById(bookingId);
