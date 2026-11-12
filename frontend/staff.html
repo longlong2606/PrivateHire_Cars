@@ -1948,6 +1948,7 @@
 
       const bStatus = (b.status || 'PENDING').toUpperCase();
       const pStatus = (b.payment_status || 'UNPAID').toUpperCase();
+      const staffPCount = b.passenger_count || (b.notes && b.notes.match(/Passengers:\s*(\d+)/i) ? parseInt(b.notes.match(/Passengers:\s*(\d+)/i)[1], 10) : null) || 1;
 
       content.innerHTML = `
         <div class="staff-modal-card" style="background: var(--bg-surface-subtle, #FAF7F2); border: 1px solid var(--border-subtle, #E6DEC9); border-radius: 10px; padding: 14px 16px;">
@@ -1988,6 +1989,10 @@
               <span><strong>${window.formatBookingDateTime ? window.formatBookingDateTime(b.pickup_time) : new Date(b.pickup_time).toLocaleString('en-GB')}</strong></span>
             </div>
             <div style="display: flex; gap: 10px;">
+              <span style="font-size: 12px; font-weight: 700; color: var(--text-dim); width: 65px; flex-shrink: 0;">PASSENGERS:</span>
+              <span style="font-size: 12.5px; font-weight: 600; color: var(--accent-emerald);"><i data-lucide="users" style="width: 12px; height: 12px; vertical-align: middle;"></i> ${staffPCount} Passenger${staffPCount > 1 ? 's' : ''}</span>
+            </div>
+            <div style="display: flex; gap: 10px;">
               <span style="font-size: 12px; font-weight: 700; color: var(--text-dim); width: 65px; flex-shrink: 0;">CREATED:</span>
               <span style="font-size: 12.5px; color: var(--text-muted);"><i data-lucide="clock" style="width: 12px; height: 12px; color: var(--accent-gold); vertical-align: middle;"></i> ${window.formatBookingDateTime ? window.formatBookingDateTime(b.created_at) : (b.created_at ? new Date(b.created_at).toLocaleString() : '—')}</span>
             </div>
@@ -2005,6 +2010,9 @@
             <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 6px;">Vehicle &amp; Class</div>
             <div style="font-weight: 700; color: var(--primary);">${escapeHtml(b.service_name || 'Standard')}</div>
             <div style="font-size: 12px; color: var(--text-muted);">${escapeHtml(b.car_type || 'Saloon')} (${b.vehicle_capacity_seats || 4} seats)</div>
+            <div style="margin-top: 4px; font-size: 12px; color: var(--primary); font-weight: 600;">
+              <i data-lucide="users" style="width: 12px; height: 12px; vertical-align: middle;"></i> Booked Passengers: <strong>${staffPCount}</strong> Passenger${staffPCount > 1 ? 's' : ''}
+            </div>
             <div style="margin-top: 6px; font-size: 12px;">
               ${b.vehicle_reg ? `
                 <span style="font-family: var(--font-mono); font-weight: 700; background: var(--bg-card); border: 1px solid var(--border-subtle); padding: 2px 6px; border-radius: 4px;">${escapeHtml(b.vehicle_reg)}</span>

@@ -180,6 +180,7 @@ class StaffController {
         finalFare: finalFare,
         staffId: resolvedStaffId,
         staffName: resolvedStaffName,
+        passengerCount: pCount,
       });
 
       // Notify customer account about the assisted booking created by staff

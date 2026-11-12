@@ -283,6 +283,7 @@ CREATE INDEX IF NOT EXISTS idx_special_offers_account ON special_offers(account_
 
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS voucher_code VARCHAR(50);
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS voucher_id INTEGER REFERENCES special_offers(id);
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS passenger_count INTEGER DEFAULT 1;
 
 CREATE OR REPLACE VIEW vouchers AS
 SELECT id, code, account_id, discount_amount, is_used, used_at, created_at

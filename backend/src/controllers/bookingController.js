@@ -235,6 +235,7 @@ const createBooking = async (req, res) => {
       finalFare: finalFare,
       vehicleId: assignedVehicleId,
       driverId: assignedDriverId,
+      passengerCount: resolvedPassengers,
     });
 
     // Mark promo offer as used if booking is confirmed
@@ -283,6 +284,7 @@ const createBooking = async (req, res) => {
         serviceId: booking.service_id,
         serviceName: booking.service_name,
         vehicleCapacity: booking.vehicle_capacity,
+        passengerCount: booking.passenger_count || resolvedPassengers,
         carType: booking.car_type,
         baseFare: booking.base_fare,
         onlineDiscount: booking.discount_amount,
