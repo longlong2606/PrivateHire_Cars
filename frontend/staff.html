@@ -2460,6 +2460,11 @@
       }
       const capacity = parseInt(document.getElementById('asst-capacity').value, 10) || 4;
       const passengers = parseInt(document.getElementById('asst-passengers').value, 10) || 1;
+
+      if (passengers > capacity) {
+        triggerToast(`Passenger count (${passengers}) exceeds selected vehicle capacity (${capacity} seats). Please select 7-Seat MPV.`, "error");
+        return;
+      }
       const paymentMethod = document.getElementById('asst-payment-method').value;
       const promoCode = appliedAssistedPromo ? appliedAssistedPromo.code : document.getElementById('asst-promo-code').value.trim();
 

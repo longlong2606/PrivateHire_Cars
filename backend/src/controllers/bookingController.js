@@ -34,6 +34,9 @@ const createBooking = async (req, res) => {
       serviceCode,
       serviceName,
       vehicleCapacity,
+      passengerCount,
+      passengers,
+      pax,
       vehicleId,
       notes,
       paymentMethod,
@@ -59,10 +62,37 @@ const createBooking = async (req, res) => {
       });
     }
 
-    // 1. Tính giá gốc theo Table 8
+    // 1. Kiểm tra tính hợp lệ của số lượng hành khách so với sức chứa của xe (Vehicle Capacity Class)
+    const resolvedPassengers = parseInt(passengerCount || passengers || pax || 1, 10);
+    let resolvedCapacity = vehicleCapacity ? parseInt(vehicleCapacity, 10) : 4;
+
+    if (isNaN(resolvedPassengers) || resolvedPassengers < 1) {
+      return res.status(400).json({
+        success: false,
+        code: 'INVALID_PASSENGER_COUNT',
+        message: 'Passenger count must be at least 1.',
+      });
+    }
+
+    if (resolvedPassengers > 7) {
+      return res.status(400).json({
+        success: false,
+        code: 'EXCEEDS_MAX_PASSENGERS',
+        message: 'Maximum passenger capacity across our entire executive fleet is 7 passengers.',
+      });
+    }
+
+    if (resolvedPassengers > resolvedCapacity) {
+      return res.status(400).json({
+        success: false,
+        code: 'PASSENGERS_EXCEED_CAPACITY',
+        message: `Passenger count (${resolvedPassengers}) exceeds the selected vehicle capacity class (${resolvedCapacity} seats). Please select a 7-passenger MPV.`,
+      });
+    }
+
+    // 2. Tính giá gốc theo Table 8
     let resolvedServiceId = serviceId || null;
     let resolvedServiceName = serviceName || null;
-    let resolvedCapacity = vehicleCapacity ? parseInt(vehicleCapacity, 10) : 4;
     let resolvedCurrency = 'GBP';
     let resolvedDuration = 60;
     let baseFare = fareAmount;
@@ -844,8 +874,18 @@ const clearBookingDraft = async (req, res) => {
  */
 const checkVehicleAvailability = async (req, res) => {
   try {
-    const { pickupTime, service, vehicleCapacity, capacity: queryCapacity, durationMinutes: queryDuration } = req.query;
+    const { pickupTime, service, vehicleCapacity, capacity: queryCapacity, durationMinutes: queryDuration, passengerCount, passengers, pax } = req.query;
     const capacity = parseInt(vehicleCapacity || queryCapacity, 10) || 4;
+    const pCount = parseInt(passengerCount || passengers || pax || 0, 10);
+
+    if (pCount > capacity) {
+      return res.status(400).json({
+        success: false,
+        code: 'PASSENGERS_EXCEED_CAPACITY',
+        message: `Passenger count (${pCount}) exceeds selected vehicle capacity (${capacity} seats). Please select a 7-passenger MPV.`,
+        vehicles: [],
+      });
+    }
 
     let durationMinutes = parseInt(queryDuration, 10) || 60;
     if (service) {

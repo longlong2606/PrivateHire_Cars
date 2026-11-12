@@ -217,6 +217,37 @@ test('Sprint Feature: Email/Password Sign-In, Sign-Out, Session & Endpoint Prote
     assert.equal(responseData.booking.pickupAddress, 'Heathrow Airport Terminal 5');
   });
 
+  await t.test('6b. VALIDATION: Reject booking when passengers exceed vehicle capacity class (400)', async () => {
+    let statusCode = 200;
+    let responseData = null;
+
+    const req = {
+      user: {
+        id: alice.id,
+        accountCode: alice.account_code,
+        name: alice.name,
+        telephone: alice.telephone,
+        mockCardRef: alice.mock_card_ref,
+      },
+      body: {
+        pickupAddress: 'Heathrow Airport Terminal 5',
+        dropoffAddress: '10 Downing Street, London',
+        passengerCount: 6,
+        vehicleCapacity: 4,
+      },
+    };
+    const res = {
+      status(code) { statusCode = code; return this; },
+      json(data) { responseData = data; return this; },
+    };
+
+    await bookingController.createBooking(req, res);
+
+    assert.equal(statusCode, 400);
+    assert.equal(responseData.success, false);
+    assert.equal(responseData.code, 'PASSENGERS_EXCEED_CAPACITY');
+  });
+
   await t.test('7. DATA ISOLATION: Customer can access their own protected profile (200)', async () => {
     let statusCode = 200;
     let responseData = null;

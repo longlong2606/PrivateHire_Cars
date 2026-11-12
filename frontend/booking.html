@@ -684,7 +684,7 @@
             <label class="field-label" for="bk-capacity">
               Vehicle Capacity Class *
             </label>
-            <select id="bk-capacity" class="field-select" onchange="onBookingInputsChanged()" required>
+            <select id="bk-capacity" class="field-select" onchange="onCapacityChanged()" required>
               <option value="" disabled selected>-- Select Vehicle Capacity Class --</option>
               <option value="4">4-passenger Saloon (Up to 4 passengers)</option>
               <option value="7">7-passenger MPV (Up to 7 passengers)</option>
@@ -1160,23 +1160,50 @@
 
       const hasDate = (dateInput && dateInput.value) || (timeInput && timeInput.value && timeInput.value.trim() !== '');
       const paxVal = paxInput ? parseInt(paxInput.value, 10) : NaN;
-      const capVal = capSelect ? capSelect.value : '';
+      const capVal = capSelect ? parseInt(capSelect.value, 10) : NaN;
 
       return (
         Boolean(hasDate) &&
         !isNaN(paxVal) && paxVal >= 1 && paxVal <= 7 &&
-        Boolean(capVal && (capVal === '4' || capVal === '7'))
+        !isNaN(capVal) && (capVal === 4 || capVal === 7) &&
+        paxVal <= capVal
       );
     }
 
     // Handle passenger count change (auto-switch capacity)
     function onPassengerCountChanged() {
       const paxInput = document.getElementById('bk-passengers');
+      let pax = parseInt(paxInput.value, 10);
+      const capSelect = document.getElementById('bk-capacity');
+
+      if (!isNaN(pax)) {
+        if (pax < 1) {
+          paxInput.value = '1';
+          pax = 1;
+        } else if (pax > 7) {
+          triggerToast("Sức chứa tối đa của đội xe là 7 hành khách.", "error");
+          paxInput.value = '7';
+          pax = 7;
+        }
+
+        if (pax > 4 && capSelect.value !== '7') {
+          capSelect.value = '7';
+          triggerToast("Số hành khách lớn hơn 4: Đã tự động chọn xe MPV 7 chỗ.", "info");
+        }
+      }
+      onBookingInputsChanged();
+    }
+
+    // Handle vehicle capacity dropdown change (strictly validate passenger count)
+    function onCapacityChanged() {
+      const paxInput = document.getElementById('bk-passengers');
       const pax = parseInt(paxInput.value, 10);
       const capSelect = document.getElementById('bk-capacity');
-      if (!isNaN(pax) && pax > 4 && capSelect.value !== '7') {
+      const capacity = parseInt(capSelect.value, 10);
+
+      if (!isNaN(pax) && !isNaN(capacity) && pax > capacity) {
+        triggerToast(`⚠ Xe ${capacity} chỗ không thể chở ${pax} hành khách. Đã tự động chuyển sang xe MPV 7 chỗ.`, "error");
         capSelect.value = '7';
-        triggerToast("Capacity switched to 7-passenger MPV for parties > 4.");
       }
       onBookingInputsChanged();
     }
@@ -1228,17 +1255,50 @@
       const noneAlert = document.getElementById('vehicle-none-alert');
       const detailCard = document.getElementById('selected-vehicle-detail');
 
+      const paxInput = document.getElementById('bk-passengers');
+      const paxVal = paxInput ? parseInt(paxInput.value, 10) : NaN;
+      const capSelect = document.getElementById('bk-capacity');
+      const capVal = capSelect ? parseInt(capSelect.value, 10) : NaN;
+
+      // Explicit check: Passengers exceed capacity
+      if (!isNaN(paxVal) && !isNaN(capVal) && paxVal > capVal) {
+        if (vehicleGroup) vehicleGroup.style.display = 'none';
+        if (box) {
+          box.className = 'availability-indicator unavailable';
+          box.innerHTML = `<i data-lucide="alert-triangle" style="width: 16px; height: 16px; color: var(--text-error, #D9534F);"></i> <span style="color: var(--text-error, #D9534F); font-weight: 600;">⚠ Số hành khách (${paxVal} người) vượt quá sức chứa của xe (${capVal} chỗ). Vui lòng chọn loại xe 7 chỗ (7-passenger MPV).</span>`;
+        }
+        if (btnProceed) {
+          btnProceed.disabled = true;
+          btnProceed.style.opacity = '0.6';
+          btnProceed.style.cursor = 'not-allowed';
+        }
+        currentAvailableVehicles = [];
+        selectedVehicleId = null;
+        lucide.createIcons();
+        return;
+      }
+
       if (!hasRequiredVehicleCriteria()) {
         if (vehicleGroup) vehicleGroup.style.display = 'none';
         if (box) {
           box.className = 'availability-indicator neutral';
           box.innerHTML = `<i data-lucide="info" style="width: 16px; height: 16px;"></i> <span>Please enter Pickup Date &amp; Time, Passengers, and Vehicle Capacity to check availability &amp; choose your vehicle.</span>`;
         }
-        if (btnProceed) btnProceed.disabled = false;
+        if (btnProceed) {
+          btnProceed.disabled = false;
+          btnProceed.style.opacity = '1';
+          btnProceed.style.cursor = 'pointer';
+        }
         currentAvailableVehicles = [];
         selectedVehicleId = null;
         lucide.createIcons();
         return;
+      }
+
+      if (btnProceed) {
+        btnProceed.disabled = false;
+        btnProceed.style.opacity = '1';
+        btnProceed.style.cursor = 'pointer';
       }
 
       // ALL 3 criteria satisfied -> show the vehicle selection section!
@@ -1639,6 +1699,16 @@
         return;
       }
 
+      const paxInput = document.getElementById('bk-passengers');
+      const paxVal = paxInput ? parseInt(paxInput.value, 10) : NaN;
+      const capSelect = document.getElementById('bk-capacity');
+      const capVal = capSelect ? parseInt(capSelect.value, 10) : NaN;
+
+      if (!isNaN(paxVal) && !isNaN(capVal) && paxVal > capVal) {
+        triggerToast(`❌ Số hành khách (${paxVal}) vượt quá sức chứa của xe (${capVal} chỗ). Vui lòng chọn xe MPV 7 chỗ.`, "error");
+        return;
+      }
+
       if (!hasRequiredVehicleCriteria()) {
         triggerToast("Please enter Pickup Date & Time, Passengers, and Vehicle Capacity Class.", "error");
         return;
@@ -1693,6 +1763,14 @@
     async function executeBookingConfirmation() {
       const method = document.querySelector('input[name="pay-method"]:checked').value;
       const visaScreening = document.getElementById('pay-visa-screening').value;
+
+      const paxVal = parseInt(document.getElementById('bk-passengers').value, 10) || 1;
+      const capVal = parseInt(document.getElementById('bk-capacity').value, 10) || 4;
+
+      if (paxVal > capVal) {
+        triggerToast(`❌ Không thể đặt xe: Số hành khách (${paxVal}) vượt quá sức chứa của xe (${capVal} chỗ).`, "error");
+        return;
+      }
 
       // Card screening check
       if (method === 'MOCK_CARD' && visaScreening === 'FAIL') {
@@ -1910,6 +1988,11 @@
           }
           if (draft.passengers) document.getElementById('bk-passengers').value = draft.passengers;
           if (draft.capacity) document.getElementById('bk-capacity').value = draft.capacity;
+          const rPax = parseInt(document.getElementById('bk-passengers').value, 10);
+          const rCap = parseInt(document.getElementById('bk-capacity').value, 10);
+          if (!isNaN(rPax) && !isNaN(rCap) && rPax > rCap) {
+            document.getElementById('bk-capacity').value = '7';
+          }
           if (draft.vehicleId) selectedVehicleId = parseInt(draft.vehicleId, 10);
         } catch (_) {}
       }

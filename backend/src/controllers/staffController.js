@@ -83,9 +83,24 @@ class StaffController {
       }
 
       const pCount = passengerCount ? parseInt(passengerCount, 10) : 1;
+      if (pCount > 7) {
+        return res.status(400).json({
+          success: false,
+          code: 'EXCEEDS_MAX_PASSENGERS',
+          message: 'Maximum passenger capacity across our entire fleet is 7 passengers.',
+        });
+      }
+
       let capacity = vehicleCapacity ? parseInt(vehicleCapacity, 10) : (pCount > 4 ? 7 : 4);
       if (pCount > 4 && capacity < 7) {
         capacity = 7;
+      }
+      if (pCount > capacity) {
+        return res.status(400).json({
+          success: false,
+          code: 'PASSENGERS_EXCEED_CAPACITY',
+          message: `Passenger count (${pCount}) exceeds selected vehicle capacity (${capacity} seats). Please select 7-Seat MPV.`,
+        });
       }
 
       const requestedService = service || serviceName || 'Airport transfer';
