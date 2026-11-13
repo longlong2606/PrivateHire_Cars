@@ -37,19 +37,19 @@ export const seedDemoAccount = async () => {
   return res.data;
 };
 
-// [Bước 4 & 5] Đăng ký tài khoản
+// Register account
 export const registerAccount = async (formData) => {
   const res = await api.post('/accounts/register', formData);
   return res.data;
 };
 
-// [AC4] Đăng nhập
+// Sign in
 export const loginAccount = async (credentials) => {
   const res = await api.post('/accounts/login', credentials);
   return res.data;
 };
 
-// [AC5] Lấy danh sách email xác nhận đã gửi
+// Get sent confirmation email list
 export const getEmails = async () => {
   const res = await api.get('/accounts/emails');
   return res.data;

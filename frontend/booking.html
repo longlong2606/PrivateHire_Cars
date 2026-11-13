@@ -1181,14 +1181,14 @@
           paxInput.value = '1';
           pax = 1;
         } else if (pax > 7) {
-          triggerToast("Sức chứa tối đa của đội xe là 7 hành khách.", "error");
+          triggerToast("Maximum fleet capacity is 7 passengers.", "error");
           paxInput.value = '7';
           pax = 7;
         }
 
         if (pax > 4 && capSelect.value !== '7') {
           capSelect.value = '7';
-          triggerToast("Số hành khách lớn hơn 4: Đã tự động chọn xe MPV 7 chỗ.", "info");
+          triggerToast("More than 4 passengers: Automatically selected 7-passenger MPV.", "info");
         }
       }
       onBookingInputsChanged();
@@ -1202,7 +1202,7 @@
       const capacity = parseInt(capSelect.value, 10);
 
       if (!isNaN(pax) && !isNaN(capacity) && pax > capacity) {
-        triggerToast(`⚠ Xe ${capacity} chỗ không thể chở ${pax} hành khách. Đã tự động chuyển sang xe MPV 7 chỗ.`, "error");
+        triggerToast(`⚠ A ${capacity}-passenger vehicle cannot carry ${pax} passengers. Automatically switched to 7-passenger MPV.`, "error");
         capSelect.value = '7';
       }
       onBookingInputsChanged();
@@ -1265,7 +1265,7 @@
         if (vehicleGroup) vehicleGroup.style.display = 'none';
         if (box) {
           box.className = 'availability-indicator unavailable';
-          box.innerHTML = `<i data-lucide="alert-triangle" style="width: 16px; height: 16px; color: var(--text-error, #D9534F);"></i> <span style="color: var(--text-error, #D9534F); font-weight: 600;">⚠ Số hành khách (${paxVal} người) vượt quá sức chứa của xe (${capVal} chỗ). Vui lòng chọn loại xe 7 chỗ (7-passenger MPV).</span>`;
+          box.innerHTML = `<i data-lucide="alert-triangle" style="width: 16px; height: 16px; color: var(--text-error, #D9534F);"></i> <span style="color: var(--text-error, #D9534F); font-weight: 600;">⚠ Passenger count (${paxVal} passengers) exceeds vehicle capacity (${capVal} seats). Please select 7-passenger MPV.</span>`;
         }
         if (btnProceed) {
           btnProceed.disabled = true;
@@ -1705,7 +1705,7 @@
       const capVal = capSelect ? parseInt(capSelect.value, 10) : NaN;
 
       if (!isNaN(paxVal) && !isNaN(capVal) && paxVal > capVal) {
-        triggerToast(`❌ Số hành khách (${paxVal}) vượt quá sức chứa của xe (${capVal} chỗ). Vui lòng chọn xe MPV 7 chỗ.`, "error");
+        triggerToast(`❌ Passenger count (${paxVal}) exceeds vehicle capacity (${capVal} seats). Please select 7-passenger MPV.`, "error");
         return;
       }
 
@@ -1768,7 +1768,7 @@
       const capVal = parseInt(document.getElementById('bk-capacity').value, 10) || 4;
 
       if (paxVal > capVal) {
-        triggerToast(`❌ Không thể đặt xe: Số hành khách (${paxVal}) vượt quá sức chứa của xe (${capVal} chỗ).`, "error");
+        triggerToast(`❌ Cannot proceed: Passenger count (${paxVal}) exceeds vehicle capacity (${capVal} seats).`, "error");
         return;
       }
 
@@ -1823,7 +1823,7 @@
             }, 1000);
           } else {
             // Electronic Payment Success (MOCK_CARD / PAYPAL) -> Display Payment Receipt!
-            triggerToast("🎉 Giao dịch thanh toán thành công! Đang hiển thị biên lai...");
+            triggerToast("🎉 Payment transaction successful! Loading official receipt...");
             showSuccessfulPaymentReceipt(booking, bookingPayload);
           }
         } else {
@@ -1862,8 +1862,8 @@
         <div style="background: rgba(46, 125, 50, 0.08); border: 1px solid rgba(46, 125, 50, 0.25); border-radius: 8px; padding: 12px 16px; margin-bottom: 18px; display: flex; align-items: center; gap: 12px;">
           <div style="width: 36px; height: 36px; border-radius: 50%; background: #2E7D32; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800; flex-shrink: 0;">✓</div>
           <div>
-            <div style="font-weight: 700; color: #1B5E20; font-size: 14.5px;">Giao dịch thanh toán thành công!</div>
-            <div style="font-size: 12px; color: var(--text-muted);">Cuốc xe đã được xác nhận và biên lai thanh toán VAT chính thức đã được phát hành.</div>
+            <div style="font-weight: 700; color: #1B5E20; font-size: 14.5px;">Payment Transaction Successful!</div>
+            <div style="font-size: 12px; color: var(--text-muted);">Journey booking has been confirmed and official VAT payment receipt is issued.</div>
           </div>
         </div>
 

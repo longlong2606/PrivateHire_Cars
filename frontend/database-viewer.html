@@ -576,20 +576,20 @@
           Handy SQL Inspection Queries
         </h3>
         <pre style="background: #25352E; color: #E8E2D5; border-radius: 8px; padding: 16px; font-family: var(--font-mono); font-size: 12px; line-height: 1.6; overflow-x: auto;">
--- 1. Xem tất cả tài khoản người dùng đăng ký
+-- 1. View all registered customer accounts
 SELECT id, account_code, name, email, telephone, mock_card_ref, status, created_at 
 FROM accounts 
 ORDER BY id DESC;
 
--- 2. Xem thẻ thanh toán mô phỏng
+-- 2. View mock payment cards
 SELECT * FROM mock_cards;
 
--- 3. Xem danh sách đặt xe minicab
+-- 3. View minicab bookings
 SELECT id, booking_code, account_id, customer_name, pickup_address, dropoff_address, fare, status 
 FROM bookings 
 ORDER BY id DESC;
 
--- 4. Xem đội xe executive & chauffeurs
+-- 4. View executive vehicles & chauffeurs
 SELECT * FROM vehicles;
 SELECT * FROM drivers;
         </pre>

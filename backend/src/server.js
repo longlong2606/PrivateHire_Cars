@@ -105,7 +105,7 @@ app.get('/', (req, res) => {
 // Catch-all route for frontend HTML navigation or 404
 app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api')) {
-    return res.status(404).json({ success: false, message: 'Endpoint không tồn tại' });
+    return res.status(404).json({ success: false, message: 'Endpoint not found' });
   }
   const requestedFile = path.join(frontendDir, req.path);
   if (fs.existsSync(requestedFile) && fs.statSync(requestedFile).isFile()) {
