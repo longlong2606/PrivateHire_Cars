@@ -33,6 +33,7 @@ router.post('/', requireAuth, createBooking);
 
 // [P03]: Mô phỏng thanh toán (Simulated Electronic Payment / Cash)
 router.post('/:id/simulate-payment', requireAuth, simulatePayment);
+router.post('/:id/confirm', requireAuth, simulatePayment);
 
 // [P05]: Chỉnh sửa và hủy cuốc xe (>= 24h eligibility rule)
 router.patch('/:id/amend', requireAuth, amendBooking);

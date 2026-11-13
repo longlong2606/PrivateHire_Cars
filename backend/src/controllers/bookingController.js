@@ -44,7 +44,7 @@ const createBooking = async (req, res) => {
       offerCode,
       voucherCode,
       channel,
-      status = 'CONFIRMED',
+      status = 'PENDING',
       paymentStatus,
     } = req.body;
 
@@ -175,85 +175,210 @@ const createBooking = async (req, res) => {
       } else {
         pickupDate = new Date(pickupTime);
       }
+    } else {
+      // Default to 1 hour in future if not provided
+      pickupDate = new Date(Date.now() + 60 * 60 * 1000);
     }
-    const availableVehicles = await VehicleModel.getAvailableVehicles({
-      capacity: resolvedCapacity,
-      pickupTime: pickupDate,
-      durationMinutes: resolvedDuration,
-    });
 
+    if (pickupDate.getTime() < Date.now() - 60000) {
+      return res.status(400).json({
+        success: false,
+        code: 'PAST_PICKUP_TIME',
+        message: 'Pickup time must be in the future.',
+      });
+    }
+
+    const requestedStatus = status ? status.toUpperCase() : 'PENDING';
+    const isDirectConfirmed = requestedStatus === 'CONFIRMED';
+
+    // Verify Vehicle & Driver from DB
+    const db = require('../config/db');
     let assignedVehicleId = null;
-    let assignedDriverId = null;
-    if (vehicleId) {
-      const chosen = availableVehicles.find(v => parseInt(v.id, 10) === parseInt(vehicleId, 10));
-      if (chosen) {
-        assignedVehicleId = chosen.id;
-        assignedDriverId = chosen.driver_id || null;
-      } else {
-        assignedVehicleId = parseInt(vehicleId, 10);
+    let requestedDriverId = null;
+
+    // Check if updating existing pending booking
+    const pendingBookingId = req.body.pendingBookingId ? parseInt(req.body.pendingBookingId, 10) : null;
+    let existingPending = null;
+    if (pendingBookingId) {
+      const pRow = await BookingModel.findById(pendingBookingId);
+      if (pRow && pRow.account_id === customer.id && pRow.status === 'PENDING') {
+        existingPending = pRow;
       }
-    } else if (availableVehicles.length > 0) {
+    }
+
+    const excludeId = existingPending ? existingPending.id : null;
+
+    if (vehicleId) {
+      const vRes = await db.query(`
+        SELECT v.*, d.name AS driver_name, d.status AS driver_status 
+        FROM vehicles v 
+        LEFT JOIN drivers d ON v.driver_id = d.id 
+        WHERE v.id = $1
+      `, [vehicleId]);
+
+      if (vRes.rows.length === 0 || vRes.rows[0].status !== 'ACTIVE') {
+        return res.status(400).json({
+          success: false,
+          code: 'VEHICLE_NOT_AVAILABLE',
+          message: 'Selected vehicle is not available or inactive.',
+        });
+      }
+
+      const veh = vRes.rows[0];
+      if (veh.capacity < resolvedPassengers) {
+        return res.status(400).json({
+          success: false,
+          code: 'PASSENGERS_EXCEED_CAPACITY',
+          message: `Vehicle capacity (${veh.capacity} seats) is insufficient for ${resolvedPassengers} passengers.`,
+        });
+      }
+
+      if (veh.driver_status && veh.driver_status !== 'ACTIVE') {
+        return res.status(400).json({
+          success: false,
+          code: 'DRIVER_NOT_ACTIVE',
+          message: 'Chauffeur assigned to this vehicle is currently unavailable.',
+        });
+      }
+
+      const hasVConflict = await BookingModel.hasVehicleConflict({
+        vehicleId: veh.id,
+        pickupTime: pickupDate,
+        durationMinutes: resolvedDuration,
+        excludeBookingId: excludeId,
+      });
+      if (hasVConflict) {
+        return res.status(400).json({
+          success: false,
+          code: 'VEHICLE_CONFLICT',
+          message: 'Selected vehicle has an overlapping booking for this time slot.',
+        });
+      }
+
+      if (veh.driver_id) {
+        const hasDConflict = await BookingModel.hasDriverConflict({
+          driverId: veh.driver_id,
+          pickupTime: pickupDate,
+          durationMinutes: resolvedDuration,
+          excludeBookingId: excludeId,
+        });
+        if (hasDConflict) {
+          return res.status(400).json({
+            success: false,
+            code: 'DRIVER_CONFLICT',
+            message: 'Chauffeur for this vehicle has an overlapping booking for this time slot.',
+          });
+        }
+      }
+
+      assignedVehicleId = veh.id;
+      requestedDriverId = veh.driver_id || null;
+    } else {
+      const availableVehicles = await VehicleModel.getAvailableVehicles({
+        capacity: resolvedCapacity,
+        pickupTime: pickupDate,
+        durationMinutes: resolvedDuration,
+        excludeBookingId: excludeId,
+      });
+
+      if (availableVehicles.length === 0) {
+        return res.status(400).json({
+          success: false,
+          code: 'NO_VEHICLES_AVAILABLE',
+          message: 'No available vehicles found for the requested time slot and capacity.',
+        });
+      }
+
       assignedVehicleId = availableVehicles[0].id;
-      assignedDriverId = availableVehicles[0].driver_id || null;
+      requestedDriverId = availableVehicles[0].driver_id || null;
     }
 
-    // 5. Booking Code (e.g. BK-841920)
-    const bookingCode = 'BK-' + Math.floor(100000 + Math.random() * 900000);
-
-    // Default payment status based on method & request
+    const assignedDriverId = isDirectConfirmed ? requestedDriverId : null;
+    const finalBookingStatus = isDirectConfirmed ? 'CONFIRMED' : 'PENDING';
     const resolvedPaymentMethod = paymentMethod || 'MOCK_CARD';
-    const resolvedPaymentStatus = paymentStatus || (resolvedPaymentMethod === 'CASH' ? 'UNPAID' : 'PAID');
+    const resolvedPaymentStatus = isDirectConfirmed 
+      ? (paymentStatus || (resolvedPaymentMethod === 'CASH' ? 'UNPAID' : 'PAID'))
+      : 'UNPAID';
 
-    // 6. Lưu cuốc xe
-    const booking = await BookingModel.create({
-      bookingCode,
-      accountId: customer.id,
-      pickupAddress: pickupAddress.trim(),
-      dropoffAddress: dropoffAddress.trim(),
-      pickupTime: pickupDate,
-      passengerName: customer.name,
-      passengerPhone: customer.telephone,
-      carType: carType || (resolvedCapacity === 7 ? 'Seven-Passenger Executive MPV' : 'Four-Passenger Executive Saloon'),
-      fareAmount: baseFare,
-      paymentMethod: resolvedPaymentMethod,
-      cardRefUsed: customer.mockCardRef || '•••• •••• •••• 4242 (Visa Test Card)',
-      status: status,
-      paymentStatus: resolvedPaymentStatus,
-      notes: notes || null,
-      serviceId: resolvedServiceId,
-      serviceName: resolvedServiceName,
-      vehicleCapacity: resolvedCapacity,
-      fareCurrency: resolvedCurrency,
-      occupiedDurationMinutes: resolvedDuration,
-      bookingChannel: 'ONLINE',
-      baseFare: baseFare,
-      discountAmount: onlineDiscount,
-      promoCode: validPromoCode,
-      promoDiscount: promoDiscount,
-      voucherCode: validPromoCode,
-      voucherId: validVoucherId,
-      finalFare: finalFare,
-      vehicleId: assignedVehicleId,
-      driverId: assignedDriverId,
-      passengerCount: resolvedPassengers,
-    });
+    let booking;
 
-    // Mark promo offer as used if booking is confirmed
-    if (validPromoCode && status === 'CONFIRMED') {
-      await SpecialOfferModel.markUsed(validPromoCode).catch(() => {});
+    if (existingPending) {
+      // Update existing pending booking without creating duplicate
+      booking = await BookingModel.updatePending(existingPending.id, {
+        pickupAddress: pickupAddress.trim(),
+        dropoffAddress: dropoffAddress.trim(),
+        pickupTime: pickupDate,
+        serviceId: resolvedServiceId,
+        serviceName: resolvedServiceName,
+        vehicleCapacity: resolvedCapacity,
+        carType: carType || (resolvedCapacity === 7 ? 'Seven-Passenger Executive MPV' : 'Four-Passenger Executive Saloon'),
+        fareAmount: baseFare,
+        baseFare: baseFare,
+        discountAmount: onlineDiscount,
+        promoCode: validPromoCode,
+        promoDiscount: promoDiscount,
+        voucherCode: validPromoCode,
+        voucherId: validVoucherId,
+        finalFare: finalFare,
+        vehicleId: assignedVehicleId,
+        requestedDriverId: requestedDriverId,
+        passengerCount: resolvedPassengers,
+        notes: notes || null,
+      });
+      // Fetch full row with joined chauffeur data
+      booking = await BookingModel.findById(existingPending.id);
+    } else {
+      // Create new booking
+      const bookingCode = 'BK-' + Math.floor(100000 + Math.random() * 900000);
+      booking = await BookingModel.create({
+        bookingCode,
+        accountId: customer.id,
+        pickupAddress: pickupAddress.trim(),
+        dropoffAddress: dropoffAddress.trim(),
+        pickupTime: pickupDate,
+        passengerName: customer.name,
+        passengerPhone: customer.telephone,
+        carType: carType || (resolvedCapacity === 7 ? 'Seven-Passenger Executive MPV' : 'Four-Passenger Executive Saloon'),
+        fareAmount: baseFare,
+        paymentMethod: resolvedPaymentMethod,
+        cardRefUsed: customer.mockCardRef || '•••• •••• •••• 4242 (Visa Test Card)',
+        status: finalBookingStatus,
+        paymentStatus: resolvedPaymentStatus,
+        notes: notes || null,
+        serviceId: resolvedServiceId,
+        serviceName: resolvedServiceName,
+        vehicleCapacity: resolvedCapacity,
+        fareCurrency: resolvedCurrency,
+        occupiedDurationMinutes: resolvedDuration,
+        bookingChannel: channel || 'ONLINE',
+        baseFare: baseFare,
+        discountAmount: onlineDiscount,
+        promoCode: validPromoCode,
+        promoDiscount: promoDiscount,
+        voucherCode: validPromoCode,
+        voucherId: validVoucherId,
+        finalFare: finalFare,
+        vehicleId: assignedVehicleId,
+        driverId: assignedDriverId,
+        requestedDriverId: requestedDriverId,
+        passengerCount: resolvedPassengers,
+      });
     }
 
-    // Send customer notification for booking confirmation
-    await NotificationModel.create({
-      accountId: customer.id,
-      bookingId: booking.id,
-      title: 'Booking Confirmed — #' + booking.booking_code,
-      message: `Your minicab booking #${booking.booking_code} from ${booking.pickup_address} to ${booking.dropoff_address} has been confirmed. Click to view details of your journey.`,
-      type: 'BOOKING_CONFIRMED',
-    }).catch(err => console.error('Error creating booking confirmation notification:', err));
+    // Only if status is CONFIRMED: mark promo used, send email, create notification
+    if (finalBookingStatus === 'CONFIRMED') {
+      if (validPromoCode) {
+        await SpecialOfferModel.markUsed(validPromoCode).catch(() => {});
+      }
 
-    // [P04]: Send real booking confirmation email if status is Confirmed
-    if (status === 'CONFIRMED') {
+      await NotificationModel.create({
+        accountId: customer.id,
+        bookingId: booking.id,
+        title: 'Booking Confirmed — #' + booking.booking_code,
+        message: `Your minicab booking #${booking.booking_code} from ${booking.pickup_address} to ${booking.dropoff_address} has been confirmed. Click to view details of your journey.`,
+        type: 'BOOKING_CONFIRMED',
+      }).catch(err => console.error('Error creating booking confirmation notification:', err));
+
       sendBookingConfirmationEmail({
         toEmail: customer.email,
         name: customer.name,
@@ -267,6 +392,9 @@ const createBooking = async (req, res) => {
         paymentMethod: booking.payment_method,
         paymentStatus: booking.payment_status,
       }).catch(err => console.warn('⚠️ [Booking Confirmation Email Error]:', err.message));
+
+      const draftToken = req.body?.draftToken || req.headers?.['x-draft-token'] || `usr-${customer.id}`;
+      await BookingDraftModel.deleteDraft({ accountId: customer.id, draftToken }).catch(() => {});
     }
 
     res.status(201).json({
@@ -322,15 +450,19 @@ const createBooking = async (req, res) => {
 const simulatePayment = async (req, res) => {
   try {
     const bookingId = req.params.id;
-    const { paymentMethod = 'CARD', simulationResult = 'SUCCESS' } = req.body;
+    const { paymentMethod = 'CARD', simulationResult = 'SUCCESS', voucherCode = null } = req.body;
     const customer = req.user;
 
-    const booking = await BookingModel.findById(bookingId);
+    const booking = /^\d+$/.test(bookingId)
+      ? await BookingModel.findById(bookingId)
+      : await BookingModel.findByCode(bookingId);
+
     if (!booking) {
       return res.status(404).json({ success: false, message: 'Booking not found' });
     }
 
-    if (booking.account_id !== customer.id) {
+    const isStaff = customer.role === 'STAFF' || customer.role === 'ADMIN';
+    if (booking.account_id !== customer.id && !isStaff) {
       return res.status(403).json({ success: false, message: 'Forbidden access' });
     }
 
@@ -343,51 +475,153 @@ const simulatePayment = async (req, res) => {
       });
     }
 
+    // Idempotency: if already CONFIRMED or ASSIGNED
+    if (booking.status === 'CONFIRMED' || booking.status === 'ASSIGNED') {
+      return res.json({
+        success: true,
+        message: 'Booking is already confirmed.',
+        booking,
+      });
+    }
+
+    if (booking.status !== 'PENDING') {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot confirm booking in ${booking.status} status.`,
+      });
+    }
+
+    // Verify pickup time is still in the future
+    const pickupDate = new Date(booking.pickup_time);
+    if (pickupDate.getTime() < Date.now() - 60000) {
+      return res.status(400).json({
+        success: false,
+        code: 'PICKUP_EXPIRED',
+        message: 'The scheduled pickup time has already passed. Please create a new booking with a future pickup time.',
+      });
+    }
+
+    // Re-check voucher if booking has voucher
+    const codeToCheck = voucherCode || booking.voucher_code || booking.promo_code;
+    let validVoucher = null;
+    if (codeToCheck) {
+      const offer = await SpecialOfferModel.findByCode(codeToCheck.trim().toUpperCase());
+      if (!offer || offer.is_used) {
+        return res.status(400).json({
+          success: false,
+          code: 'VOUCHER_INVALID',
+          message: 'The applied voucher is no longer valid. Please review your total before continuing.',
+        });
+      }
+      validVoucher = offer;
+    }
+
+    const db = require('../config/db');
+
+    // Re-check availability of vehicle and requested chauffeur (excluding this booking)
+    const vehicleId = booking.vehicle_id;
+    const requestedDriverId = booking.requested_driver_id || booking.driver_id;
+
+    if (vehicleId) {
+      const vehicleCheck = await db.query('SELECT * FROM vehicles WHERE id = $1', [vehicleId]);
+      if (!vehicleCheck.rows[0] || vehicleCheck.rows[0].status !== 'ACTIVE') {
+        return res.status(400).json({
+          success: false,
+          code: 'RESOURCE_UNAVAILABLE',
+          message: 'The selected vehicle is no longer active or available.',
+        });
+      }
+      const hasVConflict = await BookingModel.hasVehicleConflict({
+        vehicleId,
+        pickupTime: booking.pickup_time,
+        durationMinutes: booking.occupied_duration_minutes || 60,
+        excludeBookingId: booking.id,
+      });
+      if (hasVConflict) {
+        return res.status(400).json({
+          success: false,
+          code: 'RESOURCE_CONFLICT',
+          message: 'The selected vehicle is no longer available for this time slot. Please rebook with an available vehicle.',
+        });
+      }
+    }
+
+    if (requestedDriverId) {
+      const driverCheck = await db.query('SELECT * FROM drivers WHERE id = $1', [requestedDriverId]);
+      if (!driverCheck.rows[0] || driverCheck.rows[0].status !== 'ACTIVE') {
+        return res.status(400).json({
+          success: false,
+          code: 'RESOURCE_UNAVAILABLE',
+          message: 'The selected chauffeur is no longer active or available.',
+        });
+      }
+      const hasDConflict = await BookingModel.hasDriverConflict({
+        driverId: requestedDriverId,
+        pickupTime: booking.pickup_time,
+        durationMinutes: booking.occupied_duration_minutes || 60,
+        excludeBookingId: booking.id,
+      });
+      if (hasDConflict) {
+        return res.status(400).json({
+          success: false,
+          code: 'RESOURCE_CONFLICT',
+          message: 'The selected chauffeur is no longer available for this time slot.',
+        });
+      }
+    }
+
     // Branch 2: Simulated Payment Success
     const isCash = paymentMethod === 'CASH';
     const newPaymentStatus = isCash ? 'UNPAID' : 'PAID';
     const newStatus = 'CONFIRMED';
 
-    // Reserve vehicle if not yet assigned
-    let vehicleId = booking.vehicle_id;
-    if (!vehicleId) {
-      const avail = await VehicleModel.getAvailableVehicles({
-        capacity: booking.vehicle_capacity || 4,
-        pickupTime: booking.pickup_time,
-        durationMinutes: booking.occupied_duration_minutes || 60,
-      });
-      if (avail.length > 0) vehicleId = avail[0].id;
-    }
-
-    await BookingModel.updateStatus(bookingId, newStatus);
-    await BookingModel.updatePaymentStatus(bookingId, newPaymentStatus);
-
-    if (vehicleId) {
-      const db = require('../config/db');
-      await db.query('UPDATE bookings SET vehicle_id = $1 WHERE id = $2', [vehicleId, bookingId]);
-    }
+    // Reserve vehicle and requested chauffeur
+    // Note: driver_id remains NULL until staff officially assigns/confirms allocation!
+    await db.query(`
+      UPDATE bookings 
+      SET status = $1, 
+          payment_status = $2, 
+          payment_method = $3,
+          requested_driver_id = COALESCE(requested_driver_id, $4)
+      WHERE id = $5
+    `, [newStatus, newPaymentStatus, paymentMethod, requestedDriverId || null, booking.id]);
 
     // If promo code was used, mark it used
-    if (booking.promo_code) {
+    if (validVoucher) {
+      await SpecialOfferModel.markUsed(validVoucher.code).catch(() => {});
+    } else if (booking.promo_code) {
       await SpecialOfferModel.markUsed(booking.promo_code).catch(() => {});
     }
 
     // Send real confirmation email
-    sendBookingConfirmationEmail({
-      toEmail: customer.email,
-      name: customer.name,
-      bookingCode: booking.booking_code,
-      pickupAddress: booking.pickup_address,
-      dropoffAddress: booking.dropoff_address,
-      pickupTime: booking.pickup_time,
-      serviceName: booking.service_name || 'Executive Journey',
-      vehicleCapacity: booking.vehicle_capacity || 4,
-      fareAmount: booking.final_fare || booking.fare_amount,
-      paymentMethod: paymentMethod,
-      paymentStatus: newPaymentStatus,
-    }).catch(err => console.warn('⚠️ [Booking Confirmation Email Error]:', err.message));
+    const recipientEmail = customer.email || booking.customer_email;
+    const recipientName = customer.name || booking.passenger_name;
+    if (recipientEmail) {
+      sendBookingConfirmationEmail({
+        toEmail: recipientEmail,
+        name: recipientName,
+        bookingCode: booking.booking_code,
+        pickupAddress: booking.pickup_address,
+        dropoffAddress: booking.dropoff_address,
+        pickupTime: booking.pickup_time,
+        serviceName: booking.service_name || 'Executive Journey',
+        vehicleCapacity: booking.vehicle_capacity || 4,
+        fareAmount: booking.final_fare || booking.fare_amount,
+        paymentMethod: paymentMethod,
+        paymentStatus: newPaymentStatus,
+      }).catch(err => console.warn('⚠️ [Booking Confirmation Email Error]:', err.message));
+    }
 
-    const updated = await BookingModel.findById(bookingId);
+    // Send customer notification for booking confirmation
+    await NotificationModel.create({
+      accountId: booking.account_id,
+      bookingId: booking.id,
+      title: 'Booking Confirmed — #' + booking.booking_code,
+      message: `Your minicab booking #${booking.booking_code} from ${booking.pickup_address} to ${booking.dropoff_address} has been confirmed. Click to view details of your journey.`,
+      type: 'BOOKING_CONFIRMED',
+    }).catch(err => console.error('Error creating booking confirmation notification:', err));
+
+    const updated = await BookingModel.findById(booking.id);
 
     res.json({
       success: true,
@@ -571,10 +805,10 @@ const getPrintableReceipt = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Forbidden' });
     }
 
-    if (booking.payment_status !== 'PAID') {
+    if (booking.status === 'PENDING' || booking.payment_status !== 'PAID') {
       return res.status(400).json({
         success: false,
-        message: 'Receipt is available only after payment has been completed.',
+        message: 'Receipt is available only after payment has been completed on a confirmed booking.',
       });
     }
 

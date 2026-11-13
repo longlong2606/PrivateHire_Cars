@@ -32,11 +32,13 @@ class VehicleModel {
   }
 
   /**
-   * P02 Availability Check:
-   * Vehicle is unavailable if it has an overlapping Confirmed, Assigned, or EnRoute booking.
-   * Pending does not reserve a vehicle.
+   * P02 & Requirement 3 Availability Check:
+   * Vehicle and Driver are unavailable if they have an overlapping Confirmed, Assigned, or EnRoute booking.
+   * Pending does not reserve a vehicle or driver.
+   * Cancelled and past completed journeys do not block.
+   * Contiguous journeys allowed (start of next = end of prev).
    */
-  static async getAvailableVehicles({ capacity = 4, pickupTime = new Date(), durationMinutes = 60 }) {
+  static async getAvailableVehicles({ capacity = 4, pickupTime = new Date(), durationMinutes = 60, excludeBookingId = null }) {
     const start = new Date(pickupTime);
     const end = new Date(start.getTime() + durationMinutes * 60 * 1000);
 
@@ -53,25 +55,45 @@ class VehicleModel {
       ORDER BY v.capacity ASC, v.id ASC
     `, ['ACTIVE', capacity]);
 
-    const activeBookings = await db.query(
-      `SELECT vehicle_id, pickup_time, occupied_duration_minutes 
-       FROM bookings 
-       WHERE vehicle_id IS NOT NULL 
-         AND status IN ('CONFIRMED', 'ASSIGNED', 'ENROUTE')`
-     );
+    let querySql = `
+      SELECT id, vehicle_id, driver_id, requested_driver_id, pickup_time, occupied_duration_minutes, status
+      FROM bookings 
+      WHERE status IN ('CONFIRMED', 'ASSIGNED', 'ENROUTE')
+    `;
+    const params = [];
+    if (excludeBookingId) {
+      querySql += ` AND id != $1`;
+      params.push(excludeBookingId);
+    }
+    const activeBookings = await db.query(querySql, params);
 
     const conflictingVehicleIds = new Set();
+    const conflictingDriverIds = new Set();
+
     for (const b of activeBookings.rows) {
       const bStart = new Date(b.pickup_time);
       const bDuration = (parseInt(b.occupied_duration_minutes, 10) || 60) * 60 * 1000;
       const bEnd = new Date(bStart.getTime() + bDuration);
 
+      // Half-open interval: [start, end) overlaps [bStart, bEnd) iff start < bEnd && end > bStart
       if (start < bEnd && end > bStart) {
-        conflictingVehicleIds.add(b.vehicle_id);
+        if (b.vehicle_id) conflictingVehicleIds.add(parseInt(b.vehicle_id, 10));
+        const heldDriver = b.status === 'CONFIRMED'
+          ? (b.requested_driver_id || b.driver_id)
+          : (b.driver_id || b.requested_driver_id);
+        if (heldDriver) conflictingDriverIds.add(parseInt(heldDriver, 10));
       }
     }
 
-    return vehiclesRes.rows.filter(v => !conflictingVehicleIds.has(v.id));
+    return vehiclesRes.rows.filter(v => {
+      // Driver must be ACTIVE
+      if (v.driver_status && v.driver_status !== 'ACTIVE') return false;
+      // Vehicle cannot be conflicting
+      if (conflictingVehicleIds.has(v.id)) return false;
+      // Driver cannot be conflicting
+      if (v.driver_id && conflictingDriverIds.has(parseInt(v.driver_id, 10))) return false;
+      return true;
+    });
   }
 
   /**

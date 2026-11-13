@@ -1691,8 +1691,11 @@
         .replace(/'/g, '&#039;');
     }
 
-    // Start Booking confirmation modal flow
-    function startBookingConfirmation() {
+    window.activePendingBookingId = null;
+    window.activePendingBookingCode = null;
+
+    // Start Booking confirmation modal flow: Saves PENDING booking row first (Requirement 1)
+    async function startBookingConfirmation() {
       if (!currentUser) {
         triggerToast("Please sign in to complete your booking.", "error");
         setTimeout(() => { window.location.href = "login.html"; }, 800);
@@ -1725,24 +1728,83 @@
         selectedVehicleId = currentAvailableVehicles[0].id;
       }
 
-      const total = document.getElementById('price-final-total').textContent;
-      const serviceName = document.getElementById('bk-service').value;
-      const capacity = document.getElementById('bk-capacity').value;
+      const proceedBtn = document.querySelector('.btn-submit-booking');
+      const originalProceedHtml = proceedBtn ? proceedBtn.innerHTML : '';
+      if (proceedBtn) {
+        proceedBtn.disabled = true;
+        proceedBtn.innerHTML = `<span>Saving Pending Booking...</span>`;
+      }
 
-      const chosenVeh = currentAvailableVehicles.find(v => parseInt(v.id, 10) === parseInt(selectedVehicleId, 10));
-      const vehLabel = chosenVeh 
-        ? `${chosenVeh.make_model || 'Executive Vehicle'} [${chosenVeh.reg_number || ''}]` 
-        : `${capacity}-passenger vehicle`;
+      const pendingPayload = {
+        pendingBookingId: window.activePendingBookingId || null,
+        accountId: currentUser.id,
+        serviceName: document.getElementById('bk-service').value,
+        pickupAddress: document.getElementById('bk-pickup').value.trim(),
+        dropoffAddress: document.getElementById('bk-dropoff').value.trim(),
+        pickupTime: pickupTimeVal,
+        passengerCount: paxVal || 1,
+        vehicleCapacity: capVal || 4,
+        vehicleId: selectedVehicleId || null,
+        offerCode: appliedOffer ? appliedOffer.code : null,
+        promoCode: appliedOffer ? appliedOffer.code : null,
+        voucherCode: appliedOffer ? appliedOffer.code : null,
+        channel: 'ONLINE',
+        status: 'PENDING'
+      };
 
-      const formattedPickup = window.formatBookingDateTime 
-        ? window.formatBookingDateTime(pickupTimeVal, { withWeekday: true })
-        : pickupTimeVal;
+      try {
+        const res = await fetch(`${API_BASE}/api/bookings`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('sessionToken') || ''}`
+          },
+          body: JSON.stringify(pendingPayload)
+        });
 
-      document.getElementById('modal-due-amount').textContent = total;
-      document.getElementById('modal-journey-summary').textContent = `${serviceName} • ${vehLabel} • Pickup: ${formattedPickup}`;
-      
-      document.getElementById('payment-modal').classList.add('open');
-      lucide.createIcons();
+        const data = await res.json();
+
+        if (proceedBtn) {
+          proceedBtn.disabled = false;
+          proceedBtn.innerHTML = originalProceedHtml;
+          lucide.createIcons();
+        }
+
+        if (!res.ok || !data.success) {
+          triggerToast(data.message || "Failed to initiate booking reservation.", "error");
+          return;
+        }
+
+        const b = data.booking;
+        window.activePendingBookingId = b.id;
+        window.activePendingBookingCode = b.bookingCode || b.booking_code;
+
+        const totalFormatted = '£' + parseFloat(b.finalFare || b.final_fare || b.fareAmount || b.fare_amount || 0).toFixed(2);
+        const serviceName = b.serviceName || b.service_name || document.getElementById('bk-service').value;
+        const capacity = b.vehicleCapacity || b.vehicle_capacity || capVal;
+
+        const chosenVeh = currentAvailableVehicles.find(v => parseInt(v.id, 10) === parseInt(selectedVehicleId, 10));
+        const vehLabel = chosenVeh 
+          ? `${chosenVeh.make_model || 'Executive Vehicle'} [${chosenVeh.reg_number || ''}]` 
+          : `${capacity}-passenger vehicle`;
+
+        const formattedPickup = window.formatBookingDateTime 
+          ? window.formatBookingDateTime(pickupTimeVal, { withWeekday: true })
+          : pickupTimeVal;
+
+        document.getElementById('modal-due-amount').textContent = totalFormatted;
+        document.getElementById('modal-journey-summary').textContent = `Ref: ${window.activePendingBookingCode} • ${serviceName} • ${vehLabel} • Pickup: ${formattedPickup}`;
+        
+        document.getElementById('payment-modal').classList.add('open');
+        lucide.createIcons();
+      } catch (err) {
+        if (proceedBtn) {
+          proceedBtn.disabled = false;
+          proceedBtn.innerHTML = originalProceedHtml;
+          lucide.createIcons();
+        }
+        triggerToast("Network error communicating with server.", "error");
+      }
     }
 
     function closePaymentModal() {
@@ -1759,53 +1821,35 @@
       }
     }
 
-    // Execute booking confirmation
+    // Execute booking confirmation: Updates existing PENDING booking to CONFIRMED (Requirement 2)
     async function executeBookingConfirmation() {
+      if (!window.activePendingBookingId) {
+        triggerToast("No active booking to confirm. Please proceed from the form first.", "error");
+        return;
+      }
+
       const method = document.querySelector('input[name="pay-method"]:checked').value;
       const visaScreening = document.getElementById('pay-visa-screening').value;
 
-      const paxVal = parseInt(document.getElementById('bk-passengers').value, 10) || 1;
-      const capVal = parseInt(document.getElementById('bk-capacity').value, 10) || 4;
-
-      if (paxVal > capVal) {
-        triggerToast(`❌ Cannot proceed: Passenger count (${paxVal}) exceeds vehicle capacity (${capVal} seats).`, "error");
-        return;
-      }
-
-      // Card screening check
-      if (method === 'MOCK_CARD' && visaScreening === 'FAIL') {
-        triggerToast("❌ VISA Check Declined: Card security screening failed. Simulated payment blocked.", "error");
-        return;
-      }
+      // Card screening simulation result
+      const simResult = (method === 'MOCK_CARD' && visaScreening === 'FAIL') ? 'FAIL' : 'SUCCESS';
 
       const submitBtn = document.getElementById('btn-confirm-payment');
       submitBtn.disabled = true;
       submitBtn.innerHTML = `<span>Processing...</span>`;
 
-      const bookingPayload = {
-        accountId: currentUser.id,
-        serviceName: document.getElementById('bk-service').value,
-        pickupAddress: document.getElementById('bk-pickup').value.trim(),
-        dropoffAddress: document.getElementById('bk-dropoff').value.trim(),
-        pickupTime: document.getElementById('bk-pickup-time').value,
-        passengerCount: parseInt(document.getElementById('bk-passengers').value, 10) || 1,
-        vehicleCapacity: parseInt(document.getElementById('bk-capacity').value, 10) || 4,
-        vehicleId: selectedVehicleId || null,
-        paymentMethod: method,
-        offerCode: appliedOffer ? appliedOffer.code : null,
-        promoCode: appliedOffer ? appliedOffer.code : null,
-        voucherCode: appliedOffer ? appliedOffer.code : null,
-        channel: 'ONLINE'
-      };
-
       try {
-        const res = await fetch(`${API_BASE}/api/bookings`, {
+        const res = await fetch(`${API_BASE}/api/bookings/${window.activePendingBookingId}/confirm`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${localStorage.getItem('sessionToken') || ''}`
           },
-          body: JSON.stringify(bookingPayload)
+          body: JSON.stringify({
+            paymentMethod: method,
+            simulationResult: simResult,
+            voucherCode: appliedOffer ? appliedOffer.code : null,
+          })
         });
 
         const data = await res.json();
@@ -1815,16 +1859,23 @@
           // Clear draft form persistence
           localStorage.removeItem('saved_booking_draft');
           closePaymentModal();
+          window.activePendingBookingId = null;
 
           if (method === 'CASH') {
-            triggerToast("Booking Confirmed! You can pay cash at end of journey.");
+            triggerToast("Booking Confirmed! You can pay cash to driver upon journey completion.");
             setTimeout(() => {
               window.location.href = `my-bookings.html#booking-${booking.id || ''}`;
             }, 1000);
           } else {
             // Electronic Payment Success (MOCK_CARD / PAYPAL) -> Display Payment Receipt!
             triggerToast("🎉 Payment transaction successful! Loading official receipt...");
-            showSuccessfulPaymentReceipt(booking, bookingPayload);
+            showSuccessfulPaymentReceipt(booking, {
+              pickupAddress: booking.pickup_address,
+              dropoffAddress: booking.dropoff_address,
+              serviceName: booking.service_name,
+              pickupTime: booking.pickup_time,
+              paymentMethod: method,
+            });
           }
         } else {
           triggerToast(data.message || "Failed to confirm booking. Please try again.", "error");

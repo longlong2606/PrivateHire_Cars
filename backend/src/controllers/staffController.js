@@ -238,18 +238,84 @@ class StaffController {
       const booking = await BookingModel.findById(bookingId);
       if (!booking) return res.status(404).json({ success: false, message: 'Booking not found' });
 
+      // Pending bookings cannot be dispatched or assigned
+      if (booking.status === 'PENDING') {
+        return res.status(400).json({
+          success: false,
+          code: 'PENDING_NOT_DISPATCHABLE',
+          message: 'Pending bookings cannot be dispatched or assigned. Booking must be confirmed first.',
+        });
+      }
+
       if (status === 'ASSIGNED') {
+        // Idempotency check: if already ASSIGNED to this driver
+        if (booking.status === 'ASSIGNED' && driverId && parseInt(booking.driver_id, 10) === parseInt(driverId, 10)) {
+          return res.json({ success: true, message: 'Chauffeur already assigned.', booking });
+        }
+
+        if (booking.status !== 'CONFIRMED' && booking.status !== 'ASSIGNED') {
+          return res.status(400).json({
+            success: false,
+            message: `Only CONFIRMED bookings can be assigned a chauffeur. Current status: ${booking.status}`,
+          });
+        }
+
         if (!driverId) {
           return res.status(400).json({ success: false, message: 'Driver must be selected to move booking to ASSIGNED' });
         }
+
+        const selectedDriverId = parseInt(driverId, 10);
+
+        // Verification: If customer selected a requested driver, assigned driver MUST match
+        if (booking.requested_driver_id && parseInt(booking.requested_driver_id, 10) !== selectedDriverId) {
+          return res.status(400).json({
+            success: false,
+            code: 'DRIVER_MISMATCH',
+            message: 'The assigned driver must match the driver selected for this booking.',
+          });
+        }
+
+        // Verify driver is active
+        const db = require('../config/db');
+        const dRes = await db.query('SELECT * FROM drivers WHERE id = $1', [selectedDriverId]);
+        if (!dRes.rows[0] || dRes.rows[0].status !== 'ACTIVE') {
+          return res.status(400).json({
+            success: false,
+            code: 'DRIVER_NOT_ACTIVE',
+            message: 'The selected chauffeur is not active or available.',
+          });
+        }
+
+        // Check for conflicting bookings excluding this booking
+        const hasDConflict = await BookingModel.hasDriverConflict({
+          driverId: selectedDriverId,
+          pickupTime: booking.pickup_time,
+          durationMinutes: booking.occupied_duration_minutes || 60,
+          excludeBookingId: booking.id,
+        });
+        if (hasDConflict) {
+          return res.status(400).json({
+            success: false,
+            code: 'DRIVER_CONFLICT',
+            message: 'The selected chauffeur has an overlapping journey conflict with another booking.',
+          });
+        }
+
+        const staffId = req.user ? req.user.id : null;
+        await BookingModel.assignDriver({
+          id: bookingId,
+          driverId: selectedDriverId,
+          staffId,
+        });
+
         let resolvedVehicle = vehicleId || booking.vehicle_id;
         if (!resolvedVehicle) {
-          const avail = await VehicleModel.getAvailableVehicles({ capacity: booking.vehicle_capacity || 4 });
-          if (avail.length > 0) {
-            resolvedVehicle = avail[0].id;
-          }
+          const vRes = await db.query('SELECT id FROM vehicles WHERE driver_id = $1 AND status = $2', [selectedDriverId, 'ACTIVE']);
+          if (vRes.rows.length > 0) resolvedVehicle = vRes.rows[0].id;
         }
-        await BookingModel.assignDriverAndVehicle(bookingId, driverId, resolvedVehicle);
+        if (resolvedVehicle && (!booking.vehicle_id || booking.vehicle_id !== resolvedVehicle)) {
+          await db.query('UPDATE bookings SET vehicle_id = $1 WHERE id = $2', [resolvedVehicle, bookingId]);
+        }
       } else {
         await BookingModel.updateStatus(bookingId, status);
       }

@@ -636,6 +636,60 @@
   </footer>
   </div> <!-- /.app-main -->
 
+  <!-- Pending Checkout / Confirmation Modal -->
+  <div id="pending-checkout-modal" class="modal-backdrop">
+    <div class="modal-box" style="max-width: 520px;">
+      <div class="modal-header">
+        <div>
+          <h3 style="font-family: var(--font-heading); font-size: 17px; font-weight: 700;">Complete Payment &amp; Confirm Booking</h3>
+          <span style="font-size: 12px; color: var(--text-muted);" id="chk-booking-ref">Ref: BK-XXXXXX</span>
+        </div>
+        <button onclick="closePendingCheckoutModal()" style="border: none; background: none; cursor: pointer; color: var(--text-muted);">
+          <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="chk-booking-id" />
+        <div style="background: var(--bg-surface, #FAF7F2); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 14px; margin-bottom: 16px;">
+          <div style="font-size: 13.5px; font-weight: 600; color: var(--text-main);" id="chk-journey-summary">Journey Summary</div>
+          <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;" id="chk-pickup-time">Pickup Time</div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border-medium);">
+            <span style="font-size: 13px; font-weight: 600;">Total Fare Due:</span>
+            <strong style="font-size: 18px; color: var(--primary);" id="chk-due-amount">£0.00</strong>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <label style="font-size: 12.5px; font-weight: 700; color: var(--text-main); display: block; margin-bottom: 8px;">Select Payment Method</label>
+          <div style="display: flex; gap: 16px;">
+            <label style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer;">
+              <input type="radio" name="chk-pay-method" value="MOCK_CARD" checked onchange="togglePendingPaymentInputs()" />
+              <span>Simulated Card / Visa</span>
+            </label>
+            <label style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer;">
+              <input type="radio" name="chk-pay-method" value="CASH" onchange="togglePendingPaymentInputs()" />
+              <span>Cash on Completion</span>
+            </label>
+          </div>
+        </div>
+
+        <div id="chk-card-screening-section" style="margin-bottom: 16px;">
+          <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Visa Security Screening Simulation</label>
+          <select id="chk-visa-screening" class="form-control" style="width: 100%; padding: 8px 12px; border: 1px solid var(--border-medium); border-radius: var(--radius-sm); font-size: 13px;">
+            <option value="SUCCESS">Pass / Approved (Simulate Successful Payment)</option>
+            <option value="FAIL">Declined / Failed (Simulate Card Gateway Failure)</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-outline-sm" onclick="closePendingCheckoutModal()">Close</button>
+        <button type="button" id="btn-confirm-chk-payment" class="btn-outline-sm" style="background: var(--primary); color: #fff; border: none; font-weight: 600;" onclick="submitPendingConfirmation()">
+          Confirm Booking
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Receipt Modal -->
   <div id="printable-receipt-modal" class="modal-backdrop">
     <div class="modal-box" style="max-width: 600px;">
@@ -893,7 +947,19 @@
 
         const pCount = b.passenger_count || (b.notes && b.notes.match(/Passengers:\s*(\d+)/i) ? parseInt(b.notes.match(/Passengers:\s*(\d+)/i)[1], 10) : null) || 1;
         const vehicleSummary = b.vehicle_reg ? `${escapeHtml(b.vehicle_reg)} • ${escapeHtml(b.vehicle_model || '')}` : escapeHtml(b.car_type || 'Executive Saloon');
-        const driverSummary = b.driver_name ? `Chauffeur: <strong>${escapeHtml(b.driver_name)}</strong>` : 'Chauffeur: Pending dispatch';
+        
+        // Accurate Chauffeur Display Semantics (Requirement 4)
+        let driverSummary = '';
+        if (bStatus === 'PENDING') {
+          const dName = b.requested_driver_name || b.driver_name || 'Selected Chauffeur';
+          driverSummary = `Chauffeur: <strong>${escapeHtml(dName)}</strong> <span style="font-size: 11px; color: var(--text-dim);">(Selected - Pending Confirmation)</span>`;
+        } else if (bStatus === 'CONFIRMED') {
+          const dName = b.requested_driver_name || b.driver_name || 'Requested Chauffeur';
+          driverSummary = `Chauffeur: <strong>${escapeHtml(dName)}</strong> <span style="font-size: 11px; color: #856404; font-weight: 600;">(Reserved - Awaiting Staff Allocation)</span>`;
+        } else {
+          const dName = b.assigned_driver_name || b.driver_name || 'Assigned Chauffeur';
+          driverSummary = `Chauffeur: <strong>${escapeHtml(dName)}</strong> <span style="font-size: 11px; color: #084298; font-weight: 600;">(Officially Assigned)</span>`;
+        }
 
         return `
           <div class="booking-card" id="booking-${b.id}" data-booking-id="${b.id}" data-booking-code="${b.booking_code}">
@@ -975,6 +1041,12 @@
                 <i data-lucide="eye" style="width: 14px; height: 14px;"></i> View Detail
               </button>
 
+              ${bStatus === 'PENDING' ? `
+                <button type="button" class="btn-outline-sm btn-pay-confirm" style="background: var(--accent-gold, #C5A059); color: #000; border: none; font-weight: 700;" onclick="openPendingCheckoutModal('${b.booking_code}', ${b.id})">
+                  <i data-lucide="credit-card" style="width: 14px; height: 14px;"></i> Pay &amp; Confirm Booking
+                </button>
+              ` : ''}
+
               ${pStatus === 'PAID' ? `
                 <button type="button" class="btn-outline-sm" onclick="openReceiptModal('${b.booking_code}')" title="View payment receipt (Transaction successful)">
                   <i data-lucide="receipt" style="width: 14px; height: 14px;"></i> View Receipt
@@ -1002,6 +1074,10 @@
           </div>
         `;
       }).join('');
+
+      lucide.createIcons();
+      highlightTargetBooking();
+    }
 
       lucide.createIcons();
       highlightTargetBooking();
@@ -1057,34 +1133,54 @@
       const pStatus = (b.payment_status || 'UNPAID').toUpperCase();
 
       let statusClass = 'badge-pending';
-      let statusExplanation = 'Booking submitted and scheduled.';
+      let statusExplanation = 'Booking submitted — Awaiting checkout & payment. Vehicle & chauffeur selected (not reserved yet).';
+      let chauffeurBoxTitle = 'Selected Chauffeur (Pending Reservation)';
+      let chauffeurBadgeText = 'Pending Reservation';
+      let chauffeurBadgeClass = 'badge-pending';
+
       if (bStatus === 'CONFIRMED') {
         statusClass = 'badge-confirmed';
-        statusExplanation = 'Booking confirmed. Chauffeur allocation finalized.';
+        statusExplanation = 'Booking confirmed & vehicle reserved. Awaiting staff chauffeur allocation confirmation.';
+        chauffeurBoxTitle = 'Requested Chauffeur (Reserved - Awaiting Staff Allocation)';
+        chauffeurBadgeText = 'Reserved (Awaiting Staff Allocation)';
+        chauffeurBadgeClass = 'badge-confirmed';
       } else if (bStatus === 'ASSIGNED') {
         statusClass = 'badge-assigned';
-        statusExplanation = 'Chauffeur and executive vehicle prepared for journey.';
+        statusExplanation = 'Chauffeur officially allocated and confirmed by operations dispatch.';
+        chauffeurBoxTitle = 'Assigned Chauffeur (Officially Allocated)';
+        chauffeurBadgeText = 'Officially Assigned';
+        chauffeurBadgeClass = 'badge-assigned';
       } else if (bStatus === 'ENROUTE') {
         statusClass = 'badge-enroute';
         statusExplanation = 'Chauffeur currently en route to your pickup location.';
+        chauffeurBoxTitle = 'Assigned Chauffeur (En Route)';
+        chauffeurBadgeText = 'En Route';
+        chauffeurBadgeClass = 'badge-enroute';
       } else if (bStatus === 'COMPLETED') {
         statusClass = 'badge-completed';
         statusExplanation = 'Journey successfully completed.';
+        chauffeurBoxTitle = 'Chauffeur Details';
+        chauffeurBadgeText = 'Completed';
+        chauffeurBadgeClass = 'badge-completed';
       } else if (bStatus === 'CANCELLED') {
         statusClass = 'badge-cancelled';
-        statusExplanation = 'Journey booking cancelled.';
+        statusExplanation = 'Journey booking cancelled. Resources freed.';
+        chauffeurBoxTitle = 'Chauffeur Details';
+        chauffeurBadgeText = 'Cancelled';
+        chauffeurBadgeClass = 'badge-cancelled';
       }
 
       let paymentClass = 'badge-unpaid';
       if (pStatus === 'PAID') paymentClass = 'badge-paid';
       if (pStatus === 'REFUNDED') paymentClass = 'badge-refunded';
 
-      // Chauffeur information
-      const driverName = b.driver_name || 'Arthur Pendelton (Assigned)';
+      // Chauffeur information (Proper distinction between requested vs assigned)
+      const isAssigned = ['ASSIGNED', 'ENROUTE', 'COMPLETED'].includes(bStatus);
+      const driverName = (isAssigned ? (b.assigned_driver_name || b.driver_name) : (b.requested_driver_name || b.driver_name)) || 'Arthur Pendelton';
       const driverCode = b.driver_code || 'DRV-001';
       const driverPhone = b.driver_phone || '+44 7700 900123';
       const driverRef = b.driver_ref || 'TFL-PHD-48291';
-      const driverStatus = b.driver_status || 'ACTIVE (Licensed)';
+      const driverStatus = chauffeurBadgeText;
 
       // Vehicle information
       const vehicleModel = b.vehicle_model || b.car_type || 'Mercedes-Benz E-Class Saloon';
@@ -1163,7 +1259,7 @@
           <!-- Chauffeur Box -->
           <div style="background: var(--bg-surface, #FAF7F2); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 14px;">
             <div style="font-size: 11.5px; font-weight: 700; text-transform: uppercase; color: var(--primary); margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-              <i data-lucide="user-check" style="width: 14px; height: 14px;"></i> Chauffeur Details
+              <i data-lucide="user-check" style="width: 14px; height: 14px;"></i> ${escapeHtml(chauffeurBoxTitle)}
             </div>
             <div style="font-size: 15px; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">
               ${escapeHtml(driverName)}
@@ -1172,7 +1268,7 @@
               <div><span style="color: var(--text-dim);">Driver Code:</span> <strong style="color: var(--text-main); font-family: var(--font-mono);">${escapeHtml(driverCode)}</strong></div>
               <div><span style="color: var(--text-dim);">Direct Phone:</span> <a href="tel:${escapeHtml(driverPhone)}" style="color: var(--primary); text-decoration: underline; font-weight: 600;">${escapeHtml(driverPhone)}</a></div>
               <div><span style="color: var(--text-dim);">TfL License Ref:</span> <span style="font-family: var(--font-mono); font-size: 11.5px; color: var(--text-main);">${escapeHtml(driverRef)}</span></div>
-              <div style="margin-top: 2px;"><span style="color: var(--text-dim);">Driver Status:</span> <span class="badge-status badge-confirmed" style="padding: 2px 7px; font-size: 10.5px;">${escapeHtml(driverStatus)}</span></div>
+              <div style="margin-top: 2px;"><span style="color: var(--text-dim);">Allocation Status:</span> <span class="badge-status ${chauffeurBadgeClass}" style="padding: 2px 7px; font-size: 10.5px;">${escapeHtml(driverStatus)}</span></div>
             </div>
           </div>
 
@@ -1534,6 +1630,82 @@
           modalFooterBtn.disabled = false;
           modalFooterBtn.innerText = 'Submit Review';
         }
+      }
+    }
+
+    // Resume Pending Booking Confirmation & Payment (Requirement 4)
+    function openPendingCheckoutModal(bookingCode, bookingId) {
+      const b = customerBookings.find(x => x.id === bookingId || x.booking_code === bookingCode);
+      if (!b) return;
+
+      document.getElementById('chk-booking-id').value = b.id;
+      document.getElementById('chk-booking-ref').textContent = `Ref: ${b.booking_code}`;
+      document.getElementById('chk-journey-summary').textContent = `${b.service_name || 'Executive Journey'} • ${b.pickup_address} → ${b.dropoff_address}`;
+      
+      const pickupFormatted = window.formatBookingDateTime 
+        ? window.formatBookingDateTime(b.pickup_time, { withWeekday: true })
+        : new Date(b.pickup_time).toLocaleString('en-GB');
+      document.getElementById('chk-pickup-time').textContent = `Scheduled Pickup: ${pickupFormatted}`;
+      
+      const due = parseFloat(b.final_fare || b.fare_amount || 0).toFixed(2);
+      document.getElementById('chk-due-amount').textContent = `£${due} GBP`;
+
+      document.getElementById('pending-checkout-modal').classList.add('open');
+      lucide.createIcons();
+    }
+
+    function closePendingCheckoutModal() {
+      document.getElementById('pending-checkout-modal').classList.remove('open');
+    }
+
+    function togglePendingPaymentInputs() {
+      const method = document.querySelector('input[name="chk-pay-method"]:checked').value;
+      const cardSec = document.getElementById('chk-card-screening-section');
+      if (method === 'MOCK_CARD') {
+        cardSec.style.display = 'block';
+      } else {
+        cardSec.style.display = 'none';
+      }
+    }
+
+    async function submitPendingConfirmation() {
+      const bId = document.getElementById('chk-booking-id').value;
+      const method = document.querySelector('input[name="chk-pay-method"]:checked').value;
+      const visaScreening = document.getElementById('chk-visa-screening').value;
+      const simResult = (method === 'MOCK_CARD' && visaScreening === 'FAIL') ? 'FAIL' : 'SUCCESS';
+
+      const btn = document.getElementById('btn-confirm-chk-payment');
+      btn.disabled = true;
+      btn.textContent = 'Processing...';
+
+      try {
+        const res = await fetch(`${API_BASE}/api/bookings/${bId}/confirm`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('sessionToken') || ''}`
+          },
+          body: JSON.stringify({
+            paymentMethod: method,
+            simulationResult: simResult,
+          })
+        });
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          triggerToast(method === 'CASH' 
+            ? "Booking Confirmed! You can pay cash upon journey completion." 
+            : "🎉 Payment transaction successful! Booking is Confirmed.");
+          closePendingCheckoutModal();
+          await fetchMyBookings();
+        } else {
+          triggerToast(data.message || "Failed to confirm booking. Please try another card or method.", "error");
+        }
+      } catch (err) {
+        triggerToast("Network error communicating with server: " + err.message, "error");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Confirm Booking';
       }
     }
 

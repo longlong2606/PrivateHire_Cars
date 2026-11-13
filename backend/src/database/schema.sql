@@ -284,6 +284,9 @@ CREATE INDEX IF NOT EXISTS idx_special_offers_account ON special_offers(account_
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS voucher_code VARCHAR(50);
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS voucher_id INTEGER REFERENCES special_offers(id);
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS passenger_count INTEGER DEFAULT 1;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS requested_driver_id INTEGER REFERENCES drivers(id);
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS assigned_staff_id INTEGER;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS assigned_at TIMESTAMP WITH TIME ZONE;
 
 CREATE OR REPLACE VIEW vouchers AS
 SELECT id, code, account_id, discount_amount, is_used, used_at, created_at

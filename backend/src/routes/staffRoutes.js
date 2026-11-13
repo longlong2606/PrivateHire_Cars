@@ -11,6 +11,7 @@ router.get('/bookings', StaffController.getAllBookings);
 router.post('/bookings', StaffController.createStaffBooking);
 router.post('/verify-voucher', StaffController.verifyPromoCode);
 router.patch('/bookings/:id/status', StaffController.updateJourneyStatus);
+router.post('/bookings/:id/journey-status', StaffController.updateJourneyStatus);
 router.post('/bookings/:id/approaching-alert', StaffController.sendApproachingAlert);
 router.post('/bookings/:id/collect-cash', StaffController.collectCash);
 
