@@ -1217,16 +1217,16 @@
       onBookingInputsChanged();
     }
 
-    // Recalculate price and live vehicle availability
-    async function onBookingInputsChanged() {
+    // Recalculate price quote based on selected service, capacity class, and vouchers
+    function recalculateFareQuote() {
       const serviceEl = document.getElementById('bk-service');
+      if (!serviceEl || !serviceEl.options || serviceEl.selectedIndex < 0) return;
       const selectedOption = serviceEl.options[serviceEl.selectedIndex];
       const capSelect = document.getElementById('bk-capacity');
       const capacity = parseInt(capSelect.value, 10) || 4;
 
       const fourFare = parseFloat(selectedOption.getAttribute('data-four')) || 20.00;
       const sevenFare = parseFloat(selectedOption.getAttribute('data-seven')) || 30.00;
-      const duration = parseInt(selectedOption.getAttribute('data-dur'), 10) || 60;
 
       const baseFare = capacity === 7 ? sevenFare : fourFare;
       const onlineDiscount = Number((baseFare * 0.15).toFixed(2));
@@ -1237,18 +1237,38 @@
 
       const finalTotal = Math.max(0, Number((baseFare - onlineDiscount - offerDiscount).toFixed(2)));
 
-      document.getElementById('price-base-fare').textContent = `£${baseFare.toFixed(2)} GBP`;
-      document.getElementById('price-online-discount').textContent = `-£${onlineDiscount.toFixed(2)} GBP`;
+      const baseFareEl = document.getElementById('price-base-fare');
+      if (baseFareEl) baseFareEl.textContent = `£${baseFare.toFixed(2)} GBP`;
+      const discEl = document.getElementById('price-online-discount');
+      if (discEl) discEl.textContent = `-£${onlineDiscount.toFixed(2)} GBP`;
       
       const offerRow = document.getElementById('price-offer-row');
-      if (appliedOffer) {
-        offerRow.style.display = 'flex';
-        document.getElementById('price-offer-discount').textContent = `-£${offerDiscount.toFixed(2)} GBP`;
-      } else {
-        offerRow.style.display = 'none';
+      const offerDiscEl = document.getElementById('price-offer-discount');
+      if (offerRow) {
+        if (appliedOffer) {
+          offerRow.style.display = 'flex';
+          if (offerDiscEl) offerDiscEl.textContent = `-£${offerDiscount.toFixed(2)} GBP`;
+        } else {
+          offerRow.style.display = 'none';
+        }
       }
 
-      document.getElementById('price-final-total').textContent = `£${finalTotal.toFixed(2)} GBP`;
+      const totalEl = document.getElementById('price-final-total');
+      if (totalEl) totalEl.textContent = `£${finalTotal.toFixed(2)} GBP`;
+
+      const calcCap = document.getElementById('calc-cap-count');
+      if (calcCap) calcCap.textContent = capacity;
+    }
+
+    // Recalculate price and live vehicle availability
+    async function onBookingInputsChanged() {
+      recalculateFareQuote();
+
+      const serviceEl = document.getElementById('bk-service');
+      const selectedOption = serviceEl.options[serviceEl.selectedIndex];
+      const capSelect = document.getElementById('bk-capacity');
+      const capacity = parseInt(capSelect.value, 10) || 4;
+      const duration = parseInt(selectedOption.getAttribute('data-dur'), 10) || 60;
 
       // Live vehicle availability and dynamic selection
       await checkVehicleAvailability(capacity, duration);
@@ -1412,9 +1432,12 @@
         const capSelect = document.getElementById('bk-capacity');
         if (capSelect && capSelect.value !== String(v.capacity)) {
           capSelect.value = String(v.capacity);
-          recalculateFareQuote();
         }
+        const calcCap = document.getElementById('calc-cap-count');
+        if (calcCap) calcCap.textContent = v.capacity;
       }
+      // Always recalculate fare quote and update vehicle details when vehicle selection changes
+      recalculateFareQuote();
       renderSelectedVehicleDetail(selectedVehicleId);
       debounceAutoSave();
     }
