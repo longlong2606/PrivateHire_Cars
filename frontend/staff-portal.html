@@ -763,9 +763,67 @@
                 <input type="text" id="asst-pickup" class="field-input" placeholder="Pickup Address" required style="margin-bottom: 6px;" />
                 <input type="text" id="asst-dropoff" class="field-input" placeholder="Dropoff Destination" required />
               </div>
-              <button type="submit" class="btn-action btn-primary" style="width: 100%; height: 42px; justify-content: center;">
-                Create Assisted Booking
+              <button type="submit" id="btn-asst-create" class="btn-action btn-primary" style="width: 100%; height: 42px; justify-content: center; font-weight: 700;">
+                <i data-lucide="plus-circle" style="width: 16px; height: 16px; margin-right: 6px;"></i>
+                Create Assisted Booking (Save as Pending)
               </button>
+            </form>
+
+            <!-- Step 3: Review & Confirm Booking Panel (Shown after Create Booking) -->
+            <div id="asst-review-box" style="display: none; margin-top: 18px; padding: 18px; background: #FFFDF8; border: 1.5px solid var(--accent-gold); border-radius: var(--radius-md); box-shadow: 0 4px 16px rgba(0,0,0,0.04);">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; border-bottom: 1px solid rgba(198,156,84,0.3); padding-bottom: 10px;">
+                <div>
+                  <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: #8A6D3B; letter-spacing: 0.5px;">Step 3: Review &amp; Confirm Booking</span>
+                  <h4 style="margin: 2px 0 0 0; color: var(--primary); font-size: 16.5px; display: flex; align-items: center; gap: 8px;">
+                    Ref: <span id="asst-rev-code">BK-STF-XXXXXX</span>
+                    <span id="asst-rev-status-badge" class="badge badge-pending" style="font-size: 11px; font-weight: 700;">PENDING / UNPAID</span>
+                  </h4>
+                </div>
+                <button type="button" onclick="cancelAssistedReview()" class="btn-outline-sm" style="font-size: 11.5px; border-color: var(--border-medium);">
+                  Discard / Reset Form
+                </button>
+              </div>
+
+              <!-- Journey Review Summary Grid -->
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; font-size: 12.5px; margin-bottom: 14px; background: #FAF7F2; padding: 12px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+                <div><span style="color: var(--text-muted);">Customer:</span> <strong id="asst-rev-customer" style="color: var(--text-main);">—</strong></div>
+                <div><span style="color: var(--text-muted);">Channel:</span> <strong id="asst-rev-channel" style="color: var(--primary);">—</strong></div>
+                <div><span style="color: var(--text-muted);">Service:</span> <strong id="asst-rev-service" style="color: var(--text-main);">—</strong></div>
+                <div><span style="color: var(--text-muted);">Pickup:</span> <strong id="asst-rev-pickup" style="color: var(--text-main);">—</strong></div>
+                <div><span style="color: var(--text-muted);">Destination:</span> <strong id="asst-rev-dropoff" style="color: var(--text-main);">—</strong></div>
+                <div style="grid-column: span 2; padding-top: 6px; border-top: 1px dashed var(--border-medium); display: flex; justify-content: space-between; align-items: center;">
+                  <span style="font-weight: 700; color: var(--primary);">Total Amount to Collect:</span>
+                  <strong id="asst-rev-fare" style="color: var(--primary); font-size: 16px; font-family: var(--font-mono);">£0.00 GBP</strong>
+                </div>
+              </div>
+
+              <!-- Payment Method & Simulation Selection -->
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                <div class="field-group">
+                  <label class="field-label" style="font-size: 11.5px; font-weight: 700;">Payment Method *</label>
+                  <select id="asst-rev-payment-method" class="field-select" style="font-size: 12.5px;">
+                    <option value="CASH">Cash on Completion (Confirm as Unpaid)</option>
+                    <option value="CARD">Visa Test Card (•••• 4242) — Confirm &amp; Pay</option>
+                    <option value="MASTERCARD">Mastercard Test Card (•••• 5555) — Confirm &amp; Pay</option>
+                    <option value="PAYPAL">PayPal Simulation — Confirm &amp; Pay</option>
+                  </select>
+                </div>
+                <div class="field-group">
+                  <label class="field-label" style="font-size: 11.5px; font-weight: 700;">Payment Simulation Outcome *</label>
+                  <select id="asst-rev-simulation" class="field-select" style="font-size: 12.5px;">
+                    <option value="SUCCESS">✅ Simulate Payment Success</option>
+                    <option value="FAIL">❌ Simulate Payment Declined / Fail</option>
+                  </select>
+                </div>
+              </div>
+
+              <div id="asst-rev-feedback" style="display: none; font-size: 12px; padding: 10px 12px; border-radius: var(--radius-sm); margin-bottom: 12px;"></div>
+
+              <button type="button" id="btn-asst-confirm-booking" onclick="confirmAssistedBooking()" class="btn-action btn-primary" style="width: 100%; height: 42px; justify-content: center; font-weight: 700; font-size: 13.5px;">
+                <i data-lucide="check-circle" style="width: 17px; height: 17px; margin-right: 6px;"></i>
+                Confirm Booking
+              </button>
+            </div>
             </form>
           </div>
         </div>
@@ -1737,12 +1795,18 @@
       document.getElementById('asst-customer-label').value = `${verifiedCustomer.name} (${verifiedCustomer.email})`;
       triggerToast("Caller verified! Ready for assisted booking.");
     }
+    let currentAssistedPendingBooking = null;
+    let isConfirmingAssisted = false;
+
     async function submitAssistedBooking() {
       const cId = document.getElementById('asst-customer-id').value;
       if (!cId) {
-        triggerToast("Please verify caller first.", "error");
+        triggerToast("Please verify caller first in Step 1.", "error");
         return;
       }
+      const createBtn = document.getElementById('btn-asst-create');
+      if (createBtn) createBtn.disabled = true;
+
       const payload = {
         accountId: cId,
         serviceName: document.getElementById('asst-service').value,
@@ -1758,11 +1822,96 @@
           body: JSON.stringify(payload)
         });
         const data = await res.json();
-        if (res.ok && data.success) {
-          triggerToast("Assisted booking created as PENDING! Review & Confirm with caller.");
+        if (createBtn) createBtn.disabled = false;
+
+        if (res.ok && data.success && data.booking) {
+          currentAssistedPendingBooking = data.booking;
+          triggerToast(`Assisted booking ${data.booking.booking_code} created as PENDING. Please review with customer and Confirm Booking.`, "info");
+
+          // Populate Step 3 Review Box
+          document.getElementById('asst-rev-code').textContent = data.booking.booking_code;
+          document.getElementById('asst-rev-customer').textContent = document.getElementById('asst-customer-label').value || `Customer #${cId}`;
+          document.getElementById('asst-rev-channel').textContent = data.booking.booking_channel || payload.channel;
+          document.getElementById('asst-rev-service').textContent = data.booking.service_name || payload.serviceName;
+          document.getElementById('asst-rev-pickup').textContent = data.booking.pickup_address;
+          document.getElementById('asst-rev-dropoff').textContent = data.booking.dropoff_address;
+          document.getElementById('asst-rev-fare').textContent = `£${parseFloat(data.booking.final_fare || data.booking.fare_amount || 0).toFixed(2)} GBP`;
+
+          const reviewBox = document.getElementById('asst-review-box');
+          if (reviewBox) {
+            reviewBox.style.display = 'block';
+            reviewBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
+          if (window.lucide) window.lucide.createIcons();
           loadDispatchQueue();
+        } else {
+          triggerToast(data.message || "Failed to create assisted booking", "error");
         }
-      } catch (_) {}
+      } catch (_) {
+        if (createBtn) createBtn.disabled = false;
+        triggerToast("Server connection error creating booking", "error");
+      }
+    }
+
+    async function confirmAssistedBooking() {
+      if (isConfirmingAssisted) return;
+      if (!currentAssistedPendingBooking) {
+        triggerToast("No pending booking to confirm. Please create a booking first.", "error");
+        return;
+      }
+
+      const bookingCode = currentAssistedPendingBooking.booking_code;
+      const paymentMethod = document.getElementById('asst-rev-payment-method').value || 'CASH';
+      const simulationResult = document.getElementById('asst-rev-simulation').value || 'SUCCESS';
+
+      const confirmBtn = document.getElementById('btn-asst-confirm-booking');
+      isConfirmingAssisted = true;
+      if (confirmBtn) {
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = '<i data-lucide="loader" style="width: 17px; height: 17px; margin-right: 6px; animation: spin 1s linear infinite;"></i> Processing Confirmation...';
+      }
+
+      try {
+        const res = await authenticatedFetch(`${API_BASE}/api/staff/bookings/${bookingCode}/confirm`, {
+          method: 'POST',
+          body: JSON.stringify({
+            paymentMethod,
+            simulationResult,
+          })
+        });
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          triggerToast(`Booking ${bookingCode} confirmed successfully!`, "success");
+          currentAssistedPendingBooking = null;
+
+          const reviewBox = document.getElementById('asst-review-box');
+          if (reviewBox) reviewBox.style.display = 'none';
+
+          // Reset form
+          const asstForm = document.getElementById('assisted-booking-form');
+          if (asstForm) asstForm.reset();
+          loadDispatchQueue();
+        } else {
+          triggerToast(data.message || "Failed to confirm booking", "error");
+        }
+      } catch (err) {
+        triggerToast("Network error confirming booking", "error");
+      } finally {
+        isConfirmingAssisted = false;
+        if (confirmBtn) {
+          confirmBtn.disabled = false;
+          confirmBtn.innerHTML = '<i data-lucide="check-circle" style="width: 17px; height: 17px; margin-right: 6px;"></i> Confirm Booking';
+          if (window.lucide) window.lucide.createIcons();
+        }
+      }
+    }
+
+    function cancelAssistedReview() {
+      currentAssistedPendingBooking = null;
+      const reviewBox = document.getElementById('asst-review-box');
+      if (reviewBox) reviewBox.style.display = 'none';
+      triggerToast("Assisted booking review discarded.", "info");
     }
 
     // Availability Search
