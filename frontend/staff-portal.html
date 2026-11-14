@@ -1473,7 +1473,8 @@
                 <button class="btn-action btn-primary" onclick="progressJourney(${b.id}, 'COMPLETED')">Complete Journey</button>
               `;
             } else if (bStatus === 'COMPLETED' && pStatus === 'UNPAID') {
-              actionBtns = `<button class="btn-action btn-primary" onclick="confirmCashCollected(${b.id}, ${b.fare_amount})">Confirm Cash Received (£${parseFloat(b.fare_amount).toFixed(2)})</button>`;
+              const amountDue = parseFloat(b.final_fare !== undefined && b.final_fare !== null ? b.final_fare : (b.fare_amount || 0));
+              actionBtns = `<button class="btn-action btn-primary" onclick="confirmCashCollected(${b.id}, ${amountDue})">Confirm Cash Received (£${amountDue.toFixed(2)})</button>`;
             } else {
               actionBtns = `<span style="font-size: 11.5px; color: var(--text-dim);">Finalized</span>`;
             }
@@ -1542,7 +1543,15 @@
     }
 
     async function confirmCashCollected(bookingId, amount) {
-      if (!confirm(`Confirm cash receipt of £${parseFloat(amount).toFixed(2)} GBP for booking?`)) return;
+      const b = (currentActiveBookings && currentActiveBookings.find(x => x.id === bookingId)) || 
+                (allBookingsCache && allBookingsCache.find(x => x.id === bookingId));
+      const amountDue = b && (b.final_fare !== undefined && b.final_fare !== null)
+        ? parseFloat(b.final_fare)
+        : parseFloat(amount || 0);
+
+      const formatted = amountDue.toFixed(2);
+      const bookingCode = b ? ` #${b.booking_code}` : '';
+      if (!confirm(`Confirm cash receipt of £${formatted} GBP for booking${bookingCode}?`)) return;
       try {
         const res = await authenticatedFetch(`${API_BASE}/api/staff/bookings/${bookingId}/collect-cash`, {
           method: 'POST',
@@ -1550,10 +1559,14 @@
         });
         const data = await res.json();
         if (res.ok && data.success) {
-          triggerToast("Cash payment recorded! Booking marked as Paid.");
+          triggerToast(`Cash payment of £${formatted} GBP recorded! Booking marked as Paid.`);
           loadDispatchQueue();
+        } else {
+          triggerToast(data.message || "Failed to record cash payment.", "error");
         }
-      } catch (_) {}
+      } catch (_) {
+        triggerToast("Network error recording cash payment.", "error");
+      }
     }
 
     // Driver Assignment Modal & Fleet

@@ -1789,7 +1789,8 @@
             <button class="btn-action btn-primary" onclick="progressJourney(${b.id}, 'COMPLETED')"><i data-lucide="check" style="width: 13px; height: 13px;"></i> Complete</button>
           `;
         } else if (bStatus === 'COMPLETED' && pStatus === 'UNPAID' && b.payment_method === 'CASH') {
-          flowBtns = `<button class="btn-action btn-primary" onclick="confirmCashCollected(${b.id}, ${b.fare_amount})"><i data-lucide="check-circle" style="width: 13px; height: 13px;"></i> Collect Cash (£${parseFloat(b.fare_amount).toFixed(2)})</button>`;
+          const amountDue = parseFloat(b.final_fare !== undefined && b.final_fare !== null ? b.final_fare : (b.fare_amount || 0));
+          flowBtns = `<button class="btn-action btn-primary" onclick="confirmCashCollected(${b.id}, ${amountDue})"><i data-lucide="check-circle" style="width: 13px; height: 13px;"></i> Collect Cash (£${amountDue.toFixed(2)})</button>`;
         }
 
         return `
@@ -1893,7 +1894,8 @@
 
         let extraAction = '';
         if (!isCancelled && pStatus === 'UNPAID') {
-          extraAction = `<button class="btn-action btn-primary" onclick="confirmCashCollected(${b.id}, ${b.fare_amount})">Collect Cash</button>`;
+          const amountDue = parseFloat(b.final_fare !== undefined && b.final_fare !== null ? b.final_fare : (b.fare_amount || 0));
+          extraAction = `<button class="btn-action btn-primary" onclick="confirmCashCollected(${b.id}, ${amountDue})">Collect Cash (£${amountDue.toFixed(2)})</button>`;
         }
 
         return `
@@ -2144,7 +2146,15 @@
     }
 
     async function confirmCashCollected(bookingId, amount) {
-      if (!confirm(`Confirm cash receipt of £${parseFloat(amount).toFixed(2)} GBP for booking?`)) return;
+      const b = (currentActiveBookings && currentActiveBookings.find(x => x.id === bookingId)) || 
+                (allBookingsCache && allBookingsCache.find(x => x.id === bookingId));
+      const amountDue = b && (b.final_fare !== undefined && b.final_fare !== null)
+        ? parseFloat(b.final_fare)
+        : parseFloat(amount || 0);
+
+      const formatted = amountDue.toFixed(2);
+      const bookingCode = b ? ` #${b.booking_code}` : '';
+      if (!confirm(`Confirm cash receipt of £${formatted} GBP for booking${bookingCode}?`)) return;
       try {
         const res = await authenticatedFetch(`${API_BASE}/api/staff/bookings/${bookingId}/collect-cash`, {
           method: 'POST',
@@ -2152,10 +2162,14 @@
         });
         const data = await res.json();
         if (res.ok && data.success) {
-          triggerToast("Cash payment recorded! Booking marked as Paid.");
+          triggerToast(`Cash payment of £${formatted} GBP recorded! Booking marked as Paid.`);
           loadDispatchQueue();
+        } else {
+          triggerToast(data.message || "Failed to record cash payment.", "error");
         }
-      } catch (_) {}
+      } catch (_) {
+        triggerToast("Network error recording cash payment.", "error");
+      }
     }
 
     // Driver Assignment Modal & Fleet
