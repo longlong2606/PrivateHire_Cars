@@ -400,7 +400,7 @@ class BookingModel {
     return res.rows[0];
   }
 
-  static async amendBooking(id, { pickupAddress, dropoffAddress, pickupTime, serviceId, serviceName, vehicleCapacity, baseFare, discountAmount, finalFare, occupiedDurationMinutes }) {
+  static async amendBooking(id, { pickupAddress, dropoffAddress, pickupTime, serviceId, serviceName, vehicleCapacity, baseFare, discountAmount, finalFare, occupiedDurationMinutes, vehicleId, requestedDriverId, passengerCount, paymentStatus }) {
     const sql = `
       UPDATE bookings
       SET pickup_address = COALESCE($1, pickup_address),
@@ -413,8 +413,12 @@ class BookingModel {
           discount_amount = COALESCE($8, discount_amount),
           final_fare = COALESCE($9, final_fare),
           fare_amount = COALESCE($9, fare_amount),
-          occupied_duration_minutes = COALESCE($10, occupied_duration_minutes)
-      WHERE id = $11
+          occupied_duration_minutes = COALESCE($10, occupied_duration_minutes),
+          vehicle_id = COALESCE($11, vehicle_id),
+          requested_driver_id = COALESCE($12, requested_driver_id),
+          passenger_count = COALESCE($13, passenger_count),
+          payment_status = COALESCE($14, payment_status)
+      WHERE id = $15
       RETURNING *
     `;
     const res = await db.query(sql, [
@@ -428,6 +432,10 @@ class BookingModel {
       discountAmount,
       finalFare,
       occupiedDurationMinutes,
+      vehicleId || null,
+      requestedDriverId || null,
+      passengerCount || null,
+      paymentStatus || null,
       id,
     ]);
     return res.rows[0];

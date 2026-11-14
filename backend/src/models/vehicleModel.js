@@ -148,8 +148,71 @@ class VehicleModel {
   }
 
   static async updateStatus(id, status) {
+    if (status === 'UNAVAILABLE') {
+      const activeRes = await db.query(`
+        SELECT id, booking_code, status, pickup_time, occupied_duration_minutes 
+        FROM bookings 
+        WHERE vehicle_id = $1
+          AND status IN ('CONFIRMED', 'ASSIGNED', 'ENROUTE')
+      `, [id]);
+      const now = Date.now();
+      const isHeld = activeRes.rows.some(b => {
+        const start = new Date(b.pickup_time).getTime();
+        const duration = (parseInt(b.occupied_duration_minutes, 10) || 60) * 60 * 1000;
+        return (start + duration) >= now;
+      });
+      if (isHeld) {
+        const err = new Error('Cannot set vehicle to UNAVAILABLE while reserved or assigned to active or upcoming journeys.');
+        err.code = 'VEHICLE_CURRENTLY_HELD';
+        throw err;
+      }
+    }
     const res = await db.query('UPDATE vehicles SET status = $1 WHERE id = $2 RETURNING *', [status, id]);
     return res.rows[0];
+  }
+
+  static async update(id, { regNumber, makeModel, colour, capacity, status, driverId }) {
+    if (status === 'UNAVAILABLE') {
+      const activeRes = await db.query(`
+        SELECT id, booking_code, status, pickup_time, occupied_duration_minutes 
+        FROM bookings 
+        WHERE vehicle_id = $1
+          AND status IN ('CONFIRMED', 'ASSIGNED', 'ENROUTE')
+      `, [id]);
+      const now = Date.now();
+      const isHeld = activeRes.rows.some(b => {
+        const start = new Date(b.pickup_time).getTime();
+        const duration = (parseInt(b.occupied_duration_minutes, 10) || 60) * 60 * 1000;
+        return (start + duration) >= now;
+      });
+      if (isHeld) {
+        const err = new Error('Cannot set vehicle to UNAVAILABLE while reserved or assigned to active or upcoming journeys.');
+        err.code = 'VEHICLE_CURRENTLY_HELD';
+        throw err;
+      }
+    }
+
+    const sql = `
+      UPDATE vehicles
+      SET reg_number = COALESCE($1, reg_number),
+          make_model = COALESCE($2, make_model),
+          colour = COALESCE($3, colour),
+          capacity = COALESCE($4, capacity),
+          status = COALESCE($5, status),
+          driver_id = COALESCE($6, driver_id)
+      WHERE id = $7
+      RETURNING *
+    `;
+    await db.query(sql, [
+      regNumber ? regNumber.trim().toUpperCase() : null,
+      makeModel ? makeModel.trim() : null,
+      colour ? colour.trim() : null,
+      capacity ? parseInt(capacity, 10) : null,
+      status || null,
+      driverId || null,
+      id
+    ]);
+    return this.findById(id);
   }
 }
 

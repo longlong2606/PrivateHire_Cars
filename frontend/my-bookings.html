@@ -375,16 +375,41 @@
       padding: 0 12px; font-size: 13.5px; font-family: inherit; color: var(--text-main);
     }
 
-    /* Print Stylesheet for Official Paid Receipt */
+    /* Print Stylesheet for Official Paid Receipt - Clean single page without extra blank pages */
     @media print {
-      body * { visibility: hidden; }
-      #printable-receipt-modal, #printable-receipt-modal * { visibility: visible; }
-      #printable-receipt-modal {
-        position: absolute; left: 0; top: 0; width: 100%; height: auto;
-        background: none; display: block !important; padding: 0;
+      html, body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        height: auto !important;
+        min-height: 0 !important;
+        overflow: visible !important;
       }
-      .modal-box { box-shadow: none; border: none; max-width: 100%; }
-      .no-print { display: none !important; }
+      body > *:not(#printable-receipt-modal) {
+        display: none !important;
+      }
+      #printable-receipt-modal {
+        display: block !important;
+        position: static !important;
+        width: 100% !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+        box-shadow: none !important;
+      }
+      #printable-receipt-modal .modal-box {
+        box-shadow: none !important;
+        border: none !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        padding: 10px 0 !important;
+        margin: 0 !important;
+      }
+      .no-print {
+        display: none !important;
+      }
     }
 
     /* Toast */
@@ -842,6 +867,69 @@
     </div>
   </div>
 
+  <!-- Amend Booking Modal -->
+  <div id="amend-booking-modal" class="modal-backdrop" onclick="if (event.target === this) closeAmendModal()">
+    <div class="modal-box" style="max-width: 560px;">
+      <div class="modal-header">
+        <div>
+          <h3 style="font-family: var(--font-heading); font-size: 17.5px; font-weight: 700; color: var(--text-main); margin: 0;">Amend Booking (≥ 24h Notice)</h3>
+          <span style="font-size: 12px; color: var(--text-muted);">Ref: <strong id="amend-modal-code" style="color: var(--primary);"></strong></span>
+        </div>
+        <button onclick="closeAmendModal()" style="border: none; background: none; cursor: pointer; color: var(--text-muted);">
+          <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <input type="hidden" id="amend-booking-code" />
+        <div class="field-group" style="margin-bottom: 12px;">
+          <label class="field-label">Pickup Address *</label>
+          <input type="text" id="amend-pickup-address" class="field-input" required />
+        </div>
+        <div class="field-group" style="margin-bottom: 12px;">
+          <label class="field-label">Destination Address *</label>
+          <input type="text" id="amend-dropoff-address" class="field-input" required />
+        </div>
+        <div class="field-group" style="margin-bottom: 12px;">
+          <label class="field-label">New Pickup Date &amp; Time (Min 24h in future) *</label>
+          <input type="datetime-local" id="amend-pickup-time" class="field-input" required />
+        </div>
+        <div class="field-group" style="margin-bottom: 12px;">
+          <label class="field-label">Service Type *</label>
+          <select id="amend-service" class="field-select">
+            <option value="Airport transfer">Airport transfer (£45 / £65 GBP)</option>
+            <option value="Local journey">Local journey (£20 / £30 GBP)</option>
+            <option value="Long-distance journey">Long-distance journey (£80 / £120 GBP)</option>
+            <option value="Hotel transfer">Hotel transfer (£30 / £45 GBP)</option>
+            <option value="Airport meet-and-greet">Airport meet-and-greet (£55 / £80 GBP)</option>
+            <option value="Driver and car daily hire">Driver and car daily hire (£200 / £280 GBP)</option>
+          </select>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+          <div class="field-group">
+            <label class="field-label">Vehicle Capacity *</label>
+            <select id="amend-capacity" class="field-select">
+              <option value="4">4-Seat Executive Saloon</option>
+              <option value="7">7-Seat Luxury MPV</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label">Passenger Count *</label>
+            <input type="number" id="amend-passengers" class="field-input" min="1" max="7" value="1" required />
+          </div>
+        </div>
+        <div id="amend-feedback" style="font-size: 12.5px; padding: 10px; border-radius: var(--radius-sm); display: none; margin-top: 8px;"></div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-outline-sm" onclick="closeAmendModal()">Cancel</button>
+        <button type="button" id="btn-save-amend" class="btn-outline-sm" style="background: var(--primary); color: #fff; border: none; font-weight: 600;" onclick="submitAmendBooking()">
+          Save Amendments
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Container -->
   <div id="toast-rack"></div>
 
@@ -874,7 +962,16 @@
       fetchMyBookings();
     });
 
-    function handleAuthAction() {
+    async function handleAuthAction() {
+      const token = localStorage.getItem('sessionToken');
+      if (token) {
+        try {
+          await fetch(`${API_BASE}/api/auth/logout`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+        } catch (_) {}
+      }
       localStorage.removeItem('currentUser');
       localStorage.removeItem('sessionToken');
       window.location.href = "login.html";
@@ -1074,6 +1171,9 @@
               ) : ''}
 
               ${isEligibleToAmendOrCancel ? `
+                <button type="button" class="btn-outline-sm btn-amend" onclick="openAmendModal('${b.booking_code}')" style="color: var(--primary); border-color: rgba(22, 75, 59, 0.4); font-weight: 600;">
+                  <i data-lucide="edit-3" style="width: 14px; height: 14px;"></i> Amend (≥24h)
+                </button>
                 <button type="button" class="btn-outline-sm" onclick="cancelBooking('${b.booking_code}')" style="color: var(--text-error); border-color: rgba(185, 74, 72, 0.3);">
                   <i data-lucide="x-circle" style="width: 14px; height: 14px;"></i> Cancel (≥24h)
                 </button>
@@ -1371,8 +1471,8 @@
       document.getElementById('booking-detail-modal').classList.remove('open');
     }
 
-    // View official printable receipt
-    function openReceiptModal(bookingCode) {
+    // View official printable receipt with payment reference and payment/refund history
+    async function openReceiptModal(bookingCode) {
       const b = customerBookings.find(x => x.booking_code === bookingCode);
       if (!b) return;
 
@@ -1384,8 +1484,15 @@
       const onlineDiscount = parseFloat(b.discount_amount || 0).toFixed(2);
       const promoDiscount = parseFloat(b.promo_discount || 0).toFixed(2);
       const finalFare = parseFloat(b.final_fare || (b.base_fare ? Math.max(0, b.base_fare - onlineDiscount - promoDiscount) : b.fare_amount) || 0).toFixed(2);
+      let paymentRef = b.payment_reference || b.card_ref_used || `TXN-${b.booking_code}`;
 
-      const html = `
+      const renderReceiptHtml = (receiptData) => {
+        const pHistory = (receiptData && receiptData.paymentHistory) || [
+          { type: 'CHARGE', method: b.payment_method || 'CARD', reference: paymentRef, amount: parseFloat(finalFare), status: isPaid ? 'PAID' : 'UNPAID', date: b.updated_at || b.created_at }
+        ];
+        const rHistory = (receiptData && receiptData.refundHistory) || [];
+
+        return `
         <div style="text-align: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 16px;">
           <h2 style="font-family: var(--font-heading); font-size: 20px; font-weight: 800; color: var(--primary);">PRIVATEHIRE CARS LONDON</h2>
           <p style="font-size: 12px; color: var(--text-muted);">Licensed London Minicab Dispatch Service</p>
@@ -1397,7 +1504,11 @@
         <div style="font-size: 13px; line-height: 1.8; margin-bottom: 20px;">
           <div style="display: flex; justify-content: space-between;">
             <span style="color: var(--text-muted);">Booking Reference:</span>
-            <strong>${b.booking_code}</strong>
+            <strong>${escapeHtml(b.booking_code)}</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">Payment Reference:</span>
+            <strong style="font-family: var(--font-mono); color: var(--primary);">${escapeHtml(paymentRef)}</strong>
           </div>
           <div style="display: flex; justify-content: space-between;">
             <span style="color: var(--text-muted);">Journey Date &amp; Time:</span>
@@ -1405,15 +1516,19 @@
           </div>
           <div style="display: flex; justify-content: space-between;">
             <span style="color: var(--text-muted);">Service Type:</span>
-            <span>${b.service_name || 'Standard Service'}</span>
+            <span>${escapeHtml(b.service_name || 'Standard Service')}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: var(--text-muted);">Vehicle &amp; Chauffeur:</span>
+            <span>${escapeHtml(b.vehicle_model || 'Executive Saloon')} (${escapeHtml(b.vehicle_reg || 'Fleet')}) • ${escapeHtml(b.driver_name || 'Assigned Driver')}</span>
           </div>
           <div style="display: flex; justify-content: space-between;">
             <span style="color: var(--text-muted);">Pickup Address:</span>
-            <span>${b.pickup_address}</span>
+            <span>${escapeHtml(b.pickup_address)}</span>
           </div>
           <div style="display: flex; justify-content: space-between;">
             <span style="color: var(--text-muted);">Dropoff Address:</span>
-            <span>${b.dropoff_address}</span>
+            <span>${escapeHtml(b.dropoff_address)}</span>
           </div>
           <div style="display: flex; justify-content: space-between;">
             <span style="color: var(--text-muted);">Payment Method:</span>
@@ -1433,7 +1548,7 @@
           ` : ''}
         </div>
 
-        <div style="background: var(--bg-surface, #FAF7F2); padding: 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+        <div style="background: var(--bg-surface, #FAF7F2); padding: 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle); margin-bottom: 16px;">
           <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--text-muted); margin-bottom: 6px;">
             <span>Standard Base Fare:</span>
             <span>£${baseFare} GBP</span>
@@ -1458,15 +1573,161 @@
             (Includes 20% UK VAT: £${(parseFloat(finalFare) * 0.20).toFixed(2)} GBP)
           </div>
         </div>
-      `;
 
-      document.getElementById('receipt-modal-content').innerHTML = html;
+        <!-- Payment and Refund History Section -->
+        <div style="border-top: 1px solid var(--border-subtle); padding-top: 14px; margin-top: 14px;">
+          <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--primary); margin-bottom: 8px;">
+            Payment &amp; Refund History
+          </div>
+          <table style="width: 100%; border-collapse: collapse; font-size: 12px; text-align: left;">
+            <thead>
+              <tr style="border-bottom: 1px solid var(--border-subtle); color: var(--text-muted);">
+                <th style="padding: 4px 6px;">Event</th>
+                <th style="padding: 4px 6px;">Reference</th>
+                <th style="padding: 4px 6px;">Amount</th>
+                <th style="padding: 4px 6px;">Status</th>
+                <th style="padding: 4px 6px;">Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${pHistory.map(p => `
+                <tr style="border-bottom: 1px dashed var(--border-subtle);">
+                  <td style="padding: 6px;"><span style="color: var(--accent-emerald); font-weight: 600;">CHARGE</span></td>
+                  <td style="padding: 6px; font-family: var(--font-mono);">${escapeHtml(p.reference || paymentRef)}</td>
+                  <td style="padding: 6px; font-weight: 600;">£${parseFloat(p.amount || 0).toFixed(2)}</td>
+                  <td style="padding: 6px;"><span class="badge ${p.status === 'PAID' ? 'badge-completed' : 'badge-pending'}">${escapeHtml(p.status)}</span></td>
+                  <td style="padding: 6px; color: var(--text-muted);">${new Date(p.date).toLocaleDateString('en-GB')}</td>
+                </tr>
+              `).join('')}
+              ${rHistory.map(r => `
+                <tr style="border-bottom: 1px dashed var(--border-subtle);">
+                  <td style="padding: 6px;"><span style="color: var(--accent-gold); font-weight: 600;">REFUND</span></td>
+                  <td style="padding: 6px; font-family: var(--font-mono);">REF-${r.id}</td>
+                  <td style="padding: 6px; font-weight: 600; color: var(--text-error);">-£${parseFloat(r.amount || 0).toFixed(2)}</td>
+                  <td style="padding: 6px;"><span class="badge ${r.status === 'PROCESSED' ? 'badge-completed' : 'badge-pending'}">${escapeHtml(r.status)}</span></td>
+                  <td style="padding: 6px; color: var(--text-muted);">${new Date(r.date).toLocaleDateString('en-GB')}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+        `;
+      };
+
+      document.getElementById('receipt-modal-content').innerHTML = renderReceiptHtml();
       document.getElementById('printable-receipt-modal').classList.add('open');
       lucide.createIcons();
+
+      try {
+        const token = localStorage.getItem('sessionToken') || '';
+        const res = await fetch(`${API_BASE}/api/bookings/${b.id}/receipt`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.success && data.receipt) {
+            paymentRef = data.receipt.paymentReference || paymentRef;
+            document.getElementById('receipt-modal-content').innerHTML = renderReceiptHtml(data.receipt);
+            lucide.createIcons();
+          }
+        }
+      } catch (_) {}
     }
 
     function closeReceiptModal() {
       document.getElementById('printable-receipt-modal').classList.remove('open');
+    }
+
+    // Amend Booking Modal
+    function openAmendModal(bookingCode) {
+      const b = (customerBookings || []).find(x => x.booking_code === bookingCode);
+      if (!b) return;
+
+      document.getElementById('amend-booking-code').value = bookingCode;
+      document.getElementById('amend-modal-code').textContent = bookingCode;
+      document.getElementById('amend-pickup-address').value = b.pickup_address || '';
+      document.getElementById('amend-dropoff-address').value = b.dropoff_address || '';
+      document.getElementById('amend-service').value = b.service_name || 'Airport transfer';
+      document.getElementById('amend-capacity').value = String(b.vehicle_capacity || 4);
+      document.getElementById('amend-passengers').value = b.passenger_count || 1;
+
+      // Min datetime is 24 hours from now
+      const minDate = new Date(Date.now() + 24 * 3600 * 1000 + 60000);
+      const minIso = new Date(minDate.getTime() - minDate.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+      const pTimeInput = document.getElementById('amend-pickup-time');
+      pTimeInput.min = minIso;
+
+      if (b.pickup_time) {
+        const pDate = new Date(b.pickup_time);
+        pTimeInput.value = new Date(pDate.getTime() - pDate.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+      } else {
+        pTimeInput.value = minIso;
+      }
+
+      const fb = document.getElementById('amend-feedback');
+      if (fb) fb.style.display = 'none';
+
+      document.getElementById('amend-booking-modal').classList.add('open');
+      lucide.createIcons();
+    }
+
+    function closeAmendModal() {
+      document.getElementById('amend-booking-modal').classList.remove('open');
+    }
+
+    async function submitAmendBooking() {
+      const bookingCode = document.getElementById('amend-booking-code').value;
+      const pickupAddress = document.getElementById('amend-pickup-address').value.trim();
+      const dropoffAddress = document.getElementById('amend-dropoff-address').value.trim();
+      const pickupTime = document.getElementById('amend-pickup-time').value;
+      const service = document.getElementById('amend-service').value;
+      const capacity = parseInt(document.getElementById('amend-capacity').value, 10) || 4;
+      const pax = parseInt(document.getElementById('amend-passengers').value, 10) || 1;
+
+      if (!pickupAddress || !dropoffAddress || !pickupTime) {
+        triggerToast("Please fill in all required amendment fields.", "error");
+        return;
+      }
+
+      if (pax > capacity) {
+        triggerToast(`Passenger count (${pax}) exceeds capacity (${capacity} seats). Please choose 7-Seat MPV.`, "error");
+        return;
+      }
+
+      const btn = document.getElementById('btn-save-amend');
+      if (btn) btn.disabled = true;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/bookings/${bookingCode}/amend`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('sessionToken') || ''}`
+          },
+          body: JSON.stringify({
+            pickupAddress,
+            dropoffAddress,
+            pickupTime,
+            service,
+            vehicleCapacity: capacity,
+            passengerCount: pax
+          })
+        });
+
+        const data = await res.json();
+        if (btn) btn.disabled = false;
+
+        if (res.ok && data.success) {
+          triggerToast("Booking amended successfully! Table 8 fare recalculated.");
+          closeAmendModal();
+          fetchMyBookings();
+        } else {
+          triggerToast(data.message || "Failed to amend booking.", "error");
+        }
+      } catch (err) {
+        if (btn) btn.disabled = false;
+        triggerToast("Network error amending booking.", "error");
+      }
     }
 
     // Cancel booking

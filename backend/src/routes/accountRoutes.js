@@ -10,7 +10,8 @@ const {
   seedDemoAccount,
 } = require('../controllers/accountController');
 const StaffController = require('../controllers/staffController');
-const { requireAuth } = require('../middleware/authMiddleware');
+const { logout } = require('../controllers/authController');
+const { requireAuth, requireStaff } = require('../middleware/authMiddleware');
 
 // [Bước 4 & 5] API Đăng ký tài khoản (AC1 - AC5)
 router.post('/register', register);
@@ -18,11 +19,14 @@ router.post('/register', register);
 // [AC4] API Đăng nhập
 router.post('/login', login);
 
+// API Đăng xuất (Sign-out & hủy phiên làm việc)
+router.post('/logout', logout);
+
 // [AC5] API xem email xác nhận đã gửi
 router.get('/emails', getEmails);
 
-// [Bước 3] Lấy danh sách tài khoản
-router.get('/', getAccounts);
+// [Bước 3] Lấy danh sách tài khoản (Chỉ dành cho Staff / Admin)
+router.get('/', requireAuth, requireStaff, getAccounts);
 
 // Cập nhật role tài khoản (Chỉ Admin)
 router.patch('/:id/role', requireAuth, StaffController.updateAccountRole);

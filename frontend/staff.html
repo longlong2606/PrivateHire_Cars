@@ -682,9 +682,9 @@
         <i data-lucide="globe" style="width: 14px; height: 14px;"></i>
         <span>Customer Web Portal</span>
       </a>
-      <button type="button" onclick="autoLoginStaff(true)" class="sidebar-link" style="border:none; background:transparent; width:100%; text-align:left; cursor:pointer;" title="Re-authenticate session">
-        <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i>
-        <span>Refresh Staff Auth</span>
+      <button type="button" onclick="handleStaffLogout()" class="sidebar-link" style="border:none; background:transparent; width:100%; text-align:left; cursor:pointer;" title="Sign out of Staff Portal">
+        <i data-lucide="log-out" style="width: 14px; height: 14px;"></i>
+        <span>Sign Out</span>
       </button>
     </div>
   </aside>
@@ -726,11 +726,11 @@
       <div id="staff-auth-banner" style="display: none; background: #FFF8E1; border: 1px solid #FFE082; border-radius: var(--radius-sm); padding: 12px 18px; margin-bottom: 20px; align-items: center; justify-content: space-between; gap: 12px;">
         <div style="display: flex; align-items: center; gap: 10px;">
           <i data-lucide="shield-alert" style="width: 20px; height: 20px; color: #F57F17;"></i>
-          <span style="font-size: 13.5px; color: #3E2723;"><strong>Staff Session Required:</strong> To query protected bookings and dispatch data, please authenticate with Call Centre credentials.</span>
+          <span style="font-size: 13.5px; color: #3E2723;"><strong>Staff Session Required:</strong> To query protected bookings and dispatch data, please sign in with an authorized Staff account.</span>
         </div>
-        <button onclick="autoLoginStaff(true)" class="btn-action btn-primary" style="font-size: 12px; white-space: nowrap;">
-          <i data-lucide="key" style="width: 14px; height: 14px;"></i> 1-Click Dispatcher Sign-In
-        </button>
+        <a href="login.html?redirect=staff.html" class="btn-action btn-primary" style="font-size: 12px; white-space: nowrap;">
+          <i data-lucide="log-in" style="width: 14px; height: 14px;"></i> Staff Sign-In
+        </a>
       </div>
 
     <!-- 1. Dispatch & Journey Operations Tab (Split into Pending vs Processed) -->
@@ -854,6 +854,20 @@
                   <option value="IN_PERSON">In-Person Booking</option>
                 </select>
               </div>
+
+              <!-- Transferred Vehicle Indicator -->
+              <input type="hidden" id="asst-vehicle-id" />
+              <div id="asst-vehicle-indicator" style="display: none; background: #FAF7F2; border: 1px dashed var(--accent-gold); padding: 8px 12px; border-radius: var(--radius-sm); margin-bottom: 12px; font-size: 12.5px;">
+                <span style="color: var(--text-muted); font-weight: 600;">Selected Vehicle:</span>
+                <strong id="asst-vehicle-text" style="color: var(--primary);"></strong>
+                <button type="button" onclick="clearAssistedVehicle()" style="border: none; background: none; color: var(--text-error); cursor: pointer; float: right; font-size: 11.5px;">✕ Clear</button>
+              </div>
+
+              <div class="field-group">
+                <label class="field-label">Scheduled Pickup Date &amp; Time *</label>
+                <input type="datetime-local" id="asst-pickup-time" class="field-input" required />
+              </div>
+
               <div class="field-group">
                 <label class="field-label">Service Type *</label>
                 <select id="asst-service" class="field-select" onchange="recalculateAssistedFare()">
@@ -1098,10 +1112,11 @@
                   <th>Capacity</th>
                   <th>Assigned Chauffeur</th>
                   <th>Status</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody id="fleet-table-body">
-                <tr><td colspan="6">Loading vehicles...</td></tr>
+                <tr><td colspan="7">Loading vehicles...</td></tr>
               </tbody>
             </table>
           </div>
@@ -1126,10 +1141,11 @@
                   <th>Phone</th>
                   <th>Assigned Vehicle</th>
                   <th>Status</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody id="driver-table-body">
-                <tr><td colspan="5">Loading chauffeurs...</td></tr>
+                <tr><td colspan="6">Loading chauffeurs...</td></tr>
               </tbody>
             </table>
           </div>
@@ -1550,31 +1566,19 @@
 
     let staffUser = null;
 
-    // Staff Auto Login Gate
-    async function autoLoginStaff(showNotice = false) {
+    async function handleStaffLogout() {
       try {
-        const res = await fetch(`${API_BASE}/api/auth/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: 'staff@privatehirecars.com', password: 'Staff123!' })
-        });
-        const data = await res.json();
-        if (res.ok && data.success) {
-          localStorage.setItem('sessionToken', data.sessionToken);
-          localStorage.setItem('currentUser', JSON.stringify(data.user));
-          staffUser = data.user;
-          const userElem = document.getElementById('staff-user-name');
-          if (userElem) userElem.textContent = data.user.name;
-          const banner = document.getElementById('staff-auth-banner');
-          if (banner) banner.style.display = 'none';
-          if (showNotice) triggerToast("Signed in as Call Centre Dispatcher!");
-          refreshAllStaffData();
-          return true;
+        const token = localStorage.getItem('sessionToken');
+        if (token) {
+          await fetch(`${API_BASE}/api/auth/logout`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
         }
-      } catch (err) {
-        console.error("Staff auto login error:", err);
-      }
-      return false;
+      } catch (_) {}
+      localStorage.removeItem('sessionToken');
+      localStorage.removeItem('currentUser');
+      window.location.href = "login.html";
     }
 
     // Authenticated fetch wrapper for Staff API
@@ -1589,16 +1593,10 @@
       }
 
       let res = await fetch(url, { ...options, headers });
-      if (res.status === 401) {
-        const ok = await autoLoginStaff(false);
-        if (ok) {
-          token = localStorage.getItem('sessionToken');
-          headers['Authorization'] = `Bearer ${token}`;
-          res = await fetch(url, { ...options, headers });
-        } else {
-          const banner = document.getElementById('staff-auth-banner');
-          if (banner) banner.style.display = 'flex';
-        }
+      if (res.status === 401 || res.status === 403) {
+        const banner = document.getElementById('staff-auth-banner');
+        if (banner) banner.style.display = 'flex';
+        triggerToast("Staff session expired or unauthorized. Please sign in.", "error");
       }
       return res;
     }
@@ -1614,29 +1612,35 @@
 
     window.addEventListener('DOMContentLoaded', async () => {
       const cur = localStorage.getItem('currentUser');
+      const token = localStorage.getItem('sessionToken');
       const adminEmails = ['longhvn2006@gmail.com', 'nguyennhanduc20345@gmail.com', 'staff@privatehirecars.com'];
 
-      if (cur) {
-        try {
-          const parsed = JSON.parse(cur);
-          const role = (parsed && parsed.role ? parsed.role.toUpperCase() : '');
-          const email = (parsed && parsed.email ? parsed.email.toLowerCase() : '');
+      if (!cur || !token) {
+        const banner = document.getElementById('staff-auth-banner');
+        if (banner) banner.style.display = 'flex';
+        alert("Staff Portal Access Denied: Please sign in with an authorized Staff or Administrator account.");
+        window.location.href = "login.html?redirect=staff.html";
+        return;
+      }
 
-          if (role === 'STAFF' || role === 'ADMIN' || adminEmails.includes(email)) {
-            staffUser = parsed;
-            const userElem = document.getElementById('staff-user-name');
-            if (userElem) userElem.textContent = staffUser.name;
-          } else {
-            // User role is USER or CUSTOMER -> Deny access & redirect to booking
-            alert("Access Denied: The Staff Portal is reserved for Administrators and Staff members only.");
-            window.location.href = "booking.html";
-            return;
-          }
-        } catch (_) {
-          await autoLoginStaff(false);
+      try {
+        const parsed = JSON.parse(cur);
+        const role = (parsed && parsed.role ? parsed.role.toUpperCase() : '');
+        const email = (parsed && parsed.email ? parsed.email.toLowerCase() : '');
+
+        if (role === 'STAFF' || role === 'ADMIN' || adminEmails.includes(email)) {
+          staffUser = parsed;
+          const userElem = document.getElementById('staff-user-name');
+          if (userElem) userElem.textContent = staffUser.name;
+        } else {
+          // User role is USER or CUSTOMER -> Deny access & redirect to booking
+          alert("Access Denied: The Staff Portal is reserved for Administrators and Staff members only. Your account does not have staff privileges.");
+          window.location.href = "booking.html";
+          return;
         }
-      } else {
-        await autoLoginStaff(false);
+      } catch (_) {
+        window.location.href = "login.html?redirect=staff.html";
+        return;
       }
 
       refreshAllStaffData();
@@ -1644,6 +1648,11 @@
       if (pTimeInput && !pTimeInput.value) {
         const nextHour = new Date(Date.now() + 3600000);
         pTimeInput.value = new Date(nextHour.getTime() - nextHour.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+      }
+      const asstPTimeInput = document.getElementById('asst-pickup-time');
+      if (asstPTimeInput && !asstPTimeInput.value) {
+        const nextHour = new Date(Date.now() + 3600000);
+        asstPTimeInput.value = new Date(nextHour.getTime() - nextHour.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
       }
       if (typeof recalculateAssistedFare === 'function') recalculateAssistedFare();
       if (typeof updateAdminPrivilegeIndicator === 'function') updateAdminPrivilegeIndicator();
@@ -2157,7 +2166,7 @@
       const tbody = document.getElementById('fleet-table-body');
       if (!tbody) return;
       if (!vehicles || vehicles.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 16px;">No matching vehicles found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 16px;">No matching vehicles found.</td></tr>';
         return;
       }
       tbody.innerHTML = vehicles.map(v => {
@@ -2179,15 +2188,21 @@
             <div style="font-size: 11px; color: var(--text-dim); font-family: var(--font-mono);">${escapeHtml(driverCode)}${escapeHtml(driverPhone)}</div>
           </td>
           <td><span class="badge ${isAvail ? 'badge-completed' : 'badge-pending'}">${escapeHtml(v.status || 'ACTIVE')}</span></td>
+          <td>
+            <button type="button" class="btn-action" style="font-size: 11px; padding: 4px 8px;" onclick="openEditVehicleModal(${v.id})">
+              <i data-lucide="edit-2" style="width: 12px; height: 12px;"></i> Edit
+            </button>
+          </td>
         </tr>`;
       }).join('');
+      lucide.createIcons();
     }
 
     function renderDriverTable(drivers) {
       const tbody = document.getElementById('driver-table-body');
       if (!tbody) return;
       if (!drivers || drivers.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 16px;">No matching chauffeurs found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 16px;">No matching chauffeurs found.</td></tr>';
         return;
       }
       tbody.innerHTML = drivers.map(d => {
@@ -2207,8 +2222,14 @@
             <div style="font-size: 11px; color: var(--text-dim);">${escapeHtml(vehMake)}</div>
           </td>
           <td><span class="badge ${isActive ? 'badge-completed' : 'badge-pending'}">${escapeHtml(d.status || 'ACTIVE')}</span></td>
+          <td>
+            <button type="button" class="btn-action" style="font-size: 11px; padding: 4px 8px;" onclick="openEditDriverModal(${d.id})">
+              <i data-lucide="edit-2" style="width: 12px; height: 12px;"></i> Edit
+            </button>
+          </td>
         </tr>`;
       }).join('');
+      lucide.createIcons();
     }
 
     function filterFleetTable() {
@@ -2543,6 +2564,13 @@
       }
       const paymentMethod = document.getElementById('asst-payment-method').value;
       const promoCode = appliedAssistedPromo ? appliedAssistedPromo.code : document.getElementById('asst-promo-code').value.trim();
+      const pickupTime = document.getElementById('asst-pickup-time').value;
+      const vehicleId = document.getElementById('asst-vehicle-id').value || undefined;
+
+      if (!pickupTime) {
+        triggerToast("Please select a scheduled pickup date and time.", "error");
+        return;
+      }
 
       const payload = {
         accountId: cId,
@@ -2555,6 +2583,8 @@
         promoCode: promoCode || undefined,
         pickupAddress: document.getElementById('asst-pickup').value.trim(),
         dropoffAddress: document.getElementById('asst-dropoff').value.trim(),
+        pickupTime: pickupTime,
+        vehicleId: vehicleId ? parseInt(vehicleId, 10) : undefined,
         channel: document.getElementById('asst-channel').value,
         staffId: (staffUser && staffUser.id) ? staffUser.id : 1,
         staffName: (staffUser && staffUser.name) ? staffUser.name : 'Call Centre Staff'
@@ -2568,6 +2598,7 @@
         if (res.ok && data.success) {
           triggerToast(`Assisted booking ${data.booking.booking_code} created successfully! Final Fare: £${data.booking.final_fare}`);
           appliedAssistedPromo = null;
+          clearAssistedVehicle();
           document.getElementById('asst-pickup').value = '';
           document.getElementById('asst-dropoff').value = '';
           document.getElementById('asst-promo-code').value = '';
@@ -2614,9 +2645,50 @@
             <div style="font-weight: 600; color: var(--primary); font-size: 13px;">${escapeHtml(driverName)}</div>
             <div style="font-size: 11px; color: var(--text-dim); font-family: var(--font-mono);">${escapeHtml(driverCode)}${escapeHtml(driverPhone)}</div>
           </td>
-          <td><span class="badge badge-completed">AVAILABLE</span></td>
+          <td>
+            <button type="button" class="btn-action btn-primary" style="font-size: 11.5px; white-space: nowrap;" onclick="transferToAssistedBooking(${v.id}, '${escapeHtml(reg)}', ${v.capacity || 4}, '${escapeHtml(mm)}')">
+              <i data-lucide="phone-forwarded" style="width: 12px; height: 12px;"></i> Book for Caller
+            </button>
+          </td>
         </tr>`;
       }).join('');
+    }
+
+    function transferToAssistedBooking(vehicleId, reg, capacity, makeModel) {
+      switchTab('assisted');
+      document.getElementById('asst-vehicle-id').value = vehicleId;
+      document.getElementById('asst-vehicle-text').textContent = `${makeModel} [${reg}] (${capacity} seats)`;
+      const ind = document.getElementById('asst-vehicle-indicator');
+      if (ind) ind.style.display = 'block';
+
+      const capSelect = document.getElementById('asst-capacity');
+      if (capSelect) capSelect.value = String(capacity);
+
+      const srchTime = document.getElementById('srch-pickup-time').value;
+      if (srchTime) {
+        document.getElementById('asst-pickup-time').value = srchTime;
+      }
+
+      const srchService = document.getElementById('srch-service').value;
+      if (srchService) {
+        document.getElementById('asst-service').value = srchService;
+      }
+
+      const srchPax = document.getElementById('srch-passengers').value;
+      if (srchPax) {
+        const paxSelect = document.getElementById('asst-passengers');
+        if (paxSelect) paxSelect.value = srchPax;
+      }
+
+      recalculateAssistedFare();
+      triggerToast(`Vehicle ${reg} transferred to Phone Booking Desk!`, "info");
+    }
+
+    function clearAssistedVehicle() {
+      document.getElementById('asst-vehicle-id').value = '';
+      const ind = document.getElementById('asst-vehicle-indicator');
+      if (ind) ind.style.display = 'none';
+      recalculateAssistedFare();
     }
 
     function renderAvailDrivers(list) {
@@ -3170,39 +3242,80 @@
     // Enquiries Queue
     async function loadEnquiriesQueue() {
       const tbody = document.getElementById('enquiries-table-body');
+      if (!tbody) return;
       try {
         const res = await authenticatedFetch(`${API_BASE}/api/staff/enquiries`);
         const data = await res.json();
         if (res.ok && data.success && data.enquiries) {
-          tbody.innerHTML = data.enquiries.map(e => `
-            <tr>
-              <td><strong>${e.enquiry_code || `ENQ-${e.id}`}</strong></td>
-              <td>${e.enquiry_type || 'GENERAL'}</td>
-              <td>${e.customer_name || 'Guest'}<br><span style="font-size: 11px; color: var(--text-dim);">${e.reply_email}</span></td>
-              <td>${e.message}</td>
-              <td>${e.status || 'NEW'}</td>
-              <td>
-                <button class="btn-action" onclick="replyEnquiry(${e.id}, '${e.reply_email}')">Email Reply</button>
-              </td>
-            </tr>
-          `).join('');
+          if (data.enquiries.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 24px; color: var(--text-muted);">No customer enquiries found.</td></tr>';
+            return;
+          }
+          tbody.innerHTML = data.enquiries.map(e => {
+            const ref = e.reference_code || e.enquiry_code || `ENQ-${String(e.id).padStart(5, '0')}`;
+            const customerName = escapeHtml(e.customer_name || e.name || 'Guest');
+            const customerEmail = escapeHtml(e.reply_email || e.email || 'N/A');
+            const enquiryType = e.booking_code ? `Trip Specific (${escapeHtml(e.booking_code)})` : (escapeHtml(e.subject) || 'GENERAL');
+            const isResolved = e.status === 'RESOLVED';
+            const statusBadge = isResolved 
+              ? `<span class="badge badge-completed">RESOLVED</span>` 
+              : `<span class="badge badge-pending">OPEN</span>`;
+            const replyInfo = isResolved && e.staff_reply 
+              ? `<div style="font-size: 11.5px; color: var(--accent-emerald); margin-top: 4px; background: rgba(58, 139, 104, 0.08); padding: 4px 8px; border-radius: 4px; border-left: 2px solid var(--accent-emerald);"><strong>Staff Reply:</strong> "${escapeHtml(e.staff_reply)}"<br><span style="font-size: 10.5px; color: var(--text-dim);">${e.replied_at ? new Date(e.replied_at).toLocaleString('en-GB') : ''}</span></div>` 
+              : '';
+
+            return `
+              <tr>
+                <td><strong style="color: var(--primary); font-family: var(--font-mono);">${ref}</strong></td>
+                <td><span style="font-size: 12px; font-weight: 600;">${enquiryType}</span></td>
+                <td>
+                  <strong>${customerName}</strong>
+                  <br><span style="font-size: 11.5px; color: var(--text-dim);">${customerEmail}</span>
+                </td>
+                <td style="max-width: 280px; font-size: 12.5px;">
+                  <div>${escapeHtml(e.message)}</div>
+                  ${replyInfo}
+                </td>
+                <td>${statusBadge}</td>
+                <td>
+                  ${isResolved ? `
+                    <button class="btn-action" style="font-size: 11.5px;" onclick="replyEnquiry(${e.id}, '${customerEmail}')">
+                      <i data-lucide="edit-2" style="width: 12px; height: 12px;"></i> Re-Reply
+                    </button>
+                  ` : `
+                    <button class="btn-action btn-primary" style="font-size: 11.5px;" onclick="replyEnquiry(${e.id}, '${customerEmail}')">
+                      <i data-lucide="send" style="width: 12px; height: 12px;"></i> Send Reply
+                    </button>
+                  `}
+                </td>
+              </tr>
+            `;
+          }).join('');
+          lucide.createIcons();
         }
       } catch (_) {}
     }
     async function replyEnquiry(enquiryId, email) {
-      const replyMsg = prompt(`Enter reply to be sent via real email to ${email}:`);
-      if (!replyMsg) return;
+      const replyMsg = prompt(`Enter customer support reply for enquiry #${enquiryId} to be emailed to ${email}:`);
+      if (!replyMsg || !replyMsg.trim()) {
+        triggerToast("Reply cancelled: message cannot be empty.", "error");
+        return;
+      }
       try {
         const res = await authenticatedFetch(`${API_BASE}/api/staff/enquiries/${enquiryId}/reply`, {
           method: 'POST',
-          body: JSON.stringify({ replyMessage: replyMsg, staffId: 1 })
+          body: JSON.stringify({ replyText: replyMsg.trim(), replyMessage: replyMsg.trim() })
         });
         const data = await res.json();
         if (res.ok && data.success) {
-          triggerToast("Reply saved and email sent to customer!");
+          triggerToast(`Reply saved and dispatched via real email to ${email}!`);
           loadEnquiriesQueue();
+        } else {
+          triggerToast(data.message || "Failed to send reply.", "error");
         }
-      } catch (_) {}
+      } catch (_) {
+        triggerToast("Network error submitting enquiry reply.", "error");
+      }
     }
 
     // Insights Metrics
@@ -3543,6 +3656,96 @@
       }
     }
 
+    function openEditVehicleModal(id) {
+      const v = (allVehicles || []).find(x => x.id === id);
+      if (!v) return;
+      document.getElementById('edit-veh-id').value = v.id;
+      document.getElementById('edit-veh-reg').value = v.reg_number || '';
+      document.getElementById('edit-veh-make').value = v.make_model || '';
+      document.getElementById('edit-veh-colour').value = v.colour || '';
+      document.getElementById('edit-veh-capacity').value = String(v.capacity || 4);
+      document.getElementById('edit-veh-status').value = (v.status || 'AVAILABLE').toUpperCase();
+
+      const drvSelect = document.getElementById('edit-veh-driver-id');
+      drvSelect.innerHTML = `<option value="">-- No Chauffeur Assigned --</option>` +
+        (driversList || []).map(d => `<option value="${d.id}" ${d.id === v.driver_id ? 'selected' : ''}>${escapeHtml(d.name)} (${escapeHtml(d.reference_number || d.driver_code || '')})</option>`).join('');
+
+      document.getElementById('modal-edit-vehicle').style.display = 'flex';
+    }
+
+    function closeEditVehicleModal() {
+      document.getElementById('modal-edit-vehicle').style.display = 'none';
+    }
+
+    async function handleEditVehicleSubmit(e) {
+      e.preventDefault();
+      const id = document.getElementById('edit-veh-id').value;
+      const regNumber = document.getElementById('edit-veh-reg').value.trim();
+      const makeModel = document.getElementById('edit-veh-make').value.trim();
+      const colour = document.getElementById('edit-veh-colour').value.trim();
+      const capacity = parseInt(document.getElementById('edit-veh-capacity').value, 10);
+      const status = document.getElementById('edit-veh-status').value;
+      const driverId = document.getElementById('edit-veh-driver-id').value || null;
+
+      try {
+        const res = await authenticatedFetch(`${API_BASE}/api/staff/vehicles/${id}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ regNumber, makeModel, colour, capacity, status, driverId })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          triggerToast("Vehicle updated successfully!");
+          closeEditVehicleModal();
+          loadFleetAndDrivers();
+        } else {
+          triggerToast(data.message || "Failed to update vehicle", "error");
+        }
+      } catch (err) {
+        triggerToast("Server connection error", "error");
+      }
+    }
+
+    function openEditDriverModal(id) {
+      const d = (driversList || []).find(x => x.id === id);
+      if (!d) return;
+      document.getElementById('edit-drv-id').value = d.id;
+      document.getElementById('edit-drv-name').value = d.name || '';
+      document.getElementById('edit-drv-phone').value = d.telephone || '';
+      document.getElementById('edit-drv-ref').value = d.reference_number || d.driver_code || '';
+      document.getElementById('edit-drv-status').value = (d.status || 'ACTIVE').toUpperCase();
+      document.getElementById('modal-edit-driver').style.display = 'flex';
+    }
+
+    function closeEditDriverModal() {
+      document.getElementById('modal-edit-driver').style.display = 'none';
+    }
+
+    async function handleEditDriverSubmit(e) {
+      e.preventDefault();
+      const id = document.getElementById('edit-drv-id').value;
+      const name = document.getElementById('edit-drv-name').value.trim();
+      const telephone = document.getElementById('edit-drv-phone').value.trim();
+      const referenceNumber = document.getElementById('edit-drv-ref').value.trim();
+      const status = document.getElementById('edit-drv-status').value;
+
+      try {
+        const res = await authenticatedFetch(`${API_BASE}/api/staff/drivers/${id}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ name, telephone, referenceNumber, status })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          triggerToast("Chauffeur updated successfully!");
+          closeEditDriverModal();
+          loadFleetAndDrivers();
+        } else {
+          triggerToast(data.message || "Failed to update chauffeur", "error");
+        }
+      } catch (err) {
+        triggerToast("Server connection error", "error");
+      }
+    }
+
     function triggerToast(msg, type = "info") {
       const rack = document.getElementById('toast-rack');
       const toast = document.createElement('div');
@@ -3635,6 +3838,93 @@
         <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
           <button type="button" onclick="closeAddDriverModal()" class="btn-action">Cancel</button>
           <button type="submit" class="btn-action btn-primary">Save Chauffeur</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Edit Vehicle -->
+  <div id="modal-edit-vehicle" style="display: none; position: fixed; inset: 0; background: rgba(37,53,46,0.6); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: #fff; border-radius: 14px; max-width: 480px; width: 100%; padding: 24px; box-shadow: var(--shadow-elevated);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+        <h3 style="font-family: var(--font-heading); font-size: 18px; font-weight: 700; color: var(--primary);">Edit Vehicle</h3>
+        <button onclick="closeEditVehicleModal()" style="background: none; border: none; font-size: 22px; cursor: pointer; color: var(--text-dim);">&times;</button>
+      </div>
+      <form onsubmit="handleEditVehicleSubmit(event)" style="display: flex; flex-direction: column; gap: 14px;">
+        <input type="hidden" id="edit-veh-id" />
+        <div>
+          <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Registration Plate</label>
+          <input type="text" id="edit-veh-reg" required style="width: 100%; height: 38px; border: 1px solid var(--border); border-radius: 6px; padding: 0 10px; font-size: 13px;" />
+        </div>
+        <div>
+          <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Make & Model</label>
+          <input type="text" id="edit-veh-make" required style="width: 100%; height: 38px; border: 1px solid var(--border); border-radius: 6px; padding: 0 10px; font-size: 13px;" />
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div>
+            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Colour</label>
+            <input type="text" id="edit-veh-colour" required style="width: 100%; height: 38px; border: 1px solid var(--border); border-radius: 6px; padding: 0 10px; font-size: 13px;" />
+          </div>
+          <div>
+            <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Capacity Class</label>
+            <select id="edit-veh-capacity" style="width: 100%; height: 38px; border: 1px solid var(--border); border-radius: 6px; padding: 0 10px; font-size: 13px;">
+              <option value="4">4-Passenger Saloon</option>
+              <option value="7">7-Passenger MPV</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Operational Status</label>
+          <select id="edit-veh-status" style="width: 100%; height: 38px; border: 1px solid var(--border); border-radius: 6px; padding: 0 10px; font-size: 13px;">
+            <option value="AVAILABLE">Active / Available</option>
+            <option value="UNAVAILABLE">Unavailable / Maintenance</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Designated Chauffeur</label>
+          <select id="edit-veh-driver-id" style="width: 100%; height: 38px; border: 1px solid var(--border); border-radius: 6px; padding: 0 10px; font-size: 13px;">
+            <option value="">-- No Chauffeur Assigned --</option>
+          </select>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+          <button type="button" onclick="closeEditVehicleModal()" class="btn-action">Cancel</button>
+          <button type="submit" class="btn-action btn-primary">Update Vehicle</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Edit Driver -->
+  <div id="modal-edit-driver" style="display: none; position: fixed; inset: 0; background: rgba(37,53,46,0.6); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: #fff; border-radius: 14px; max-width: 480px; width: 100%; padding: 24px; box-shadow: var(--shadow-elevated);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+        <h3 style="font-family: var(--font-heading); font-size: 18px; font-weight: 700; color: var(--primary);">Edit Chauffeur</h3>
+        <button onclick="closeEditDriverModal()" style="background: none; border: none; font-size: 22px; cursor: pointer; color: var(--text-dim);">&times;</button>
+      </div>
+      <form onsubmit="handleEditDriverSubmit(event)" style="display: flex; flex-direction: column; gap: 14px;">
+        <input type="hidden" id="edit-drv-id" />
+        <div>
+          <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Full Name</label>
+          <input type="text" id="edit-drv-name" required style="width: 100%; height: 38px; border: 1px solid var(--border); border-radius: 6px; padding: 0 10px; font-size: 13px;" />
+        </div>
+        <div>
+          <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Telephone Number</label>
+          <input type="tel" id="edit-drv-phone" required style="width: 100%; height: 38px; border: 1px solid var(--border); border-radius: 6px; padding: 0 10px; font-size: 13px;" />
+        </div>
+        <div>
+          <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">TfL PCO License / Reference</label>
+          <input type="text" id="edit-drv-ref" required style="width: 100%; height: 38px; border: 1px solid var(--border); border-radius: 6px; padding: 0 10px; font-size: 13px;" />
+        </div>
+        <div>
+          <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Status</label>
+          <select id="edit-drv-status" style="width: 100%; height: 38px; border: 1px solid var(--border); border-radius: 6px; padding: 0 10px; font-size: 13px;">
+            <option value="ACTIVE">Active & Ready</option>
+            <option value="UNAVAILABLE">Unavailable / Off Duty</option>
+          </select>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
+          <button type="button" onclick="closeEditDriverModal()" class="btn-action">Cancel</button>
+          <button type="submit" class="btn-action btn-primary">Update Chauffeur</button>
         </div>
       </form>
     </div>

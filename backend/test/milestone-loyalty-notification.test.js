@@ -59,14 +59,18 @@ describe('Sprint Feature: Milestone Loyalty Vouchers (Every 3 Trips) & Booking C
     const completedCount = await BookingModel.countCompletedByCustomer(customerId);
     assert.equal(completedCount, 6, 'Should have exactly 6 completed journeys');
 
-    // Call awardMilestoneLoyaltyOffers
+    // Call awardMilestoneLoyaltyOffers (Rule 11: Single recommendation when >= 3 completed trips)
     const offers = await SpecialOfferModel.awardMilestoneLoyaltyOffers(customerId, testCustomer);
-    assert.equal(offers.length, 2, 'Should receive 2 loyalty vouchers for 6 completed journeys (1 every 3 journeys)');
+    assert.equal(offers.length, 1, 'Should receive exactly 1 loyalty voucher recommendation for completing >= 3 journeys');
+
+    // Verify reopening Offers does not create duplicates
+    const reopenOffers = await SpecialOfferModel.awardMilestoneLoyaltyOffers(customerId, testCustomer);
+    assert.equal(reopenOffers.length, 1, 'Reopening offers must not create duplicate vouchers');
 
     // Verify notifications created
     const notifs = await NotificationModel.getForAccount(customerId);
     const promoNotifs = notifs.filter(n => n.type === 'PROMO_AWARDED');
-    assert.equal(promoNotifs.length, 2, 'Should have 2 PROMO_AWARDED notifications');
+    assert.equal(promoNotifs.length, 1, 'Should have exactly 1 PROMO_AWARDED notification');
   });
 
   test('2. Booking creation records in-account notification with link to booking', async () => {

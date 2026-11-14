@@ -1081,8 +1081,17 @@
       lucide.createIcons();
     }
 
-    function handleAuthAction() {
+    async function handleAuthAction() {
       if (currentUser) {
+        const token = localStorage.getItem('sessionToken');
+        if (token) {
+          try {
+            await fetch(`${API_BASE}/api/auth/logout`, {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+          } catch (_) {}
+        }
         localStorage.removeItem('currentUser');
         localStorage.removeItem('sessionToken');
         triggerToast("Signed out successfully.");
@@ -1398,6 +1407,14 @@
         return;
       }
       selectedVehicleId = parseInt(vehicleId, 10);
+      const v = (currentAvailableVehicles || []).find(x => parseInt(x.id, 10) === selectedVehicleId);
+      if (v && v.capacity) {
+        const capSelect = document.getElementById('bk-capacity');
+        if (capSelect && capSelect.value !== String(v.capacity)) {
+          capSelect.value = String(v.capacity);
+          recalculateFareQuote();
+        }
+      }
       renderSelectedVehicleDetail(selectedVehicleId);
       debounceAutoSave();
     }
@@ -1703,7 +1720,17 @@
       }
 
       const paxInput = document.getElementById('bk-passengers');
-      const paxVal = paxInput ? parseInt(paxInput.value, 10) : NaN;
+      const rawPax = paxInput ? paxInput.value.trim() : '';
+      const paxNum = Number(rawPax);
+      if (!rawPax || isNaN(paxNum) || !Number.isInteger(paxNum) || paxNum < 1) {
+        triggerToast("Passenger count must be a positive whole integer (at least 1).", "error");
+        return;
+      }
+      if (paxNum > 7) {
+        triggerToast("Maximum passenger capacity is 7 passengers.", "error");
+        return;
+      }
+      const paxVal = paxNum;
       const capSelect = document.getElementById('bk-capacity');
       const capVal = capSelect ? parseInt(capSelect.value, 10) : NaN;
 
@@ -1742,7 +1769,7 @@
         pickupAddress: document.getElementById('bk-pickup').value.trim(),
         dropoffAddress: document.getElementById('bk-dropoff').value.trim(),
         pickupTime: pickupTimeVal,
-        passengerCount: paxVal || 1,
+        passengerCount: paxVal,
         vehicleCapacity: capVal || 4,
         vehicleId: selectedVehicleId || null,
         offerCode: appliedOffer ? appliedOffer.code : null,

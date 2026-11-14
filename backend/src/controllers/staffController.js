@@ -82,14 +82,25 @@ class StaffController {
         return res.status(404).json({ success: false, message: 'Customer account not found' });
       }
 
-      const pCount = passengerCount ? parseInt(passengerCount, 10) : 1;
-      if (pCount > 7) {
-        return res.status(400).json({
-          success: false,
-          code: 'EXCEEDS_MAX_PASSENGERS',
-          message: 'Maximum passenger capacity across our entire fleet is 7 passengers.',
-        });
+      let numPax = 1;
+      if (passengerCount !== undefined && passengerCount !== null && passengerCount !== '') {
+        numPax = Number(passengerCount);
+        if (isNaN(numPax) || !Number.isInteger(numPax) || numPax < 1) {
+          return res.status(400).json({
+            success: false,
+            code: 'INVALID_PASSENGER_COUNT',
+            message: 'Passenger count must be a positive whole integer (at least 1). Decimals, zero, and negative numbers are not permitted.',
+          });
+        }
+        if (numPax > 7) {
+          return res.status(400).json({
+            success: false,
+            code: 'EXCEEDS_MAX_PASSENGERS',
+            message: 'Maximum passenger capacity across our entire fleet is 7 passengers.',
+          });
+        }
       }
+      const pCount = numPax;
 
       let capacity = vehicleCapacity ? parseInt(vehicleCapacity, 10) : (pCount > 4 ? 7 : 4);
       if (pCount > 4 && capacity < 7) {
@@ -150,12 +161,23 @@ class StaffController {
       const resolvedStaffName = (req.user && req.user.name) || req.body.staffName || req.body.staff_name || 'Call Centre Operations';
       const resolvedStaffId = (req.user && req.user.id) || req.body.staffId || req.body.staff_id || null;
 
+      let assignedVehicleId = null;
+      let requestedDriverId = null;
+      if (req.body.vehicleId) {
+        const db = require('../config/db');
+        const vRes = await db.query('SELECT v.*, d.id as chauffeur_id FROM vehicles v LEFT JOIN drivers d ON v.driver_id = d.id WHERE v.id = $1', [req.body.vehicleId]);
+        if (vRes.rows.length > 0) {
+          assignedVehicleId = vRes.rows[0].id;
+          requestedDriverId = vRes.rows[0].chauffeur_id;
+        }
+      }
+
       const booking = await BookingModel.create({
         bookingCode,
         accountId: customer.id,
         pickupAddress,
         dropoffAddress,
-        pickupTime: pickupTime ? new Date(pickupTime) : new Date(),
+        pickupTime: pickupTime ? new Date(pickupTime) : new Date(Date.now() + 3600000),
         passengerName: customer.name,
         passengerPhone: customer.telephone,
         carType: capacity === 7 ? 'Seven-Passenger Executive MPV' : 'Four-Passenger Executive Saloon',
@@ -170,7 +192,7 @@ class StaffController {
         vehicleCapacity: capacity,
         fareCurrency: 'GBP',
         occupiedDurationMinutes: duration,
-        bookingChannel: 'STAFF_PHONE',
+        bookingChannel: (req.body.channel || 'TELEPHONE').toUpperCase(),
         baseFare: baseFare,
         discountAmount: 0.00, // No 15% online discount for staff/phone bookings
         promoCode: validPromoCode,
@@ -181,6 +203,9 @@ class StaffController {
         staffId: resolvedStaffId,
         staffName: resolvedStaffName,
         passengerCount: pCount,
+        vehicleId: assignedVehicleId,
+        driverId: requestedDriverId,
+        requestedDriverId: requestedDriverId,
       });
 
       // Notify customer account about the assisted booking created by staff
@@ -360,12 +385,18 @@ class StaffController {
 
       await BookingModel.setApproachingAlert(bookingId);
 
-      // Create persistent web notification in customer account
+      const ref = booking.booking_code || `BK-${booking.id}`;
+      const reg = booking.vehicle_reg || 'N/A';
+      const make = booking.vehicle_model || 'Executive Vehicle';
+      const colour = booking.vehicle_colour || '';
+      const vehicleDesc = colour ? `${colour} ${make} (${reg})` : `${make} (${reg})`;
+
+      // Create persistent web notification in customer account with booking reference, plate, make, colour, and 10-15 min ETA
       const notif = await NotificationModel.create({
         accountId: booking.account_id,
         bookingId: booking.id,
-        title: 'Chauffeur Approaching Pickup Location',
-        message: `Your chauffeur ${booking.driver_name || 'Marcus'} (${booking.vehicle_reg || 'Executive Saloon'}) is approaching ${booking.pickup_address}. Please be ready.`,
+        title: `Vehicle Approaching — Booking ${ref}`,
+        message: `Your ${vehicleDesc} is en route to ${booking.pickup_address} and is expected to arrive in approximately 10–15 minutes. Booking Reference: ${ref}. Chauffeur: ${booking.driver_name || 'Assigned Driver'}. Please be ready at the pickup point.`,
         type: 'APPROACHING_VEHICLE',
       });
 
@@ -522,20 +553,51 @@ class StaffController {
   static async replyEnquiry(req, res) {
     try {
       const enquiryId = req.params.id;
-      const { replyText } = req.body;
+      const replyContent = (req.body.replyText || req.body.replyMessage || req.body.message || '').trim();
       const staff = req.user;
 
-      if (!replyText || !replyText.trim()) {
-        return res.status(400).json({ success: false, message: 'Reply text is required' });
+      if (!replyContent) {
+        return res.status(400).json({ success: false, message: 'Reply text cannot be empty.' });
       }
 
-      const enquiry = await EnquiryModel.reply(enquiryId, staff.id, replyText);
+      const staffId = staff ? staff.id : (req.body.staffId || 1);
+      const enquiry = await EnquiryModel.reply(enquiryId, staffId, replyContent);
       if (!enquiry) return res.status(404).json({ success: false, message: 'Enquiry not found' });
+
+      // Gửi email trả lời qua cơ chế email localhost đang có
+      const { sendEmail } = require('../services/emailService');
+      const emailSubject = `[PrivateHire Cars] Response to enquiry ENQ-${String(enquiry.id).padStart(5, '0')}: ${enquiry.subject || 'Customer Support'}`;
+      const emailHtml = `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #25352E; max-width: 600px;">
+          <h2 style="color: #164B3B;">PrivateHire Cars — Customer Support Response</h2>
+          <p>Dear <strong>${enquiry.name || 'Valued Customer'}</strong>,</p>
+          <p>Thank you for contacting PrivateHire Cars Customer Service. Our operations team has reviewed your enquiry (Reference: <strong>ENQ-${String(enquiry.id).padStart(5, '0')}</strong>):</p>
+          <div style="background: #F4F1EA; border-left: 4px solid #164B3B; padding: 12px 16px; margin: 16px 0; border-radius: 4px;">
+            <p style="margin: 0; font-style: italic; color: #5E7168;">"${enquiry.message}"</p>
+          </div>
+          <h3 style="color: #164B3B; margin-top: 20px;">Staff Response:</h3>
+          <div style="background: #E8F5E9; border-left: 4px solid #2E7D32; padding: 12px 16px; margin: 16px 0; border-radius: 4px;">
+            <p style="margin: 0; font-weight: 500;">${replyContent.replace(/\n/g, '<br>')}</p>
+          </div>
+          <p style="font-size: 12px; color: #84988F; margin-top: 24px;">Replied by: ${staff?.name || 'Customer Operations Desk'} at ${new Date().toLocaleString()}</p>
+        </div>
+      `;
+
+      sendEmail({
+        toEmail: enquiry.email,
+        subject: emailSubject,
+        htmlContent: emailHtml,
+      }).catch(err => console.error('Error sending enquiry reply email:', err));
 
       res.json({
         success: true,
         message: `Reply recorded and dispatched to ${enquiry.email}.`,
-        enquiry,
+        enquiry: {
+          ...enquiry,
+          reference_code: `ENQ-${String(enquiry.id).padStart(5, '0')}`,
+          customer_name: enquiry.name,
+          reply_email: enquiry.email,
+        },
       });
     } catch (error) {
       res.status(500).json({ success: false, message: error.message });
@@ -654,6 +716,41 @@ class StaffController {
   }
 
   /**
+   * Cập nhật thông tin xe & trạng thái Active / Unavailable
+   */
+  static async updateVehicle(req, res) {
+    try {
+      const vehicleId = parseInt(req.params.id, 10);
+      const { regNumber, makeModel, colour, capacity, status, driverId } = req.body;
+      const vehicle = await VehicleModel.findById(vehicleId);
+      if (!vehicle) return res.status(404).json({ success: false, message: 'Vehicle not found' });
+
+      if (capacity !== undefined && capacity !== null) {
+        const cap = parseInt(capacity, 10);
+        if (cap !== 4 && cap !== 7) {
+          return res.status(400).json({ success: false, message: 'Vehicle capacity must be strictly 4 or 7' });
+        }
+      }
+
+      const updated = await VehicleModel.update(vehicleId, {
+        regNumber,
+        makeModel,
+        colour,
+        capacity,
+        status,
+        driverId: driverId ? parseInt(driverId, 10) : undefined,
+      });
+
+      res.json({ success: true, message: 'Vehicle updated successfully.', vehicle: updated });
+    } catch (error) {
+      if (error.code === 'VEHICLE_CURRENTLY_HELD') {
+        return res.status(400).json({ success: false, code: error.code, message: error.message });
+      }
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
+  /**
    * Phân công tài xế cho xe
    */
   static async assignVehicleDriver(req, res) {
@@ -694,6 +791,26 @@ class StaffController {
     } catch (error) {
       if (error.code === '23505') {
         return res.status(400).json({ success: false, message: 'Driver reference number already exists.' });
+      }
+      res.status(500).json({ success: false, message: error.message });
+    }
+  }
+
+  /**
+   * Cập nhật thông tin tài xế & trạng thái Active / Unavailable
+   */
+  static async updateDriver(req, res) {
+    try {
+      const driverId = parseInt(req.params.id, 10);
+      const { name, telephone, referenceNumber, status } = req.body;
+      const driver = await DriverModel.findById(driverId);
+      if (!driver) return res.status(404).json({ success: false, message: 'Driver not found' });
+
+      const updated = await DriverModel.update(driverId, { name, telephone, referenceNumber, status });
+      res.json({ success: true, message: 'Chauffeur updated successfully.', driver: updated });
+    } catch (error) {
+      if (error.code === 'DRIVER_CURRENTLY_HELD') {
+        return res.status(400).json({ success: false, code: error.code, message: error.message });
       }
       res.status(500).json({ success: false, message: error.message });
     }

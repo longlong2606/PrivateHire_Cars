@@ -20,9 +20,16 @@ class EnquiryModel {
 
   static async getAll() {
     const sql = `
-      SELECT e.*, b.booking_code
+      SELECT e.*, 
+             b.booking_code,
+             'ENQ-' || LPAD(e.id::text, 5, '0') AS reference_code,
+             'ENQ-' || LPAD(e.id::text, 5, '0') AS enquiry_code,
+             e.name AS customer_name,
+             e.email AS reply_email,
+             sa.name AS staff_name
       FROM enquiries e
       LEFT JOIN bookings b ON e.booking_id = b.id
+      LEFT JOIN accounts sa ON e.replied_by_staff_id = sa.id
       ORDER BY e.created_at DESC
     `;
     const res = await db.query(sql);

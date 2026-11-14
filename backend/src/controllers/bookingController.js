@@ -6,6 +6,7 @@ const DriverModel = require('../models/driverModel');
 const SpecialOfferModel = require('../models/specialOfferModel');
 const RefundModel = require('../models/refundModel');
 const NotificationModel = require('../models/notificationModel');
+const db = require('../config/db');
 const { sendBookingConfirmationEmail, sendSpecialOfferEmail } = require('../services/emailService');
 
 /**
@@ -62,24 +63,49 @@ const createBooking = async (req, res) => {
       });
     }
 
-    // 1. Kiểm tra tính hợp lệ của số lượng hành khách so với sức chứa của xe (Vehicle Capacity Class)
-    const resolvedPassengers = parseInt(passengerCount || passengers || pax || 1, 10);
-    let resolvedCapacity = vehicleCapacity ? parseInt(vehicleCapacity, 10) : 4;
-
-    if (isNaN(resolvedPassengers) || resolvedPassengers < 1) {
-      return res.status(400).json({
-        success: false,
-        code: 'INVALID_PASSENGER_COUNT',
-        message: 'Passenger count must be at least 1.',
-      });
+    // 1. [Point 4]: Kiểm tra tính hợp lệ của số lượng hành khách (từ chối 0, số âm, số lẻ; không tự đổi 0 hoặc 1.5 thành 1)
+    const rawPax = passengerCount !== undefined ? passengerCount : (passengers !== undefined ? passengers : (pax !== undefined ? pax : undefined));
+    let numPax = 1;
+    if (rawPax !== undefined && rawPax !== null && rawPax !== '') {
+      numPax = Number(rawPax);
+      if (isNaN(numPax) || !Number.isInteger(numPax) || numPax < 1) {
+        return res.status(400).json({
+          success: false,
+          code: 'INVALID_PASSENGER_COUNT',
+          message: 'Passenger count must be a positive whole integer (at least 1). Decimals, zero, and negative numbers are not permitted.',
+        });
+      }
+      if (numPax > 7) {
+        return res.status(400).json({
+          success: false,
+          code: 'EXCEEDS_MAX_PASSENGERS',
+          message: 'Maximum passenger capacity across our entire executive fleet is 7 passengers.',
+        });
+      }
     }
+    const resolvedPassengers = numPax;
 
-    if (resolvedPassengers > 7) {
-      return res.status(400).json({
-        success: false,
-        code: 'EXCEEDS_MAX_PASSENGERS',
-        message: 'Maximum passenger capacity across our entire executive fleet is 7 passengers.',
-      });
+    // [Point 3]: Đồng bộ xe được chọn, capacity class và bảng giá
+    let selectedVehicle = null;
+    let resolvedCapacity = vehicleCapacity ? parseInt(vehicleCapacity, 10) : (resolvedPassengers > 4 ? 7 : 4);
+
+    if (vehicleId) {
+      const vLookup = await db.query(`
+        SELECT v.*, d.name AS driver_name, d.status AS driver_status, d.telephone AS driver_phone, d.reference_number AS driver_ref, d.driver_code
+        FROM vehicles v
+        LEFT JOIN drivers d ON v.driver_id = d.id
+        WHERE v.id = $1
+      `, [vehicleId]);
+      if (vLookup.rows.length === 0 || vLookup.rows[0].status !== 'ACTIVE') {
+        return res.status(400).json({
+          success: false,
+          code: 'VEHICLE_NOT_AVAILABLE',
+          message: 'Selected vehicle is not available or inactive.',
+        });
+      }
+      selectedVehicle = vLookup.rows[0];
+      // Khách chọn xe thực tế: đồng bộ capacity class theo xe thực tế
+      resolvedCapacity = selectedVehicle.capacity;
     }
 
     if (resolvedPassengers > resolvedCapacity) {
@@ -90,36 +116,29 @@ const createBooking = async (req, res) => {
       });
     }
 
-    // 2. Tính giá gốc theo Table 8
+    // 2. [Point 2]: Tính giá backend chính thức theo Table 8 (Không nhận giá client)
     let resolvedServiceId = serviceId || null;
     let resolvedServiceName = serviceName || null;
     let resolvedCurrency = 'GBP';
     let resolvedDuration = 60;
-    let baseFare = fareAmount;
+    let baseFare = null;
 
-    const serviceKey = service || serviceId || serviceCode || serviceName;
-    if (serviceKey) {
-      try {
-        const quote = await ServiceModel.calculateFareAndDuration(serviceKey, resolvedCapacity);
-        if (quote) {
-          resolvedServiceId = quote.serviceId;
-          resolvedServiceName = quote.serviceName;
-          resolvedCapacity = quote.vehicleCapacity;
-          resolvedDuration = quote.occupiedDurationMinutes;
-          resolvedCurrency = quote.currency;
-          if (baseFare === undefined || baseFare === null) {
-            baseFare = quote.fixedFare;
-          }
-        }
-      } catch (_) {}
+    const serviceKey = service || serviceId || serviceCode || serviceName || 'Airport transfer';
+    const quote = await ServiceModel.calculateFareAndDuration(serviceKey, resolvedCapacity);
+    if (quote) {
+      resolvedServiceId = quote.serviceId;
+      resolvedServiceName = quote.serviceName;
+      resolvedCapacity = quote.vehicleCapacity;
+      resolvedDuration = quote.occupiedDurationMinutes;
+      resolvedCurrency = quote.currency;
+      baseFare = quote.fixedFare;
+    } else {
+      baseFare = resolvedCapacity === 7 ? 65.00 : 45.00;
     }
 
-    if (baseFare === undefined || baseFare === null) {
-      baseFare = 45.00;
-    }
-
-    // 2. [P02]: 15% Automatic Online Discount
-    const onlineDiscount = Math.round(baseFare * 0.15 * 100) / 100;
+    // Channel check (Point 8): Chỉ kênh ONLINE mới tự động giảm 15%
+    const bookingChannel = (channel || 'ONLINE').toUpperCase();
+    const onlineDiscount = bookingChannel === 'ONLINE' ? Math.round(baseFare * 0.15 * 100) / 100 : 0.00;
 
     // 3. [P09]: Special Offer Promo Code Deduction (applied after 15% discount)
     let promoDiscount = 0.00;
@@ -161,7 +180,6 @@ const createBooking = async (req, res) => {
       promoDiscount = parseFloat(offer.discount_amount);
       validPromoCode = offer.code;
       validVoucherId = offer.id;
-      await SpecialOfferModel.markUsed(validPromoCode);
     }
 
     // Total cannot be negative (P02)
@@ -192,7 +210,6 @@ const createBooking = async (req, res) => {
     const isDirectConfirmed = requestedStatus === 'CONFIRMED';
 
     // Verify Vehicle & Driver from DB
-    const db = require('../config/db');
     let assignedVehicleId = null;
     let requestedDriverId = null;
 
@@ -208,23 +225,8 @@ const createBooking = async (req, res) => {
 
     const excludeId = existingPending ? existingPending.id : null;
 
-    if (vehicleId) {
-      const vRes = await db.query(`
-        SELECT v.*, d.name AS driver_name, d.status AS driver_status 
-        FROM vehicles v 
-        LEFT JOIN drivers d ON v.driver_id = d.id 
-        WHERE v.id = $1
-      `, [vehicleId]);
-
-      if (vRes.rows.length === 0 || vRes.rows[0].status !== 'ACTIVE') {
-        return res.status(400).json({
-          success: false,
-          code: 'VEHICLE_NOT_AVAILABLE',
-          message: 'Selected vehicle is not available or inactive.',
-        });
-      }
-
-      const veh = vRes.rows[0];
+    if (selectedVehicle) {
+      const veh = selectedVehicle;
       if (veh.capacity < resolvedPassengers) {
         return res.status(400).json({
           success: false,
@@ -516,8 +518,6 @@ const simulatePayment = async (req, res) => {
       validVoucher = offer;
     }
 
-    const db = require('../config/db');
-
     // Re-check availability of vehicle and requested chauffeur (excluding this booking)
     const vehicleId = booking.vehicle_id;
     const requestedDriverId = booking.requested_driver_id || booking.driver_id;
@@ -644,11 +644,16 @@ const amendBooking = async (req, res) => {
   try {
     const bookingId = req.params.id;
     const customer = req.user;
-    const { pickupAddress, dropoffAddress, pickupTime, service, vehicleCapacity } = req.body;
+    const { pickupAddress, dropoffAddress, pickupTime, service, vehicleCapacity, vehicleId, passengerCount } = req.body;
 
-    const booking = await BookingModel.findById(bookingId);
+    const booking = /^\d+$/.test(bookingId)
+      ? await BookingModel.findById(bookingId)
+      : await BookingModel.findByCode(bookingId);
+
     if (!booking) return res.status(404).json({ success: false, message: 'Booking not found' });
-    if (booking.account_id !== customer.id) return res.status(403).json({ success: false, message: 'Forbidden' });
+    if (booking.account_id !== customer.id && customer.role !== 'STAFF' && customer.role !== 'ADMIN') {
+      return res.status(403).json({ success: false, message: 'Forbidden' });
+    }
 
     // Status check
     const allowedStatuses = ['PENDING', 'CONFIRMED', 'ASSIGNED'];
@@ -671,14 +676,54 @@ const amendBooking = async (req, res) => {
       });
     }
 
-    // Recalculate fare
-    const resolvedCapacity = vehicleCapacity ? parseInt(vehicleCapacity, 10) : booking.vehicle_capacity;
-    let baseFare = booking.base_fare;
+    const newPickupTime = pickupTime ? new Date(pickupTime) : currentPickup;
+    if (newPickupTime.getTime() < Date.now() + 24 * 3600 * 1000) {
+      return res.status(400).json({
+        success: false,
+        message: 'Amended pickup time must be at least 24 hours in the future.',
+      });
+    }
+
+    // Passenger count validation if amended
+    let resolvedPax = booking.passenger_count || 1;
+    if (passengerCount !== undefined && passengerCount !== null) {
+      const num = Number(passengerCount);
+      if (isNaN(num) || !Number.isInteger(num) || num < 1 || num > 7) {
+        return res.status(400).json({
+          success: false,
+          code: 'INVALID_PASSENGER_COUNT',
+          message: 'Passenger count must be a positive whole integer between 1 and 7.',
+        });
+      }
+      resolvedPax = num;
+    }
+
+    // Vehicle lookup & capacity sync
+    let targetVehicleId = vehicleId || booking.vehicle_id;
+    let resolvedCapacity = vehicleCapacity ? parseInt(vehicleCapacity, 10) : booking.vehicle_capacity;
+
+    if (vehicleId) {
+      const vLookup = await db.query('SELECT * FROM vehicles WHERE id = $1', [vehicleId]);
+      if (vLookup.rows.length > 0) {
+        resolvedCapacity = vLookup.rows[0].capacity;
+      }
+    }
+
+    if (resolvedPax > resolvedCapacity) {
+      return res.status(400).json({
+        success: false,
+        code: 'PASSENGERS_EXCEED_CAPACITY',
+        message: `Passenger count (${resolvedPax}) exceeds vehicle capacity (${resolvedCapacity} seats). Please select 7-Seat MPV.`,
+      });
+    }
+
+    // Recalculate fare according to Table 8
+    let baseFare = parseFloat(booking.base_fare || booking.fare_amount || 45.00);
     let resolvedService = service || booking.service_name;
-    let duration = booking.occupied_duration_minutes;
+    let duration = booking.occupied_duration_minutes || 60;
     let serviceId = booking.service_id;
 
-    if (service || vehicleCapacity) {
+    if (service || vehicleCapacity || vehicleId) {
       const quote = await ServiceModel.calculateFareAndDuration(resolvedService, resolvedCapacity);
       if (quote) {
         baseFare = quote.fixedFare;
@@ -688,24 +733,50 @@ const amendBooking = async (req, res) => {
       }
     }
 
-    const discountAmount = Math.round(baseFare * 0.15 * 100) / 100;
-    const finalFare = Math.max(0, Math.round((baseFare - discountAmount - (booking.promo_discount || 0)) * 100) / 100);
-
-    // If new fare is lower than old fare and customer has paid, create a refund request for the difference
-    if (booking.payment_status === 'PAID' && finalFare < parseFloat(booking.final_fare || booking.fare_amount)) {
-      const diff = parseFloat(booking.final_fare || booking.fare_amount) - finalFare;
-      await RefundModel.create({
-        bookingId: booking.id,
-        accountId: customer.id,
-        amount: diff,
-        reason: `Amendment fare reduction for ${booking.booking_code}`,
+    // Check conflict for amended journey (Point 3: Loại chính booking khỏi kiểm tra xung đột)
+    if (targetVehicleId) {
+      const hasVConflict = await BookingModel.hasVehicleConflict({
+        vehicleId: targetVehicleId,
+        pickupTime: newPickupTime,
+        durationMinutes: duration,
+        excludeBookingId: booking.id,
       });
+      if (hasVConflict) {
+        return res.status(400).json({
+          success: false,
+          code: 'VEHICLE_CONFLICT',
+          message: 'The selected vehicle has an overlapping booking for the amended time slot.',
+        });
+      }
     }
 
-    const updated = await BookingModel.amendBooking(bookingId, {
-      pickupAddress: pickupAddress || booking.pickup_address,
-      dropoffAddress: dropoffAddress || booking.dropoff_address,
-      pickupTime: pickupTime ? new Date(pickupTime) : booking.pickup_time,
+    const isOnline = (booking.booking_channel || 'ONLINE').toUpperCase() === 'ONLINE';
+    const discountAmount = isOnline ? Math.round(baseFare * 0.15 * 100) / 100 : 0.00;
+    const finalFare = Math.max(0, Math.round((baseFare - discountAmount - (booking.promo_discount || 0)) * 100) / 100);
+
+    const oldFare = parseFloat(booking.final_fare || booking.fare_amount || 0);
+    let newPaymentStatus = booking.payment_status;
+
+    // Handle payment adjustment (Point 6: xử lý khoản trả thêm hoặc refund khi cần)
+    if (booking.payment_status === 'PAID') {
+      if (finalFare < oldFare) {
+        const diff = Math.round((oldFare - finalFare) * 100) / 100;
+        await RefundModel.create({
+          bookingId: booking.id,
+          accountId: customer.id,
+          amount: diff,
+          reason: `Amendment fare reduction for #${booking.booking_code} (£${oldFare.toFixed(2)} -> £${finalFare.toFixed(2)})`,
+        });
+      } else if (finalFare > oldFare) {
+        // Customer needs to pay difference
+        newPaymentStatus = 'UNPAID';
+      }
+    }
+
+    const updated = await BookingModel.amendBooking(booking.id, {
+      pickupAddress: pickupAddress ? pickupAddress.trim() : booking.pickup_address,
+      dropoffAddress: dropoffAddress ? dropoffAddress.trim() : booking.dropoff_address,
+      pickupTime: newPickupTime,
       serviceId,
       serviceName: resolvedService,
       vehicleCapacity: resolvedCapacity,
@@ -713,11 +784,14 @@ const amendBooking = async (req, res) => {
       discountAmount,
       finalFare,
       occupiedDurationMinutes: duration,
+      vehicleId: targetVehicleId,
+      passengerCount: resolvedPax,
+      paymentStatus: newPaymentStatus,
     });
 
     res.json({
       success: true,
-      message: 'Booking amended successfully with recalculated Table 8 fare and 15% online discount.',
+      message: 'Booking amended successfully with recalculated Table 8 fare and resource validation.',
       booking: updated,
     });
   } catch (error) {
@@ -736,9 +810,14 @@ const cancelBooking = async (req, res) => {
     const customer = req.user;
     const { reason = 'Customer requested cancellation' } = req.body;
 
-    const booking = await BookingModel.findById(bookingId);
+    const booking = /^\d+$/.test(bookingId)
+      ? await BookingModel.findById(bookingId)
+      : await BookingModel.findByCode(bookingId);
+
     if (!booking) return res.status(404).json({ success: false, message: 'Booking not found' });
-    if (booking.account_id !== customer.id) return res.status(403).json({ success: false, message: 'Forbidden' });
+    if (booking.account_id !== customer.id && customer.role !== 'STAFF' && customer.role !== 'ADMIN') {
+      return res.status(403).json({ success: false, message: 'Forbidden' });
+    }
 
     const allowedStatuses = ['PENDING', 'CONFIRMED', 'ASSIGNED'];
     if (!allowedStatuses.includes(booking.status)) {
@@ -759,16 +838,16 @@ const cancelBooking = async (req, res) => {
       });
     }
 
-    // Cancel booking and free vehicle & driver
-    const cancelled = await BookingModel.cancelBooking(bookingId);
+    // Cancel booking and free vehicle & driver (Point 5: giải phóng xe/tài xế)
+    const cancelled = await BookingModel.cancelBooking(booking.id);
 
-    // If customer paid, create a pending refund request for net paid amount
+    // If customer paid, create a pending refund request for net paid amount (Point 5: tạo đúng refund request)
     let refundCreated = false;
     if (booking.payment_status === 'PAID') {
       const netAmount = parseFloat(booking.final_fare || booking.fare_amount);
       await RefundModel.create({
         bookingId: booking.id,
-        accountId: customer.id,
+        accountId: booking.account_id,
         amount: netAmount,
         reason: `Cancellation refund: ${reason}`,
       });
@@ -816,11 +895,24 @@ const getPrintableReceipt = async (req, res) => {
     const vat = Math.round(netAmount * 0.20 * 100) / 100;
     const totalWithVat = netAmount;
 
+    // Retrieve refund requests history if any
+    let refundHistory = [];
+    try {
+      const refundRes = await db.query(
+        'SELECT id, amount, reason, status, created_at, processed_at, staff_notes FROM refund_requests WHERE booking_id = $1 ORDER BY created_at DESC',
+        [booking.id]
+      );
+      refundHistory = refundRes.rows || [];
+    } catch (_) {}
+
+    const paymentRef = booking.payment_reference || booking.card_ref_used || `TXN-${booking.booking_code}`;
+
     res.json({
       success: true,
       receipt: {
         receiptNumber: `REC-${booking.booking_code}`,
         issuedAt: new Date().toISOString(),
+        paymentReference: paymentRef,
         customer: {
           name: booking.passenger_name,
           phone: booking.passenger_phone,
@@ -840,11 +932,32 @@ const getPrintableReceipt = async (req, res) => {
           onlineDiscount: parseFloat(booking.discount_amount || 0.00),
           promoDiscount: parseFloat(booking.promo_discount || 0.00),
           netPaid: netAmount,
+          actualPaidAmount: netAmount,
+          paymentReference: paymentRef,
           currency: booking.fare_currency || 'GBP',
           vatIncluded: vat,
           paymentMethod: booking.payment_method,
           cardRefUsed: booking.card_ref_used,
         },
+        paymentHistory: [
+          {
+            type: 'CHARGE',
+            method: booking.payment_method || 'CARD',
+            reference: paymentRef,
+            amount: netAmount,
+            status: booking.payment_status || 'PAID',
+            date: booking.updated_at || booking.created_at,
+          }
+        ],
+        refundHistory: refundHistory.map(r => ({
+          type: 'REFUND',
+          id: r.id,
+          amount: parseFloat(r.amount),
+          reason: r.reason,
+          status: r.status,
+          date: r.created_at,
+          processedAt: r.processed_at,
+        })),
       },
     });
   } catch (error) {
