@@ -1,4 +1,5 @@
 const BookingModel = require('../models/bookingModel');
+const AccountModel = require('../models/accountModel');
 const ServiceModel = require('../models/serviceModel');
 const BookingDraftModel = require('../models/bookingDraftModel');
 const VehicleModel = require('../models/vehicleModel');
@@ -477,8 +478,8 @@ const simulatePayment = async (req, res) => {
       });
     }
 
-    // Idempotency: if already CONFIRMED or ASSIGNED
-    if (booking.status === 'CONFIRMED' || booking.status === 'ASSIGNED') {
+    // Idempotency: if already CONFIRMED, ASSIGNED, or COMPLETED
+    if (booking.status === 'CONFIRMED' || booking.status === 'ASSIGNED' || booking.status === 'COMPLETED') {
       return res.json({
         success: true,
         message: 'Booking is already confirmed.',
@@ -594,9 +595,13 @@ const simulatePayment = async (req, res) => {
       await SpecialOfferModel.markUsed(booking.promo_code).catch(() => {});
     }
 
-    // Send real confirmation email
-    const recipientEmail = customer.email || booking.customer_email;
-    const recipientName = customer.name || booking.passenger_name;
+    // Send real confirmation email to the actual customer
+    let customerAccount = null;
+    if (booking.account_id) {
+      customerAccount = await AccountModel.findById(booking.account_id);
+    }
+    const recipientEmail = (customerAccount && customerAccount.email) || booking.customer_email || (customer.role !== 'STAFF' && customer.role !== 'ADMIN' ? customer.email : null);
+    const recipientName = (customerAccount && customerAccount.name) || booking.passenger_name || (customer.role !== 'STAFF' && customer.role !== 'ADMIN' ? customer.name : 'Valued Customer');
     if (recipientEmail) {
       sendBookingConfirmationEmail({
         toEmail: recipientEmail,

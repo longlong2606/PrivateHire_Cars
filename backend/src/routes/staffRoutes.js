@@ -9,6 +9,7 @@ router.use(requireAuth, requireStaff);
 // Bookings & Journey Dispatch
 router.get('/bookings', StaffController.getAllBookings);
 router.post('/bookings', StaffController.createStaffBooking);
+router.post('/bookings/:id/confirm', StaffController.confirmStaffBooking);
 router.post('/verify-voucher', StaffController.verifyPromoCode);
 router.patch('/bookings/:id/status', StaffController.updateJourneyStatus);
 router.post('/bookings/:id/journey-status', StaffController.updateJourneyStatus);

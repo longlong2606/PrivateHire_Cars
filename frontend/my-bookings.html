@@ -1003,24 +1003,50 @@
     let currentUser = null;
     let customerBookings = [];
 
-    window.addEventListener('DOMContentLoaded', () => {
+    function initMyBookingsPage() {
       const saved = localStorage.getItem('currentUser');
       const token = localStorage.getItem('sessionToken');
       if (!saved || !token) {
-        window.location.href = "login.html";
+        const container = document.getElementById('bookings-container');
+        if (container) {
+          container.innerHTML = `
+            <div style="background: var(--bg-card, #FFFFFF); border: 1px dashed var(--border-medium); border-radius: var(--radius-lg); padding: 50px 20px; text-align: center;">
+              <i data-lucide="lock" style="width: 42px; height: 42px; color: var(--accent-gold); margin-bottom: 12px;"></i>
+              <h3 style="font-family: var(--font-heading); font-size: 18px; margin-bottom: 6px; color: var(--text-main);">Sign In Required</h3>
+              <p style="font-size: 13.5px; color: var(--text-muted); margin-bottom: 18px;">Please sign in to view your journey history, printable receipts, and manage bookings.</p>
+              <a href="login.html" class="btn-outline-sm" style="background: var(--primary); color: #fff; border: none; padding: 10px 18px;">
+                Sign In Now
+              </a>
+            </div>
+          `;
+          if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            window.lucide.createIcons();
+          }
+        }
+        setTimeout(() => {
+          window.location.href = "login.html";
+        }, 1200);
         return;
       }
       try {
         currentUser = JSON.parse(saved);
-        document.getElementById('user-display').style.display = 'inline-flex';
-        document.getElementById('user-name-text').textContent = currentUser.name || 'Customer';
+        const userDisplay = document.getElementById('user-display');
+        const userNameText = document.getElementById('user-name-text');
+        if (userDisplay) userDisplay.style.display = 'inline-flex';
+        if (userNameText) userNameText.textContent = currentUser.name || 'Customer';
         if (window.initUserProfileDropdown) window.initUserProfileDropdown();
       } catch (_) {
         window.location.href = "login.html";
         return;
       }
       fetchMyBookings();
-    });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initMyBookingsPage);
+    } else {
+      initMyBookingsPage();
+    }
 
     async function handleAuthAction() {
       const token = localStorage.getItem('sessionToken');
@@ -1039,21 +1065,57 @@
 
     async function fetchMyBookings() {
       const container = document.getElementById('bookings-container');
+      if (!container) return;
+
+      container.innerHTML = `
+        <div style="text-align: center; padding: 60px 20px; color: var(--text-muted);">
+          <i data-lucide="loader" style="width: 32px; height: 32px; animation: spin 1.5s linear infinite;"></i>
+          <p style="margin-top: 12px; font-size: 14px;">Loading your bookings...</p>
+        </div>
+      `;
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        window.lucide.createIcons();
+      }
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 12000);
+
       try {
+        const token = localStorage.getItem('sessionToken') || '';
         const res = await fetch(`${API_BASE}/api/bookings/my-bookings`, {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('sessionToken') || ''}` }
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Cache-Control': 'no-cache'
+          },
+          signal: controller.signal
         });
+        clearTimeout(timeoutId);
 
         if (res.status === 401 || res.status === 403) {
           localStorage.removeItem('currentUser');
           localStorage.removeItem('sessionToken');
-          window.location.href = "login.html";
+          container.innerHTML = `
+            <div style="background: var(--bg-card, #FFFFFF); border: 1px dashed var(--border-medium); border-radius: var(--radius-lg); padding: 50px 20px; text-align: center;">
+              <i data-lucide="alert-circle" style="width: 42px; height: 42px; color: var(--accent-gold); margin-bottom: 12px;"></i>
+              <h3 style="font-family: var(--font-heading); font-size: 18px; margin-bottom: 6px; color: var(--text-main);">Session Expired</h3>
+              <p style="font-size: 13.5px; color: var(--text-muted); margin-bottom: 18px;">Your session has expired or is invalid. Please sign in again to view your bookings.</p>
+              <a href="login.html" class="btn-outline-sm" style="background: var(--primary); color: #fff; border: none; padding: 10px 18px;">Sign In</a>
+            </div>
+          `;
+          if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            window.lucide.createIcons();
+          }
+          setTimeout(() => { window.location.href = "login.html"; }, 1500);
           return;
         }
 
         const data = await res.json();
 
-        if (res.ok && data.success && data.bookings && data.bookings.length > 0) {
+        if (!res.ok || !data.success) {
+          throw new Error(data.message || `Server returned error (${res.status})`);
+        }
+
+        if (Array.isArray(data.bookings) && data.bookings.length > 0) {
           customerBookings = data.bookings;
           renderBookingsList(customerBookings);
           const urlParams = new URLSearchParams(window.location.search);
@@ -1063,19 +1125,37 @@
           }
         } else {
           container.innerHTML = `
-            <div style="background: #FFFFFF; border: 1px dashed var(--border-medium); border-radius: var(--radius-lg); padding: 50px 20px; text-align: center;">
+            <div style="background: var(--bg-card, #FFFFFF); border: 1px dashed var(--border-medium); border-radius: var(--radius-lg); padding: 50px 20px; text-align: center;">
               <i data-lucide="calendar-x" style="width: 42px; height: 42px; color: var(--text-dim); margin-bottom: 12px;"></i>
-              <h3 style="font-family: var(--font-heading); font-size: 18px; margin-bottom: 6px;">No Bookings Found</h3>
+              <h3 style="font-family: var(--font-heading); font-size: 18px; margin-bottom: 6px; color: var(--text-main);">No Bookings Found</h3>
               <p style="font-size: 13.5px; color: var(--text-muted); margin-bottom: 18px;">You haven't booked any journeys yet.</p>
               <a href="booking.html" class="btn-outline-sm" style="background: var(--primary); color: #fff; border: none; padding: 10px 18px;">
                 Book Your First Minicab
               </a>
             </div>
           `;
-          lucide.createIcons();
+          if (window.lucide && typeof window.lucide.createIcons === 'function') {
+            window.lucide.createIcons();
+          }
         }
       } catch (err) {
-        container.innerHTML = `<p style="color: var(--text-error); text-align: center;">Error loading bookings: ${err.message}</p>`;
+        clearTimeout(timeoutId);
+        const isTimeout = err.name === 'AbortError';
+        container.innerHTML = `
+          <div style="background: var(--bg-card, #FFFFFF); border: 1px dashed rgba(185, 74, 72, 0.4); border-radius: var(--radius-lg); padding: 40px 20px; text-align: center;">
+            <i data-lucide="alert-triangle" style="width: 36px; height: 36px; color: var(--text-error); margin-bottom: 12px;"></i>
+            <h3 style="font-family: var(--font-heading); font-size: 17px; margin-bottom: 6px; color: var(--text-main);">Unable to Load Bookings</h3>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 18px;">
+              ${isTimeout ? 'The request timed out while connecting to the server. Please check your connection and try again.' : escapeHtml(err.message)}
+            </p>
+            <button type="button" class="btn-outline-sm" onclick="fetchMyBookings()" style="background: var(--primary); color: #fff; border: none; padding: 9px 18px; font-weight: 600; cursor: pointer;">
+              <i data-lucide="refresh-cw" style="width: 14px; height: 14px; vertical-align: middle;"></i> Retry Now
+            </button>
+          </div>
+        `;
+        if (window.lucide && typeof window.lucide.createIcons === 'function') {
+          window.lucide.createIcons();
+        }
       }
     }
 

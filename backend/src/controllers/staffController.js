@@ -143,7 +143,6 @@ class StaffController {
         promoDiscount = parseFloat(offer.discount_amount);
         validPromoCode = offer.code;
         validVoucherId = offer.id;
-        await SpecialOfferModel.markUsed(validPromoCode);
       }
 
       const finalFare = Math.max(0, Math.round((baseFare - promoDiscount) * 100) / 100);
@@ -156,8 +155,6 @@ class StaffController {
       const cardRef = paymentMethod === 'MOCK_CARD'
         ? (customer.mock_card_ref || customer.mockCardRef || 'CARD-ON-FILE')
         : (paymentMethod === 'INVOICE' ? 'Corporate Invoice Net-30' : 'Cash on Completion');
-
-      const paymentStatus = paymentMethod === 'MOCK_CARD' ? 'PAID' : 'UNPAID';
 
       const resolvedStaffName = (req.user && req.user.name) || req.body.staffName || req.body.staff_name || 'Call Centre Operations';
       const resolvedStaffId = (req.user && req.user.id) || req.body.staffId || req.body.staff_id || null;
@@ -173,6 +170,19 @@ class StaffController {
         }
       }
 
+      const channel = (req.body.channel || 'TELEPHONE').toUpperCase();
+      const requestedStatus = (req.body.status || '').toUpperCase();
+      const isDirectConfirmed = requestedStatus === 'CONFIRMED' || (req.body.isDirectConfirmed === true) || (!req.body.channel && paymentMethod === 'MOCK_CARD' && requestedStatus !== 'PENDING');
+
+      const bookingStatus = isDirectConfirmed ? 'CONFIRMED' : 'PENDING';
+      const paymentStatus = isDirectConfirmed ? (paymentMethod === 'MOCK_CARD' ? 'PAID' : 'UNPAID') : 'UNPAID';
+      const paidAmount = paymentStatus === 'PAID' ? finalFare : 0.00;
+      const assignedDriverId = isDirectConfirmed ? requestedDriverId : null;
+
+      if (isDirectConfirmed && validPromoCode) {
+        await SpecialOfferModel.markUsed(validPromoCode).catch(() => {});
+      }
+
       const booking = await BookingModel.create({
         bookingCode,
         accountId: customer.id,
@@ -185,15 +195,16 @@ class StaffController {
         fareAmount: baseFare,
         paymentMethod,
         cardRefUsed: cardRef,
-        status: 'CONFIRMED',
+        status: bookingStatus,
         paymentStatus,
+        paidAmount,
         notes: bookingNotes,
         serviceId,
         serviceName: resolvedServiceName,
         vehicleCapacity: capacity,
         fareCurrency: 'GBP',
         occupiedDurationMinutes: duration,
-        bookingChannel: (req.body.channel || 'TELEPHONE').toUpperCase(),
+        bookingChannel: channel,
         baseFare: baseFare,
         discountAmount: 0.00, // No 15% online discount for staff/phone bookings
         promoCode: validPromoCode,
@@ -205,39 +216,42 @@ class StaffController {
         staffName: resolvedStaffName,
         passengerCount: pCount,
         vehicleId: assignedVehicleId,
-        driverId: requestedDriverId,
+        driverId: assignedDriverId,
         requestedDriverId: requestedDriverId,
       });
 
-      // Notify customer account about the assisted booking created by staff
-      await NotificationModel.create({
-        accountId: customer.id,
-        bookingId: booking.id,
-        title: 'Assisted Booking Created — #' + booking.booking_code,
-        message: `Staff ${resolvedStaffName} has scheduled minicab booking #${booking.booking_code} for you from ${pickupAddress} to ${dropoffAddress}. Click to view details of your journey.`,
-        type: 'BOOKING_CONFIRMED',
-      }).catch(err => console.error('Error creating assisted booking notification:', err));
+      // Confirmation actions only if directly confirmed
+      if (isDirectConfirmed) {
+        await NotificationModel.create({
+          accountId: customer.id,
+          bookingId: booking.id,
+          title: 'Assisted Booking Created — #' + booking.booking_code,
+          message: `Staff ${resolvedStaffName} has scheduled minicab booking #${booking.booking_code} for you from ${pickupAddress} to ${dropoffAddress}. Click to view details of your journey.`,
+          type: 'BOOKING_CONFIRMED',
+        }).catch(err => console.error('Error creating assisted booking notification:', err));
 
-      // Send real booking confirmation email to customer (P04)
-      if (customer && customer.email) {
-        sendBookingConfirmationEmail({
-          toEmail: customer.email,
-          name: customer.name,
-          bookingCode: booking.booking_code,
-          pickupAddress: booking.pickup_address,
-          dropoffAddress: booking.dropoff_address,
-          pickupTime: booking.pickup_time,
-          serviceName: booking.service_name || 'Staff Assisted Journey',
-          vehicleCapacity: booking.vehicle_capacity || capacity,
-          fareAmount: booking.final_fare || booking.fare_amount,
-          paymentMethod: booking.payment_method,
-          paymentStatus: booking.payment_status,
-        }).catch(err => console.warn(`⚠️ [Staff Booking Email Notice]: ${err.message}`));
+        if (customer && customer.email) {
+          sendBookingConfirmationEmail({
+            toEmail: customer.email,
+            name: customer.name,
+            bookingCode: booking.booking_code,
+            pickupAddress: booking.pickup_address,
+            dropoffAddress: booking.dropoff_address,
+            pickupTime: booking.pickup_time,
+            serviceName: booking.service_name || 'Staff Assisted Journey',
+            vehicleCapacity: booking.vehicle_capacity || capacity,
+            fareAmount: booking.final_fare || booking.fare_amount,
+            paymentMethod: booking.payment_method,
+            paymentStatus: booking.payment_status,
+          }).catch(err => console.warn(`⚠️ [Staff Booking Email Notice]: ${err.message}`));
+        }
       }
 
       res.status(201).json({
         success: true,
-        message: 'Staff assisted booking confirmed successfully (Standard Table 8 Fare, No Online Discount).',
+        message: isDirectConfirmed
+          ? 'Staff assisted booking confirmed successfully (Standard Table 8 Fare, No Online Discount).'
+          : 'Staff assisted booking created in PENDING status. Please review and confirm booking with customer.',
         booking,
         fareBreakdown: {
           baseFare,
@@ -250,6 +264,15 @@ class StaffController {
     } catch (error) {
       res.status(500).json({ success: false, message: error.message });
     }
+  }
+
+  /**
+   * [Epic 2]: Xác nhận cuốc xe Staff Assisted Booking (Telephone / In-Person)
+   * Kiểm tra giờ đón, giá chính thức, sức chứa, availability xe/tài xế, offer và thanh toán mô phỏng
+   */
+  static async confirmStaffBooking(req, res) {
+    const { simulatePayment } = require('./bookingController');
+    return simulatePayment(req, res);
   }
 
   /**

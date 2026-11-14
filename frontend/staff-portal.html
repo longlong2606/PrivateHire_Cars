@@ -1748,7 +1748,8 @@
         serviceName: document.getElementById('asst-service').value,
         pickupAddress: document.getElementById('asst-pickup').value.trim(),
         dropoffAddress: document.getElementById('asst-dropoff').value.trim(),
-        channel: document.getElementById('asst-channel').value,
+        channel: document.getElementById('asst-channel')?.value || 'TELEPHONE',
+        status: 'PENDING',
         staffId: 1
       };
       try {
@@ -1758,7 +1759,7 @@
         });
         const data = await res.json();
         if (res.ok && data.success) {
-          triggerToast("Assisted booking created successfully! Added to dispatch queue.");
+          triggerToast("Assisted booking created as PENDING! Review & Confirm with caller.");
           loadDispatchQueue();
         }
       } catch (_) {}
