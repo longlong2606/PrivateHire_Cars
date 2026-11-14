@@ -3202,8 +3202,18 @@
       if (modal) modal.style.display = 'none';
     }
 
+    let isProcessingRefund = false;
     async function processRefund(refundId, explicitNotes) {
+      if (isProcessingRefund) return;
+
       const r = allRefundsCache.find(x => x.id === refundId);
+      if (r && r.status === 'PROCESSED') {
+        triggerToast("This refund has already been processed.", "info");
+        closeRefundDetailModal();
+        loadRefundQueue();
+        return;
+      }
+
       const bRef = r ? (r.booking_code || `#${r.booking_id}`) : `#${refundId}`;
       const amountStr = r ? `£${parseFloat(r.amount).toFixed(2)} GBP` : '';
 
@@ -3220,6 +3230,7 @@
         notesToSubmit = "Authorized by operations staff";
       }
 
+      isProcessingRefund = true;
       try {
         const res = await authenticatedFetch(`${API_BASE}/api/staff/refunds/${refundId}/process`, {
           method: 'POST',
@@ -3236,9 +3247,15 @@
           loadInsightsMetrics();
         } else {
           triggerToast(data.message || "Failed to process refund", "error");
+          if (data.code === 'REFUND_ALREADY_PROCESSED') {
+            closeRefundDetailModal();
+            loadRefundQueue();
+          }
         }
       } catch (_) {
         triggerToast("Server connection error processing refund", "error");
+      } finally {
+        isProcessingRefund = false;
       }
     }
 

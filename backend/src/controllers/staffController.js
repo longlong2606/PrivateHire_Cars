@@ -468,8 +468,33 @@ class StaffController {
       }
       if (!staffName) staffName = 'Operations Staff';
 
+      // 1. Kiểm tra trạng thái refund ở backend
+      const existingRefund = await RefundModel.findById(refundId);
+      if (!existingRefund) {
+        return res.status(404).json({ success: false, message: 'Refund request not found' });
+      }
+
+      // 2. Chặn xử lý lại nếu đã Processed: không tạo thêm giao dịch, không ghi đè staff, thời gian, ghi chú lần đầu
+      if (existingRefund.status === 'PROCESSED') {
+        return res.status(400).json({
+          success: false,
+          code: 'REFUND_ALREADY_PROCESSED',
+          message: `Refund request #${refundId} has already been processed and cannot be reprocessed. Original record preserved.`,
+          refund: existingRefund,
+        });
+      }
+
+      // 3. Xử lý nguyên tử chặn double-click và request đồng thời
       const processed = await RefundModel.processRefund(refundId, staffId, staffNotes);
-      if (!processed) return res.status(404).json({ success: false, message: 'Refund request not found' });
+      if (!processed) {
+        const currentRecord = await RefundModel.findById(refundId);
+        return res.status(400).json({
+          success: false,
+          code: 'REFUND_ALREADY_PROCESSED',
+          message: `Refund request #${refundId} has already been processed by a concurrent transaction. Original record preserved.`,
+          refund: currentRecord,
+        });
+      }
 
       // Update booking payment status to REFUNDED
       await BookingModel.updatePaymentStatus(processed.booking_id, 'REFUNDED');

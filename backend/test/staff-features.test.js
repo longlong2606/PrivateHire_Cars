@@ -310,6 +310,27 @@ test('Sprint Feature: Phone Booking Desk Step 2 & Staff Account/Role Management'
     assert.ok(refundNotif.message.includes(staffUser.name));
     assert.equal(refundNotif.processed_by_staff_name, staffUser.name);
     assert.equal(refundNotif.staff_notes, 'Approved cancellation refund >=24h policy');
+
+    // Requirement 2: Attempting to re-process an already PROCESSED refund is blocked without modifying data
+    const duplicateProcReq = {
+      params: { id: refund.id },
+      user: staffUser,
+      body: { staffNotes: 'Malicious overwrite attempt' },
+    };
+    const duplicateProcRes = createMockRes();
+    await StaffController.processRefund(duplicateProcReq, duplicateProcRes);
+    assert.equal(duplicateProcRes.statusCode, 400);
+    assert.equal(duplicateProcRes.body.success, false);
+    assert.equal(duplicateProcRes.body.code, 'REFUND_ALREADY_PROCESSED');
+
+    // Ensure staff notes and processed record were NOT modified
+    const verifiedRecord = await RefundModel.findById(refund.id);
+    assert.equal(verifiedRecord.staff_notes, 'Approved cancellation refund >=24h policy');
+
+    // Ensure no duplicate notification was created
+    const notifsAfter = await NotificationModel.getByAccountId(testCustomer.id);
+    const refundNotifsCount = notifsAfter.filter(n => n.type === 'REFUND_PROCESSED' && n.booking_id === booking.id).length;
+    assert.equal(refundNotifsCount, 1, 'Should have exactly 1 notification, duplicate prevented');
   });
 
   await t.test('9. Voucher strict account ownership: Cross-account voucher use is rejected (403) and random code is rejected (400)', async () => {

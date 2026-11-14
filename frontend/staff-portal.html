@@ -1993,12 +1993,22 @@
       } catch (_) {}
     }
 
+    let isProcessingRefund = false;
     async function processRefund(refundId) {
+      if (isProcessingRefund) return;
+
       const r = allRefundsCache.find(x => x.id === refundId);
+      if (r && r.status === 'PROCESSED') {
+        triggerToast("This refund has already been processed.", "info");
+        loadRefundQueue();
+        return;
+      }
+
       const bRef = r ? (r.booking_code || `#${r.booking_id}`) : `#${refundId}`;
       const staffNotes = prompt(`Enter Staff Refund Authorization Reason for ${bRef}:`, "Authorized per cancellation policy");
       if (staffNotes === null) return;
 
+      isProcessingRefund = true;
       try {
         const res = await authenticatedFetch(`${API_BASE}/api/staff/refunds/${refundId}/process`, {
           method: 'POST',
@@ -2013,9 +2023,14 @@
           loadRefundQueue();
         } else {
           triggerToast(data.message || "Failed to process refund", "error");
+          if (data.code === 'REFUND_ALREADY_PROCESSED') {
+            loadRefundQueue();
+          }
         }
       } catch (_) {
         triggerToast("Server connection error processing refund", "error");
+      } finally {
+        isProcessingRefund = false;
       }
     }
 

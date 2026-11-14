@@ -11,6 +11,18 @@ class RefundModel {
     return res.rows[0];
   }
 
+  static async findById(id) {
+    const sql = `
+      SELECT rr.*, b.booking_code, a.name AS customer_name, a.email AS customer_email
+      FROM refund_requests rr
+      JOIN bookings b ON rr.booking_id = b.id
+      JOIN accounts a ON rr.account_id = a.id
+      WHERE rr.id = $1
+    `;
+    const res = await db.query(sql, [id]);
+    return res.rows[0] || null;
+  }
+
   static async getPending() {
     const sql = `
       SELECT 
@@ -53,7 +65,7 @@ class RefundModel {
     const sql = `
       UPDATE refund_requests
       SET status = 'PROCESSED', processed_by_staff_id = $2, processed_at = CURRENT_TIMESTAMP, staff_notes = $3
-      WHERE id = $1
+      WHERE id = $1 AND status != 'PROCESSED'
       RETURNING *
     `;
     const res = await db.query(sql, [id, staffId, staffNotes ? String(staffNotes).trim() : null]);
