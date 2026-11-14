@@ -4,6 +4,7 @@ const {
   createBooking,
   checkVehicleAvailability,
   simulatePayment,
+  getAmendQuote,
   amendBooking,
   cancelBooking,
   getPrintableReceipt,
@@ -36,6 +37,7 @@ router.post('/:id/simulate-payment', requireAuth, simulatePayment);
 router.post('/:id/confirm', requireAuth, simulatePayment);
 
 // [P05]: Chỉnh sửa và hủy cuốc xe (>= 24h eligibility rule)
+router.get('/:id/amend-quote', requireAuth, getAmendQuote);
 router.patch('/:id/amend', requireAuth, amendBooking);
 router.post('/:id/cancel', requireAuth, cancelBooking);
 

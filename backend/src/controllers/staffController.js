@@ -7,6 +7,7 @@ const EnquiryModel = require('../models/enquiryModel');
 const NotificationModel = require('../models/notificationModel');
 const SpecialOfferModel = require('../models/specialOfferModel');
 const ServiceModel = require('../models/serviceModel');
+const db = require('../config/db');
 const { sendSpecialOfferEmail, sendBookingConfirmationEmail } = require('../services/emailService');
 
 class StaffController {
@@ -496,8 +497,18 @@ class StaffController {
         });
       }
 
-      // Update booking payment status to REFUNDED
-      await BookingModel.updatePaymentStatus(processed.booking_id, 'REFUNDED');
+      // Update booking payment status: if cancelled -> REFUNDED; if active amendment -> remain PAID with adjusted paid_amount
+      const currentBooking = await BookingModel.findById(processed.booking_id);
+      if (currentBooking) {
+        if (currentBooking.status === 'CANCELLED') {
+          await BookingModel.updatePaymentStatus(processed.booking_id, 'REFUNDED');
+        } else {
+          await db.query(
+            'UPDATE bookings SET paid_amount = GREATEST(0, COALESCE(paid_amount, final_fare, fare_amount) - $1) WHERE id = $2',
+            [parseFloat(processed.amount), currentBooking.id]
+          );
+        }
+      }
 
       // [Request 16 & Prompt 9]: Notify customer that refund was processed with staff name and reason
       try {

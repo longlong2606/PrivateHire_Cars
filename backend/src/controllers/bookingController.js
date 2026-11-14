@@ -582,7 +582,8 @@ const simulatePayment = async (req, res) => {
       SET status = $1, 
           payment_status = $2, 
           payment_method = $3,
-          requested_driver_id = COALESCE(requested_driver_id, $4)
+          requested_driver_id = COALESCE(requested_driver_id, $4),
+          paid_amount = CASE WHEN $2 = 'PAID' THEN COALESCE(final_fare, fare_amount, 0.00) ELSE 0.00 END
       WHERE id = $5
     `, [newStatus, newPaymentStatus, paymentMethod, requestedDriverId || null, booking.id]);
 
@@ -640,11 +641,112 @@ const simulatePayment = async (req, res) => {
  * [P05]: Chỉnh sửa cuốc xe (Amend Booking)
  * Điều kiện: Trước giờ đón ít nhất 24 giờ. Trạng thái chỉ được là Pending, Confirmed hoặc Assigned.
  */
+/**
+ * [P05]: Lấy báo giá và kiểm tra trước khi chỉnh sửa cuốc xe (Amend Quote Preview)
+ * Hiển thị giá cũ, giá mới, khoản chênh lệch và hành động cần thực hiện (PAYMENT/REFUND/NONE)
+ */
+const getAmendQuote = async (req, res) => {
+  try {
+    const bookingId = req.params.id;
+    const customer = req.user;
+    const { service, vehicleCapacity, pickupTime, passengerCount } = req.query;
+
+    const booking = /^\d+$/.test(bookingId)
+      ? await BookingModel.findById(bookingId)
+      : await BookingModel.findByCode(bookingId);
+
+    if (!booking) return res.status(404).json({ success: false, message: 'Booking not found' });
+    if (booking.account_id !== customer.id && customer.role !== 'STAFF' && customer.role !== 'ADMIN') {
+      return res.status(403).json({ success: false, message: 'Forbidden' });
+    }
+
+    const now = new Date();
+    const currentPickup = new Date(booking.pickup_time);
+    const msDiff = currentPickup.getTime() - now.getTime();
+    const isNoticeValid = msDiff >= (24 * 3600 * 1000 - 5000);
+
+    const resolvedCapacity = parseInt(vehicleCapacity, 10) || booking.vehicle_capacity || 4;
+    const resolvedService = service || booking.service_name || 'Airport transfer';
+    const resolvedPax = parseInt(passengerCount, 10) || booking.passenger_count || 1;
+
+    let baseFare = parseFloat(booking.base_fare || booking.fare_amount || 45.00);
+    let duration = booking.occupied_duration_minutes || 60;
+
+    const quote = await ServiceModel.calculateFareAndDuration(resolvedService, resolvedCapacity);
+    if (quote) {
+      baseFare = quote.fixedFare;
+      duration = quote.occupiedDurationMinutes;
+    }
+
+    const isOnline = (booking.booking_channel || 'ONLINE').toUpperCase() === 'ONLINE';
+    const discountAmount = isOnline ? Math.round(baseFare * 0.15 * 100) / 100 : 0.00;
+    const promoDiscount = parseFloat(booking.promo_discount || 0.00);
+    const newFinalFare = Math.max(0, Math.round((baseFare - discountAmount - promoDiscount) * 100) / 100);
+
+    const isPaid = (booking.payment_status || '').toUpperCase() === 'PAID';
+    const paidBaseline = parseFloat(booking.paid_amount || (isPaid ? (booking.final_fare || booking.fare_amount || 0) : 0));
+    const oldFare = parseFloat(booking.final_fare || booking.fare_amount || 0);
+
+    const fareDifference = isPaid
+      ? Math.round((newFinalFare - paidBaseline) * 100) / 100
+      : Math.round((newFinalFare - oldFare) * 100) / 100;
+
+    let actionRequired = 'NONE';
+    if (isPaid) {
+      if (fareDifference > 0) {
+        actionRequired = 'PAYMENT';
+      } else if (fareDifference < 0) {
+        actionRequired = 'REFUND';
+      }
+    }
+
+    res.json({
+      success: true,
+      bookingCode: booking.booking_code,
+      paymentStatus: booking.payment_status,
+      isNoticeValid,
+      oldFare,
+      newBaseFare: baseFare,
+      newDiscount: discountAmount,
+      newFinalFare,
+      fareDifference,
+      actionRequired,
+      durationMinutes: duration,
+      vehicleCapacity: resolvedCapacity,
+      passengerCount: resolvedPax,
+    });
+  } catch (error) {
+    console.error('Error calculating amend quote:', error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * [P05]: Chỉnh sửa cuốc xe (Amend Booking)
+ * Điều kiện: Trước giờ đón ít nhất 24 giờ (bao gồm đúng 24h).
+ * Xử lý điều chỉnh thanh toán:
+ * - Paid tăng giá: chỉ lưu sau khi thanh toán bổ sung thành công; thất bại giữ nguyên booking/giá/trạng thái cũ.
+ * - Paid giảm giá: tạo hoặc cập nhật Pending refund cho phần giảm.
+ * - Unpaid: chỉ cập nhật amount due, không tạo payment hoặc refund.
+ * - Giữ lịch sử khoản tiền đã trả; không đặt lại Unpaid.
+ * - Cho khách chọn xe cụ thể khả dụng; kiểm tra lại xe và tài xế cho lịch mới.
+ * - Giữ booking state và cập nhật reservation nhất quán sau amendment hợp lệ.
+ */
 const amendBooking = async (req, res) => {
   try {
     const bookingId = req.params.id;
     const customer = req.user;
-    const { pickupAddress, dropoffAddress, pickupTime, service, vehicleCapacity, vehicleId, passengerCount } = req.body;
+    const {
+      pickupAddress,
+      dropoffAddress,
+      pickupTime,
+      service,
+      vehicleCapacity,
+      vehicleId,
+      passengerCount,
+      paymentMethod = 'CARD',
+      simulationResult = 'SUCCESS',
+    } = req.body;
 
     const booking = /^\d+$/.test(bookingId)
       ? await BookingModel.findById(bookingId)
@@ -664,22 +766,24 @@ const amendBooking = async (req, res) => {
       });
     }
 
-    // 24-hour notice check
+    // 24-hour notice check on existing pickup time (inclusive of exactly 24 hours)
     const now = new Date();
     const currentPickup = new Date(booking.pickup_time);
-    const hoursDiff = (currentPickup.getTime() - now.getTime()) / (1000 * 60 * 60);
+    const msDiff = currentPickup.getTime() - now.getTime();
 
-    if (hoursDiff < 24) {
+    if (msDiff < (24 * 3600 * 1000 - 5000)) {
       return res.status(400).json({
         success: false,
+        code: 'NOTICE_LESS_THAN_24H',
         message: 'Amendments must be made at least 24 hours prior to scheduled pickup time.',
       });
     }
 
     const newPickupTime = pickupTime ? new Date(pickupTime) : currentPickup;
-    if (newPickupTime.getTime() < Date.now() + 24 * 3600 * 1000) {
+    if (newPickupTime.getTime() < Date.now() + (24 * 3600 * 1000 - 5000)) {
       return res.status(400).json({
         success: false,
+        code: 'AMENDED_PICKUP_TOO_SOON',
         message: 'Amended pickup time must be at least 24 hours in the future.',
       });
     }
@@ -699,14 +803,41 @@ const amendBooking = async (req, res) => {
     }
 
     // Vehicle lookup & capacity sync
-    let targetVehicleId = vehicleId || booking.vehicle_id;
+    let targetVehicleId = vehicleId ? parseInt(vehicleId, 10) : booking.vehicle_id;
     let resolvedCapacity = vehicleCapacity ? parseInt(vehicleCapacity, 10) : booking.vehicle_capacity;
 
     if (vehicleId) {
-      const vLookup = await db.query('SELECT * FROM vehicles WHERE id = $1', [vehicleId]);
-      if (vLookup.rows.length > 0) {
-        resolvedCapacity = vLookup.rows[0].capacity;
+      const vLookup = await db.query(
+        `SELECT v.*, d.status AS driver_status, d.id AS driver_id, d.name AS driver_name 
+         FROM vehicles v 
+         LEFT JOIN drivers d ON v.driver_id = d.id 
+         WHERE v.id = $1`,
+        [vehicleId]
+      );
+      if (vLookup.rows.length === 0) {
+        return res.status(400).json({
+          success: false,
+          code: 'VEHICLE_NOT_FOUND',
+          message: 'Selected vehicle not found.',
+        });
       }
+      const veh = vLookup.rows[0];
+      if (veh.status !== 'ACTIVE') {
+        return res.status(400).json({
+          success: false,
+          code: 'VEHICLE_NOT_ACTIVE',
+          message: 'Selected vehicle is no longer active.',
+        });
+      }
+      if (veh.driver_status && veh.driver_status !== 'ACTIVE') {
+        return res.status(400).json({
+          success: false,
+          code: 'DRIVER_NOT_ACTIVE',
+          message: 'Chauffeur assigned to this vehicle is currently unavailable.',
+        });
+      }
+      resolvedCapacity = veh.capacity;
+      targetVehicleId = veh.id;
     }
 
     if (resolvedPax > resolvedCapacity) {
@@ -717,7 +848,7 @@ const amendBooking = async (req, res) => {
       });
     }
 
-    // Recalculate fare according to Table 8
+    // Recalculate Table 8 fare and duration
     let baseFare = parseFloat(booking.base_fare || booking.fare_amount || 45.00);
     let resolvedService = service || booking.service_name;
     let duration = booking.occupied_duration_minutes || 60;
@@ -733,45 +864,151 @@ const amendBooking = async (req, res) => {
       }
     }
 
-    // Check conflict for amended journey (Point 3: Loại chính booking khỏi kiểm tra xung đột)
-    if (targetVehicleId) {
-      const hasVConflict = await BookingModel.hasVehicleConflict({
-        vehicleId: targetVehicleId,
+    // If targetVehicleId is still empty or capacity changed without specific vehicle, pick available
+    if (!targetVehicleId || (resolvedCapacity !== booking.vehicle_capacity && !vehicleId)) {
+      const availableVehicles = await VehicleModel.getAvailableVehicles({
+        capacity: resolvedCapacity,
         pickupTime: newPickupTime,
         durationMinutes: duration,
         excludeBookingId: booking.id,
       });
-      if (hasVConflict) {
+      if (availableVehicles.length === 0) {
         return res.status(400).json({
           success: false,
-          code: 'VEHICLE_CONFLICT',
-          message: 'The selected vehicle has an overlapping booking for the amended time slot.',
+          code: 'NO_VEHICLES_AVAILABLE',
+          message: 'No available vehicles found for the requested amended time slot and capacity.',
+        });
+      }
+      targetVehicleId = availableVehicles[0].id;
+    }
+
+    // Get chauffeur for target vehicle
+    const vCheck = await db.query(
+      `SELECT v.*, d.id AS driver_id, d.status AS driver_status 
+       FROM vehicles v 
+       LEFT JOIN drivers d ON v.driver_id = d.id 
+       WHERE v.id = $1`,
+      [targetVehicleId]
+    );
+    const targetVehRow = vCheck.rows[0];
+    const targetDriverId = targetVehRow ? targetVehRow.driver_id : null;
+
+    // Check conflict for amended journey (excluding this booking itself)
+    const hasVConflict = await BookingModel.hasVehicleConflict({
+      vehicleId: targetVehicleId,
+      pickupTime: newPickupTime,
+      durationMinutes: duration,
+      excludeBookingId: booking.id,
+    });
+    if (hasVConflict) {
+      return res.status(400).json({
+        success: false,
+        code: 'VEHICLE_CONFLICT',
+        message: 'The selected vehicle has an overlapping booking for the amended time slot.',
+      });
+    }
+
+    if (targetDriverId) {
+      const hasDConflict = await BookingModel.hasDriverConflict({
+        driverId: targetDriverId,
+        pickupTime: newPickupTime,
+        durationMinutes: duration,
+        excludeBookingId: booking.id,
+      });
+      if (hasDConflict) {
+        return res.status(400).json({
+          success: false,
+          code: 'DRIVER_CONFLICT',
+          message: 'The chauffeur for this vehicle has an overlapping booking for the amended time slot.',
         });
       }
     }
 
+    // Recalculate final fare (15% discount for online bookings)
     const isOnline = (booking.booking_channel || 'ONLINE').toUpperCase() === 'ONLINE';
     const discountAmount = isOnline ? Math.round(baseFare * 0.15 * 100) / 100 : 0.00;
-    const finalFare = Math.max(0, Math.round((baseFare - discountAmount - (booking.promo_discount || 0)) * 100) / 100);
+    const promoDiscount = parseFloat(booking.promo_discount || 0.00);
+    const finalFare = Math.max(0, Math.round((baseFare - discountAmount - promoDiscount) * 100) / 100);
 
+    const isPaid = (booking.payment_status || '').toUpperCase() === 'PAID';
+    const paidBaseline = parseFloat(booking.paid_amount || (isPaid ? (booking.final_fare || booking.fare_amount || 0) : 0));
     const oldFare = parseFloat(booking.final_fare || booking.fare_amount || 0);
-    let newPaymentStatus = booking.payment_status;
 
-    // Handle payment adjustment (Point 6: xử lý khoản trả thêm hoặc refund khi cần)
-    if (booking.payment_status === 'PAID') {
-      if (finalFare < oldFare) {
-        const diff = Math.round((oldFare - finalFare) * 100) / 100;
-        await RefundModel.create({
-          bookingId: booking.id,
-          accountId: customer.id,
-          amount: diff,
-          reason: `Amendment fare reduction for #${booking.booking_code} (£${oldFare.toFixed(2)} -> £${finalFare.toFixed(2)})`,
-        });
-      } else if (finalFare > oldFare) {
-        // Customer needs to pay difference
-        newPaymentStatus = 'UNPAID';
+    const fareDiff = isPaid
+      ? Math.round((finalFare - paidBaseline) * 100) / 100
+      : Math.round((finalFare - oldFare) * 100) / 100;
+
+    let newPaymentStatus = booking.payment_status;
+    let newPaidAmount = paidBaseline;
+    let actionResult = 'NONE';
+
+    // 1. Paid booking adjustments
+    if (isPaid) {
+      if (fareDiff > 0) {
+        // Paid tăng giá: chỉ lưu amendment sau khi thanh toán thử khoản tăng thành công
+        if (simulationResult === 'FAIL') {
+          // Thanh toán thêm thất bại: giữ nguyên booking, giá, trạng thái và reservation cũ
+          return res.status(400).json({
+            success: false,
+            code: 'PAYMENT_DECLINED',
+            message: `Additional payment of £${fareDiff.toFixed(2)} GBP was declined. The booking has NOT been amended and original reservation remains unchanged.`,
+            oldFare,
+            newFare: finalFare,
+            fareDifference: fareDiff,
+          });
+        }
+        // Simulated payment succeeded:
+        newPaymentStatus = 'PAID';
+        newPaidAmount = finalFare;
+        actionResult = 'PAYMENT_COMPLETED';
+        // Clean up any old pending refund because new fare exceeds previous paid amount
+        await db.query(`DELETE FROM refund_requests WHERE booking_id = $1 AND status = 'PENDING'`, [booking.id]);
+      } else if (fareDiff < 0) {
+        // Paid giảm giá: tạo hoặc cập nhật Pending refund cho phần giảm
+        const refundAmount = Math.abs(fareDiff);
+        const existingPendingRefund = await db.query(
+          `SELECT * FROM refund_requests WHERE booking_id = $1 AND status = 'PENDING' ORDER BY id DESC LIMIT 1`,
+          [booking.id]
+        );
+        if (existingPendingRefund.rows.length > 0) {
+          await db.query(
+            `UPDATE refund_requests
+             SET amount = $1,
+                 reason = $2,
+                 created_at = CURRENT_TIMESTAMP
+             WHERE id = $3`,
+            [
+              refundAmount,
+              `Amendment fare reduction for #${booking.booking_code} (£${paidBaseline.toFixed(2)} -> £${finalFare.toFixed(2)})`,
+              existingPendingRefund.rows[0].id,
+            ]
+          );
+        } else {
+          await RefundModel.create({
+            bookingId: booking.id,
+            accountId: booking.account_id,
+            amount: refundAmount,
+            reason: `Amendment fare reduction for #${booking.booking_code} (£${paidBaseline.toFixed(2)} -> £${finalFare.toFixed(2)})`,
+          });
+        }
+        newPaymentStatus = 'PAID';
+        newPaidAmount = paidBaseline;
+        actionResult = 'REFUND_QUEUED';
+      } else {
+        newPaymentStatus = 'PAID';
+        newPaidAmount = paidBaseline;
+        await db.query(`DELETE FROM refund_requests WHERE booking_id = $1 AND status = 'PENDING'`, [booking.id]);
       }
+    } else {
+      // Unpaid: chỉ cập nhật amount due, không tạo payment hoặc refund
+      newPaymentStatus = 'UNPAID';
+      newPaidAmount = 0.00;
     }
+
+    // Giữ booking state và cập nhật reservation nhất quán sau amendment hợp lệ
+    const targetStatus = booking.status;
+    const targetAssignedDriverId = targetStatus === 'ASSIGNED' ? targetDriverId : booking.driver_id;
+    const resolvedCarType = resolvedCapacity === 7 ? 'Seven-Passenger Executive MPV' : 'Four-Passenger Executive Saloon';
 
     const updated = await BookingModel.amendBooking(booking.id, {
       pickupAddress: pickupAddress ? pickupAddress.trim() : booking.pickup_address,
@@ -780,19 +1017,27 @@ const amendBooking = async (req, res) => {
       serviceId,
       serviceName: resolvedService,
       vehicleCapacity: resolvedCapacity,
+      carType: resolvedCarType,
       baseFare,
       discountAmount,
       finalFare,
       occupiedDurationMinutes: duration,
       vehicleId: targetVehicleId,
+      requestedDriverId: targetDriverId,
+      driverId: targetAssignedDriverId,
       passengerCount: resolvedPax,
       paymentStatus: newPaymentStatus,
+      paidAmount: newPaidAmount,
     });
 
     res.json({
       success: true,
       message: 'Booking amended successfully with recalculated Table 8 fare and resource validation.',
       booking: updated,
+      oldFare,
+      newFare: finalFare,
+      fareDifference: fareDiff,
+      action: actionResult,
     });
   } catch (error) {
     console.error('Error in amendBooking:', error);
@@ -829,9 +1074,9 @@ const cancelBooking = async (req, res) => {
 
     const now = new Date();
     const currentPickup = new Date(booking.pickup_time);
-    const hoursDiff = (currentPickup.getTime() - now.getTime()) / (1000 * 60 * 60);
+    const msDiff = currentPickup.getTime() - now.getTime();
 
-    if (hoursDiff < 24) {
+    if (msDiff < (24 * 3600 * 1000 - 5000)) {
       return res.status(400).json({
         success: false,
         message: 'Cancellations must be made at least 24 hours prior to scheduled pickup time.',
@@ -844,7 +1089,7 @@ const cancelBooking = async (req, res) => {
     // If customer paid, create a pending refund request for net paid amount (Point 5: tạo đúng refund request)
     let refundCreated = false;
     if (booking.payment_status === 'PAID') {
-      const netAmount = parseFloat(booking.final_fare || booking.fare_amount);
+      const netAmount = parseFloat(booking.paid_amount || booking.final_fare || booking.fare_amount);
       await RefundModel.create({
         bookingId: booking.id,
         accountId: booking.account_id,
@@ -1252,10 +1497,22 @@ const checkVehicleAvailability = async (req, res) => {
         pickupDate = new Date(pickupTime);
       }
     }
+    let resolvedExcludeId = null;
+    if (req.query.excludeBookingId) {
+      const exParam = String(req.query.excludeBookingId).trim();
+      if (/^\d+$/.test(exParam)) {
+        resolvedExcludeId = parseInt(exParam, 10);
+      } else {
+        const bRow = await BookingModel.findByCode(exParam);
+        if (bRow) resolvedExcludeId = bRow.id;
+      }
+    }
+
     const available = await VehicleModel.getAvailableVehicles({
       capacity,
       pickupTime: pickupDate,
       durationMinutes,
+      excludeBookingId: resolvedExcludeId,
     });
 
     res.json({
@@ -1275,6 +1532,7 @@ module.exports = {
   createBooking,
   checkVehicleAvailability,
   simulatePayment,
+  getAmendQuote,
   amendBooking,
   cancelBooking,
   getPrintableReceipt,

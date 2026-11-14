@@ -244,7 +244,11 @@ class BookingModel {
   }
 
   static async updatePaymentStatus(id, paymentStatus) {
-    const res = await db.query('UPDATE bookings SET payment_status = $1 WHERE id = $2 RETURNING *', [paymentStatus, id]);
+    let sql = 'UPDATE bookings SET payment_status = $1 WHERE id = $2 RETURNING *';
+    if (paymentStatus === 'PAID') {
+      sql = 'UPDATE bookings SET payment_status = $1, paid_amount = COALESCE(paid_amount, final_fare, fare_amount, 0.00) WHERE id = $2 RETURNING *';
+    }
+    const res = await db.query(sql, [paymentStatus, id]);
     return res.rows[0];
   }
 
@@ -400,7 +404,7 @@ class BookingModel {
     return res.rows[0];
   }
 
-  static async amendBooking(id, { pickupAddress, dropoffAddress, pickupTime, serviceId, serviceName, vehicleCapacity, baseFare, discountAmount, finalFare, occupiedDurationMinutes, vehicleId, requestedDriverId, passengerCount, paymentStatus }) {
+  static async amendBooking(id, { pickupAddress, dropoffAddress, pickupTime, serviceId, serviceName, vehicleCapacity, carType, baseFare, discountAmount, finalFare, occupiedDurationMinutes, vehicleId, requestedDriverId, driverId, passengerCount, paymentStatus, paidAmount }) {
     const sql = `
       UPDATE bookings
       SET pickup_address = COALESCE($1, pickup_address),
@@ -416,9 +420,12 @@ class BookingModel {
           occupied_duration_minutes = COALESCE($10, occupied_duration_minutes),
           vehicle_id = COALESCE($11, vehicle_id),
           requested_driver_id = COALESCE($12, requested_driver_id),
-          passenger_count = COALESCE($13, passenger_count),
-          payment_status = COALESCE($14, payment_status)
-      WHERE id = $15
+          driver_id = COALESCE($13, driver_id),
+          passenger_count = COALESCE($14, passenger_count),
+          payment_status = COALESCE($15, payment_status),
+          paid_amount = COALESCE($16, paid_amount),
+          car_type = COALESCE($17, car_type)
+      WHERE id = $18
       RETURNING *
     `;
     const res = await db.query(sql, [
@@ -434,8 +441,11 @@ class BookingModel {
       occupiedDurationMinutes,
       vehicleId || null,
       requestedDriverId || null,
+      driverId || null,
       passengerCount || null,
       paymentStatus || null,
+      paidAmount !== undefined ? paidAmount : null,
+      carType || null,
       id,
     ]);
     return res.rows[0];

@@ -287,6 +287,8 @@ ALTER TABLE bookings ADD COLUMN IF NOT EXISTS passenger_count INTEGER DEFAULT 1;
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS requested_driver_id INTEGER REFERENCES drivers(id);
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS assigned_staff_id INTEGER;
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS assigned_at TIMESTAMP WITH TIME ZONE;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS paid_amount NUMERIC(10, 2) DEFAULT 0.00;
+UPDATE bookings SET paid_amount = COALESCE(final_fare, fare_amount, 0.00) WHERE payment_status = 'PAID' AND (paid_amount IS NULL OR paid_amount = 0);
 
 CREATE OR REPLACE VIEW vouchers AS
 SELECT id, code, account_id, discount_amount, is_used, used_at, created_at

@@ -892,11 +892,11 @@
         </div>
         <div class="field-group" style="margin-bottom: 12px;">
           <label class="field-label">New Pickup Date &amp; Time (Min 24h in future) *</label>
-          <input type="datetime-local" id="amend-pickup-time" class="field-input" required />
+          <input type="datetime-local" id="amend-pickup-time" class="field-input" required onchange="onAmendInputsChanged()" />
         </div>
         <div class="field-group" style="margin-bottom: 12px;">
           <label class="field-label">Service Type *</label>
-          <select id="amend-service" class="field-select">
+          <select id="amend-service" class="field-select" onchange="onAmendInputsChanged()">
             <option value="Airport transfer">Airport transfer (£45 / £65 GBP)</option>
             <option value="Local journey">Local journey (£20 / £30 GBP)</option>
             <option value="Long-distance journey">Long-distance journey (£80 / £120 GBP)</option>
@@ -908,14 +908,74 @@
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
           <div class="field-group">
             <label class="field-label">Vehicle Capacity *</label>
-            <select id="amend-capacity" class="field-select">
+            <select id="amend-capacity" class="field-select" onchange="onAmendCapacityChanged()">
               <option value="4">4-Seat Executive Saloon</option>
               <option value="7">7-Seat Luxury MPV</option>
             </select>
           </div>
           <div class="field-group">
             <label class="field-label">Passenger Count *</label>
-            <input type="number" id="amend-passengers" class="field-input" min="1" max="7" value="1" required />
+            <input type="number" id="amend-passengers" class="field-input" min="1" max="7" value="1" required onchange="onAmendPaxChanged()" oninput="onAmendPaxChanged()" />
+          </div>
+        </div>
+
+        <!-- Available Vehicle Selection -->
+        <div class="field-group" id="amend-vehicle-group" style="margin-bottom: 12px;">
+          <label class="field-label" style="display: flex; justify-content: space-between; align-items: center;">
+            <span>Select Available Vehicle &amp; Chauffeur *</span>
+            <span id="amend-vehicle-count-badge" style="font-size: 11px; padding: 2px 7px; background: rgba(20,63,51,0.1); color: var(--primary); border-radius: 12px; font-weight: 600;">Searching...</span>
+          </label>
+          <select id="amend-vehicle-select" class="field-select" onchange="onAmendVehicleSelected()">
+            <option value="">-- Loading available vehicles... --</option>
+          </select>
+          <div id="amend-vehicle-card" style="margin-top: 8px; padding: 10px 12px; background: #FAF7F2; border: 1px solid var(--border-medium); border-radius: var(--radius-sm); font-size: 12px; display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <strong id="amend-veh-model" style="color: var(--primary);">—</strong>
+              <span id="amend-veh-reg" style="font-family: monospace; font-weight: 700; background: #143F33; color: #E7C97F; padding: 2px 6px; border-radius: 3px;">—</span>
+            </div>
+            <div style="color: var(--text-muted); font-size: 11.5px;">
+              Chauffeur: <span id="amend-driver-name" style="font-weight: 600; color: var(--text-main);">—</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pricing & Adjustment Summary Box -->
+        <div id="amend-fare-comparison" style="margin-bottom: 14px; padding: 12px 14px; background: #F8FAF9; border: 1.5px solid #D6E4DE; border-radius: var(--radius-sm);">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 13px;">
+            <span style="color: var(--text-muted);">Current Booking Fare:</span>
+            <strong id="amend-old-fare" style="color: var(--text-main);">£0.00</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px;">
+            <span style="color: var(--text-muted);">New Calculated Fare (Table 8):</span>
+            <strong id="amend-new-fare" style="color: var(--primary);">£0.00</strong>
+          </div>
+          <div style="border-top: 1px dashed #CADCD5; padding-top: 6px; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-weight: 600; font-size: 13px; color: var(--text-main);">Fare Adjustment:</span>
+            <span id="amend-fare-diff-badge" style="font-weight: 700; font-size: 13.5px;">£0.00</span>
+          </div>
+          <div id="amend-diff-explanation" style="margin-top: 6px; font-size: 11.5px; color: var(--text-muted); line-height: 1.4;"></div>
+        </div>
+
+        <!-- Additional Payment Simulation Box (Shown only if Paid & New > Old) -->
+        <div id="amend-payment-section" style="display: none; margin-bottom: 14px; padding: 12px; background: #FFFDF8; border: 1px solid #EADBBA; border-radius: var(--radius-sm);">
+          <div style="font-weight: 700; font-size: 12.5px; color: #8A6D3B; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+            <i data-lucide="credit-card" style="width: 15px; height: 15px;"></i>
+            <span>Simulate Additional Payment (<span id="amend-pay-diff-amount">£0.00</span>)</span>
+          </div>
+          <div class="field-group" style="margin-bottom: 8px;">
+            <label class="field-label" style="font-size: 11px;">Payment Method</label>
+            <select id="amend-pay-method" class="field-select" style="font-size: 12.5px;">
+              <option value="CARD">Visa Test Card (•••• 4242)</option>
+              <option value="MASTERCARD">Mastercard Test Card (•••• 5555)</option>
+              <option value="AMEX">American Express (•••• 0005)</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label class="field-label" style="font-size: 11px;">Payment Gateway Simulation Outcome</label>
+            <select id="amend-pay-outcome" class="field-select" style="font-size: 12.5px;">
+              <option value="SUCCESS">✅ Simulate Payment Success</option>
+              <option value="FAIL">❌ Simulate Payment Declined / Card Fail</option>
+            </select>
           </div>
         </div>
         <div id="amend-feedback" style="font-size: 12.5px; padding: 10px; border-radius: var(--radius-sm); display: none; margin-top: 8px;"></div>
@@ -1638,10 +1698,24 @@
       document.getElementById('printable-receipt-modal').classList.remove('open');
     }
 
-    // Amend Booking Modal
+    // Amend Booking Modal Logic
+    let currentAmendBooking = null;
+    let amendAvailableVehicles = [];
+
+    const TABLE_8_SERVICES = {
+      'Airport transfer': { 4: 45.00, 7: 65.00, duration: 60 },
+      'Local journey': { 4: 20.00, 7: 30.00, duration: 30 },
+      'Long-distance journey': { 4: 80.00, 7: 120.00, duration: 180 },
+      'Hotel transfer': { 4: 30.00, 7: 45.00, duration: 45 },
+      'Airport meet-and-greet': { 4: 55.00, 7: 80.00, duration: 75 },
+      'Driver and car daily hire': { 4: 200.00, 7: 280.00, duration: 480 },
+    };
+
     function openAmendModal(bookingCode) {
       const b = (customerBookings || []).find(x => x.booking_code === bookingCode);
       if (!b) return;
+
+      currentAmendBooking = b;
 
       document.getElementById('amend-booking-code').value = bookingCode;
       document.getElementById('amend-modal-code').textContent = bookingCode;
@@ -1669,10 +1743,200 @@
 
       document.getElementById('amend-booking-modal').classList.add('open');
       lucide.createIcons();
+
+      // Load vehicles and recalculate quote
+      loadAmendVehicles(b.vehicle_id);
+      recalculateAmendQuote();
     }
 
     function closeAmendModal() {
       document.getElementById('amend-booking-modal').classList.remove('open');
+      currentAmendBooking = null;
+    }
+
+    function onAmendCapacityChanged() {
+      const cap = parseInt(document.getElementById('amend-capacity').value, 10) || 4;
+      const paxInput = document.getElementById('amend-passengers');
+      let pax = parseInt(paxInput.value, 10) || 1;
+      if (pax > cap) {
+        paxInput.value = String(cap);
+      }
+      onAmendInputsChanged();
+    }
+
+    function onAmendPaxChanged() {
+      const paxInput = document.getElementById('amend-passengers');
+      let pax = parseInt(paxInput.value, 10);
+      const capSelect = document.getElementById('amend-capacity');
+
+      if (!isNaN(pax)) {
+        if (pax < 1) { paxInput.value = '1'; pax = 1; }
+        if (pax > 7) { paxInput.value = '7'; pax = 7; }
+        if (pax > 4 && capSelect.value !== '7') {
+          capSelect.value = '7';
+          triggerToast("More than 4 passengers: Switched to 7-Seat MPV.", "info");
+        }
+      }
+      onAmendInputsChanged();
+    }
+
+    function onAmendInputsChanged() {
+      loadAmendVehicles();
+      recalculateAmendQuote();
+    }
+
+    async function loadAmendVehicles(preferredVehicleId) {
+      if (!currentAmendBooking) return;
+
+      const pTime = document.getElementById('amend-pickup-time').value;
+      const service = document.getElementById('amend-service').value;
+      const capacity = parseInt(document.getElementById('amend-capacity').value, 10) || 4;
+      const pax = parseInt(document.getElementById('amend-passengers').value, 10) || 1;
+
+      const vSelect = document.getElementById('amend-vehicle-select');
+      const vBadge = document.getElementById('amend-vehicle-count-badge');
+      const vCard = document.getElementById('amend-vehicle-card');
+      const btnSave = document.getElementById('btn-save-amend');
+
+      if (!pTime) return;
+
+      vBadge.textContent = 'Checking...';
+      vBadge.style.background = 'rgba(20,63,51,0.1)';
+      vBadge.style.color = 'var(--primary)';
+
+      try {
+        const query = new URLSearchParams({
+          pickupTime: pTime,
+          service,
+          capacity,
+          passengerCount: pax,
+          excludeBookingId: currentAmendBooking.id
+        });
+        const res = await fetch(`${API_BASE}/api/bookings/available-vehicles?${query.toString()}`);
+        const data = await res.json();
+
+        if (res.ok && data.success && Array.isArray(data.vehicles)) {
+          amendAvailableVehicles = data.vehicles;
+          vSelect.innerHTML = '';
+
+          if (data.vehicles.length === 0) {
+            vSelect.innerHTML = '<option value="" disabled selected>No vehicles available for this time slot</option>';
+            vBadge.textContent = '0 Available';
+            vBadge.style.background = 'rgba(220,53,69,0.15)';
+            vBadge.style.color = '#C9302C';
+            vCard.style.display = 'none';
+            if (btnSave) btnSave.disabled = true;
+            return;
+          }
+
+          if (btnSave) btnSave.disabled = false;
+          vBadge.textContent = `${data.vehicles.length} Available`;
+          vBadge.style.background = 'rgba(40,167,69,0.15)';
+          vBadge.style.color = '#1E7E34';
+
+          let selectedId = preferredVehicleId;
+          const matchFound = data.vehicles.some(v => v.id === selectedId);
+          if (!matchFound) {
+            selectedId = data.vehicles[0].id;
+          }
+
+          data.vehicles.forEach(v => {
+            const opt = document.createElement('option');
+            opt.value = v.id;
+            opt.textContent = `${v.make_model} • ${v.colour} (${v.reg_number}) — Chauffeur: ${v.driver_name || 'Assigned Chauffeur'}`;
+            if (v.id === selectedId) opt.selected = true;
+            vSelect.appendChild(opt);
+          });
+
+          onAmendVehicleSelected();
+        }
+      } catch (err) {
+        console.warn('Error loading amend vehicles:', err);
+      }
+    }
+
+    function onAmendVehicleSelected() {
+      const vSelect = document.getElementById('amend-vehicle-select');
+      const vCard = document.getElementById('amend-vehicle-card');
+      const selectedId = parseInt(vSelect.value, 10);
+      const v = amendAvailableVehicles.find(x => x.id === selectedId);
+
+      if (v) {
+        document.getElementById('amend-veh-model').textContent = `${v.make_model} • ${v.colour}`;
+        document.getElementById('amend-veh-reg').textContent = v.reg_number || '—';
+        document.getElementById('amend-driver-name').textContent = `${v.driver_name || 'Assigned Chauffeur'}${v.driver_ref ? ` (TfL Lic #${v.driver_ref})` : ''}`;
+        vCard.style.display = 'block';
+      } else {
+        vCard.style.display = 'none';
+      }
+    }
+
+    function recalculateAmendQuote() {
+      if (!currentAmendBooking) return;
+
+      const service = document.getElementById('amend-service').value || 'Airport transfer';
+      const capacity = parseInt(document.getElementById('amend-capacity').value, 10) || 4;
+
+      const serviceData = TABLE_8_SERVICES[service] || { 4: 45.00, 7: 65.00 };
+      const baseFare = serviceData[capacity] || 45.00;
+
+      const isOnline = (currentAmendBooking.booking_channel || 'ONLINE').toUpperCase() === 'ONLINE';
+      const onlineDiscount = isOnline ? Math.round(baseFare * 0.15 * 100) / 100 : 0.00;
+      const promoDiscount = parseFloat(currentAmendBooking.promo_discount || 0.00);
+      const newFinalFare = Math.max(0, Math.round((baseFare - onlineDiscount - promoDiscount) * 100) / 100);
+
+      const oldFare = parseFloat(currentAmendBooking.final_fare || currentAmendBooking.fare_amount || 0);
+      const diff = Math.round((newFinalFare - oldFare) * 100) / 100;
+
+      document.getElementById('amend-old-fare').textContent = `£${oldFare.toFixed(2)} GBP`;
+      document.getElementById('amend-new-fare').textContent = `£${newFinalFare.toFixed(2)} GBP`;
+
+      const diffBadge = document.getElementById('amend-fare-diff-badge');
+      const diffExpl = document.getElementById('amend-diff-explanation');
+      const paySection = document.getElementById('amend-payment-section');
+      const payDiffAmount = document.getElementById('amend-pay-diff-amount');
+      const btnSave = document.getElementById('btn-save-amend');
+
+      const isPaid = (currentAmendBooking.payment_status || '').toUpperCase() === 'PAID';
+
+      if (isPaid) {
+        if (diff > 0) {
+          diffBadge.textContent = `+£${diff.toFixed(2)} GBP`;
+          diffBadge.style.color = '#B45309';
+          diffExpl.textContent = `Current booking is PAID (£${oldFare.toFixed(2)}). An additional payment of £${diff.toFixed(2)} GBP is required. If payment fails, original booking and reservation remain unchanged.`;
+          paySection.style.display = 'block';
+          payDiffAmount.textContent = `+£${diff.toFixed(2)} GBP`;
+          if (btnSave) btnSave.textContent = `Pay +£${diff.toFixed(2)} & Save Amendments`;
+        } else if (diff < 0) {
+          const refundAmount = Math.abs(diff);
+          diffBadge.textContent = `-£${refundAmount.toFixed(2)} GBP (Refund)`;
+          diffBadge.style.color = '#15803D';
+          diffExpl.textContent = `Current booking is PAID (£${oldFare.toFixed(2)}). The amended fare is lower; a refund of £${refundAmount.toFixed(2)} GBP will be queued for staff processing. Booking remains PAID.`;
+          paySection.style.display = 'none';
+          if (btnSave) btnSave.textContent = `Confirm Amendments (Queue £${refundAmount.toFixed(2)} Refund)`;
+        } else {
+          diffBadge.textContent = `£0.00 GBP (No Change)`;
+          diffBadge.style.color = 'var(--text-muted)';
+          diffExpl.textContent = `No fare difference. Your existing payment covers the amended booking in full.`;
+          paySection.style.display = 'none';
+          if (btnSave) btnSave.textContent = `Save Amendments`;
+        }
+      } else {
+        // UNPAID booking
+        if (diff > 0) {
+          diffBadge.textContent = `+£${diff.toFixed(2)} GBP (Due)`;
+          diffBadge.style.color = '#B45309';
+        } else if (diff < 0) {
+          diffBadge.textContent = `-£${Math.abs(diff).toFixed(2)} GBP`;
+          diffBadge.style.color = '#15803D';
+        } else {
+          diffBadge.textContent = `£0.00 GBP`;
+          diffBadge.style.color = 'var(--text-muted)';
+        }
+        diffExpl.textContent = `This booking is UNPAID. The final amount due will be updated to £${newFinalFare.toFixed(2)} GBP without creating any charges or refund requests.`;
+        paySection.style.display = 'none';
+        if (btnSave) btnSave.textContent = `Save Amendments`;
+      }
     }
 
     async function submitAmendBooking() {
@@ -1683,6 +1947,10 @@
       const service = document.getElementById('amend-service').value;
       const capacity = parseInt(document.getElementById('amend-capacity').value, 10) || 4;
       const pax = parseInt(document.getElementById('amend-passengers').value, 10) || 1;
+      const vehicleId = parseInt(document.getElementById('amend-vehicle-select').value, 10) || null;
+
+      const fb = document.getElementById('amend-feedback');
+      if (fb) fb.style.display = 'none';
 
       if (!pickupAddress || !dropoffAddress || !pickupTime) {
         triggerToast("Please fill in all required amendment fields.", "error");
@@ -1694,8 +1962,19 @@
         return;
       }
 
+      if (!vehicleId && amendAvailableVehicles.length > 0) {
+        triggerToast("Please select an available vehicle for this journey.", "error");
+        return;
+      }
+
+      const paymentMethod = document.getElementById('amend-pay-method').value || 'CARD';
+      const simulationResult = document.getElementById('amend-pay-outcome').value || 'SUCCESS';
+
       const btn = document.getElementById('btn-save-amend');
-      if (btn) btn.disabled = true;
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Processing...';
+      }
 
       try {
         const res = await fetch(`${API_BASE}/api/bookings/${bookingCode}/amend`, {
@@ -1710,7 +1989,10 @@
             pickupTime,
             service,
             vehicleCapacity: capacity,
-            passengerCount: pax
+            passengerCount: pax,
+            vehicleId,
+            paymentMethod,
+            simulationResult,
           })
         });
 
@@ -1718,15 +2000,24 @@
         if (btn) btn.disabled = false;
 
         if (res.ok && data.success) {
-          triggerToast("Booking amended successfully! Table 8 fare recalculated.");
+          triggerToast("Booking amended successfully! Table 8 fare and reservations updated.");
           closeAmendModal();
           fetchMyBookings();
         } else {
-          triggerToast(data.message || "Failed to amend booking.", "error");
+          const errText = data.message || "Failed to amend booking.";
+          triggerToast(errText, "error");
+          if (fb) {
+            fb.style.display = 'block';
+            fb.style.background = 'rgba(220,53,69,0.12)';
+            fb.style.color = '#C9302C';
+            fb.textContent = `❌ ${errText}`;
+          }
+          recalculateAmendQuote();
         }
       } catch (err) {
         if (btn) btn.disabled = false;
         triggerToast("Network error amending booking.", "error");
+        recalculateAmendQuote();
       }
     }
 
