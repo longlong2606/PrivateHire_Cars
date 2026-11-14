@@ -84,7 +84,26 @@ class DriverModel {
   }
 
   static async update(id, { name, telephone, referenceNumber, status }) {
-    if (status === 'UNAVAILABLE') {
+    let normalizedStatus = undefined;
+    if (status !== undefined && status !== null) {
+      const s = String(status).trim().toUpperCase();
+      if (!s) {
+        const err = new Error('Chauffeur status cannot be empty.');
+        err.statusCode = 400;
+        throw err;
+      }
+      if (s === 'ACTIVE' || s === 'AVAILABLE') {
+        normalizedStatus = 'ACTIVE';
+      } else if (s === 'UNAVAILABLE') {
+        normalizedStatus = 'UNAVAILABLE';
+      } else {
+        const err = new Error('Invalid chauffeur status. Must be ACTIVE or UNAVAILABLE.');
+        err.statusCode = 400;
+        throw err;
+      }
+    }
+
+    if (normalizedStatus === 'UNAVAILABLE') {
       const activeRes = await db.query(`
         SELECT id, booking_code, status, pickup_time, occupied_duration_minutes 
         FROM bookings 
@@ -117,7 +136,7 @@ class DriverModel {
       name ? name.trim() : null,
       telephone ? telephone.trim() : null,
       referenceNumber ? referenceNumber.trim() : null,
-      status || null,
+      normalizedStatus !== undefined ? normalizedStatus : null,
       id
     ]);
     return this.findById(id);

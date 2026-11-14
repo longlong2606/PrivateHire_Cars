@@ -3866,7 +3866,14 @@
       document.getElementById('edit-veh-make').value = v.make_model || '';
       document.getElementById('edit-veh-colour').value = v.colour || '';
       document.getElementById('edit-veh-capacity').value = String(v.capacity || 4);
-      document.getElementById('edit-veh-status').value = (v.status || 'AVAILABLE').toUpperCase();
+
+      const rawStatus = (v.status || 'ACTIVE').toUpperCase().trim();
+      const normalizedStatus = (rawStatus === 'UNAVAILABLE') ? 'UNAVAILABLE' : 'ACTIVE';
+      const statusSelect = document.getElementById('edit-veh-status');
+      statusSelect.value = normalizedStatus;
+      if (!statusSelect.value) {
+        statusSelect.value = 'ACTIVE';
+      }
 
       const drvSelect = document.getElementById('edit-veh-driver-id');
       drvSelect.innerHTML = `<option value="">-- No Chauffeur Assigned --</option>` +
@@ -3886,7 +3893,17 @@
       const makeModel = document.getElementById('edit-veh-make').value.trim();
       const colour = document.getElementById('edit-veh-colour').value.trim();
       const capacity = parseInt(document.getElementById('edit-veh-capacity').value, 10);
-      const status = document.getElementById('edit-veh-status').value;
+      const statusInput = document.getElementById('edit-veh-status').value;
+      if (!statusInput || !statusInput.trim()) {
+        triggerToast("Operational status cannot be empty.", "error");
+        return;
+      }
+      const rawStatus = statusInput.trim().toUpperCase();
+      const status = (rawStatus === 'UNAVAILABLE') ? 'UNAVAILABLE' : (rawStatus === 'ACTIVE' || rawStatus === 'AVAILABLE' ? 'ACTIVE' : null);
+      if (!status) {
+        triggerToast("Invalid operational status. Must be ACTIVE or UNAVAILABLE.", "error");
+        return;
+      }
       const driverId = document.getElementById('edit-veh-driver-id').value || null;
 
       try {
@@ -3914,7 +3931,13 @@
       document.getElementById('edit-drv-name').value = d.name || '';
       document.getElementById('edit-drv-phone').value = d.telephone || '';
       document.getElementById('edit-drv-ref').value = d.reference_number || d.driver_code || '';
-      document.getElementById('edit-drv-status').value = (d.status || 'ACTIVE').toUpperCase();
+      const rawDrvStatus = (d.status || 'ACTIVE').toUpperCase().trim();
+      const normalizedDrvStatus = (rawDrvStatus === 'UNAVAILABLE') ? 'UNAVAILABLE' : 'ACTIVE';
+      const drvStatusSelect = document.getElementById('edit-drv-status');
+      drvStatusSelect.value = normalizedDrvStatus;
+      if (!drvStatusSelect.value) {
+        drvStatusSelect.value = 'ACTIVE';
+      }
       document.getElementById('modal-edit-driver').style.display = 'flex';
     }
 
@@ -4077,8 +4100,8 @@
         </div>
         <div>
           <label style="font-size: 12px; font-weight: 600; display: block; margin-bottom: 4px;">Operational Status</label>
-          <select id="edit-veh-status" style="width: 100%; height: 38px; border: 1px solid var(--border); border-radius: 6px; padding: 0 10px; font-size: 13px;">
-            <option value="AVAILABLE">Active / Available</option>
+          <select id="edit-veh-status" required style="width: 100%; height: 38px; border: 1px solid var(--border); border-radius: 6px; padding: 0 10px; font-size: 13px;">
+            <option value="ACTIVE">Active / Available</option>
             <option value="UNAVAILABLE">Unavailable / Maintenance</option>
           </select>
         </div>

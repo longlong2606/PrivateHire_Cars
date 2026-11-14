@@ -791,12 +791,27 @@ class StaffController {
         }
       }
 
+      let normalizedStatus = undefined;
+      if (status !== undefined) {
+        if (status === null || String(status).trim() === '') {
+          return res.status(400).json({ success: false, message: 'Operational status cannot be empty.' });
+        }
+        const s = String(status).trim().toUpperCase();
+        if (s === 'ACTIVE' || s === 'AVAILABLE') {
+          normalizedStatus = 'ACTIVE';
+        } else if (s === 'UNAVAILABLE') {
+          normalizedStatus = 'UNAVAILABLE';
+        } else {
+          return res.status(400).json({ success: false, message: 'Invalid operational status. Must be ACTIVE or UNAVAILABLE.' });
+        }
+      }
+
       const updated = await VehicleModel.update(vehicleId, {
         regNumber,
         makeModel,
         colour,
         capacity,
-        status,
+        status: normalizedStatus,
         driverId: driverId ? parseInt(driverId, 10) : undefined,
       });
 
@@ -805,7 +820,7 @@ class StaffController {
       if (error.code === 'VEHICLE_CURRENTLY_HELD') {
         return res.status(400).json({ success: false, code: error.code, message: error.message });
       }
-      res.status(500).json({ success: false, message: error.message });
+      res.status(error.statusCode || 500).json({ success: false, message: error.message });
     }
   }
 
@@ -865,13 +880,28 @@ class StaffController {
       const driver = await DriverModel.findById(driverId);
       if (!driver) return res.status(404).json({ success: false, message: 'Driver not found' });
 
-      const updated = await DriverModel.update(driverId, { name, telephone, referenceNumber, status });
+      let normalizedStatus = undefined;
+      if (status !== undefined) {
+        if (status === null || String(status).trim() === '') {
+          return res.status(400).json({ success: false, message: 'Operational status cannot be empty.' });
+        }
+        const s = String(status).trim().toUpperCase();
+        if (s === 'ACTIVE' || s === 'AVAILABLE') {
+          normalizedStatus = 'ACTIVE';
+        } else if (s === 'UNAVAILABLE') {
+          normalizedStatus = 'UNAVAILABLE';
+        } else {
+          return res.status(400).json({ success: false, message: 'Invalid operational status. Must be ACTIVE or UNAVAILABLE.' });
+        }
+      }
+
+      const updated = await DriverModel.update(driverId, { name, telephone, referenceNumber, status: normalizedStatus });
       res.json({ success: true, message: 'Chauffeur updated successfully.', driver: updated });
     } catch (error) {
       if (error.code === 'DRIVER_CURRENTLY_HELD') {
         return res.status(400).json({ success: false, code: error.code, message: error.message });
       }
-      res.status(500).json({ success: false, message: error.message });
+      res.status(error.statusCode || 500).json({ success: false, message: error.message });
     }
   }
 

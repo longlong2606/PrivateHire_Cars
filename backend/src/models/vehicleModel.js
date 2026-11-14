@@ -148,7 +148,19 @@ class VehicleModel {
   }
 
   static async updateStatus(id, status) {
-    if (status === 'UNAVAILABLE') {
+    if (!status || String(status).trim() === '') {
+      const err = new Error('Vehicle status cannot be empty.');
+      err.statusCode = 400;
+      throw err;
+    }
+    const s = String(status).trim().toUpperCase();
+    const normalized = (s === 'AVAILABLE' || s === 'ACTIVE') ? 'ACTIVE' : (s === 'UNAVAILABLE' ? 'UNAVAILABLE' : null);
+    if (!normalized) {
+      const err = new Error('Invalid vehicle status. Must be ACTIVE or UNAVAILABLE.');
+      err.statusCode = 400;
+      throw err;
+    }
+    if (normalized === 'UNAVAILABLE') {
       const activeRes = await db.query(`
         SELECT id, booking_code, status, pickup_time, occupied_duration_minutes 
         FROM bookings 
@@ -167,12 +179,31 @@ class VehicleModel {
         throw err;
       }
     }
-    const res = await db.query('UPDATE vehicles SET status = $1 WHERE id = $2 RETURNING *', [status, id]);
+    const res = await db.query('UPDATE vehicles SET status = $1 WHERE id = $2 RETURNING *', [normalized, id]);
     return res.rows[0];
   }
 
   static async update(id, { regNumber, makeModel, colour, capacity, status, driverId }) {
-    if (status === 'UNAVAILABLE') {
+    let normalizedStatus = undefined;
+    if (status !== undefined && status !== null) {
+      const s = String(status).trim().toUpperCase();
+      if (!s) {
+        const err = new Error('Vehicle status cannot be empty.');
+        err.statusCode = 400;
+        throw err;
+      }
+      if (s === 'ACTIVE' || s === 'AVAILABLE') {
+        normalizedStatus = 'ACTIVE';
+      } else if (s === 'UNAVAILABLE') {
+        normalizedStatus = 'UNAVAILABLE';
+      } else {
+        const err = new Error('Invalid vehicle status. Must be ACTIVE or UNAVAILABLE.');
+        err.statusCode = 400;
+        throw err;
+      }
+    }
+
+    if (normalizedStatus === 'UNAVAILABLE') {
       const activeRes = await db.query(`
         SELECT id, booking_code, status, pickup_time, occupied_duration_minutes 
         FROM bookings 
@@ -208,7 +239,7 @@ class VehicleModel {
       makeModel ? makeModel.trim() : null,
       colour ? colour.trim() : null,
       capacity ? parseInt(capacity, 10) : null,
-      status || null,
+      normalizedStatus !== undefined ? normalizedStatus : null,
       driverId || null,
       id
     ]);
