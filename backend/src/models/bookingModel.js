@@ -40,9 +40,14 @@ class BookingModel {
     requestedDriverId = null,
     assignedStaffId = null,
     assignedAt = null,
+    paymentReference = null,
+    paidAmount = null,
   }) {
     const resolvedVoucherCode = voucherCode || promoCode || null;
     const resolvedVoucherId = voucherId || null;
+    const resolvedPaidAmount = paidAmount !== null && paidAmount !== undefined 
+      ? paidAmount 
+      : (paymentStatus === 'PAID' ? finalFare : 0.00);
     const sql = `
       INSERT INTO bookings (
         booking_code,
@@ -79,9 +84,11 @@ class BookingModel {
         passenger_count,
         requested_driver_id,
         assigned_staff_id,
-        assigned_at
+        assigned_at,
+        payment_reference,
+        paid_amount
       ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37
       )
       RETURNING *
     `;
@@ -121,6 +128,8 @@ class BookingModel {
       requestedDriverId,
       assignedStaffId,
       assignedAt,
+      paymentReference,
+      resolvedPaidAmount,
     ];
     const result = await db.query(sql, values);
     return result.rows[0];
@@ -234,7 +243,8 @@ class BookingModel {
       LEFT JOIN reviews r ON b.id = r.booking_id
       WHERE b.booking_code = $1
     `;
-    const result = await db.query(sql, [bookingCode.trim()]);
+    if (!bookingCode) return null;
+    const result = await db.query(sql, [String(bookingCode).trim()]);
     return result.rows[0] || null;
   }
 
@@ -243,12 +253,36 @@ class BookingModel {
     return res.rows[0];
   }
 
-  static async updatePaymentStatus(id, paymentStatus) {
-    let sql = 'UPDATE bookings SET payment_status = $1 WHERE id = $2 RETURNING *';
+  static async updatePaymentStatus(id, paymentStatus, paymentReference = null, cardRefUsed = undefined, paidAmount = null) {
+    let updates = [];
+    let values = [];
+    let idx = 1;
+
+    updates.push(`payment_status = $${idx++}`);
+    values.push(paymentStatus);
+
     if (paymentStatus === 'PAID') {
-      sql = 'UPDATE bookings SET payment_status = $1, paid_amount = COALESCE(paid_amount, final_fare, fare_amount, 0.00) WHERE id = $2 RETURNING *';
+      if (paidAmount !== null && paidAmount !== undefined) {
+        updates.push(`paid_amount = $${idx++}`);
+        values.push(paidAmount);
+      } else {
+        updates.push('paid_amount = COALESCE(paid_amount, final_fare, fare_amount, 0.00)');
+      }
     }
-    const res = await db.query(sql, [paymentStatus, id]);
+
+    if (paymentReference) {
+      updates.push(`payment_reference = $${idx++}`);
+      values.push(paymentReference);
+    }
+
+    if (cardRefUsed !== undefined) {
+      updates.push(`card_ref_used = $${idx++}`);
+      values.push(cardRefUsed);
+    }
+
+    values.push(id);
+    const sql = `UPDATE bookings SET ${updates.join(', ')} WHERE id = $${idx} RETURNING *`;
+    const res = await db.query(sql, values);
     return res.rows[0];
   }
 

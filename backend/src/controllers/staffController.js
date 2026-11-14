@@ -152,9 +152,24 @@ class StaffController {
         ? `${notes} | Passengers: ${pCount}` 
         : `Assisted Phone Booking | Passengers: ${pCount}`;
 
-      const cardRef = paymentMethod === 'MOCK_CARD'
-        ? (customer.mock_card_ref || customer.mockCardRef || 'CARD-ON-FILE')
-        : (paymentMethod === 'INVOICE' ? 'Corporate Invoice Net-30' : 'Cash on Completion');
+      const codeSuffix = bookingCode.replace(/^BK-/, '');
+      let paymentReference = null;
+      let cardRef = null;
+
+      const normMethod = (paymentMethod || 'CASH').toUpperCase();
+      if (normMethod === 'CASH') {
+        paymentReference = `TXN-CSH-${codeSuffix}`;
+        cardRef = null; // Cash must NEVER show Visa Card strings
+      } else if (normMethod === 'PAYPAL') {
+        paymentReference = `TXN-PP-${codeSuffix}-${Math.floor(1000 + Math.random() * 9000)}`;
+        cardRef = null;
+      } else if (normMethod === 'MOCK_CARD' || normMethod === 'CARD') {
+        paymentReference = `TXN-CARD-${codeSuffix}-${Math.floor(1000 + Math.random() * 9000)}`;
+        cardRef = customer.mock_card_ref || customer.mockCardRef || '•••• •••• •••• 4242';
+      } else {
+        paymentReference = `TXN-${normMethod}-${codeSuffix}`;
+        cardRef = paymentMethod === 'INVOICE' ? 'Corporate Invoice Net-30' : null;
+      }
 
       const resolvedStaffName = (req.user && req.user.name) || req.body.staffName || req.body.staff_name || 'Call Centre Operations';
       const resolvedStaffId = (req.user && req.user.id) || req.body.staffId || req.body.staff_id || null;
@@ -195,6 +210,7 @@ class StaffController {
         fareAmount: baseFare,
         paymentMethod,
         cardRefUsed: cardRef,
+        paymentReference,
         status: bookingStatus,
         paymentStatus,
         paidAmount,
@@ -448,7 +464,11 @@ class StaffController {
         return res.status(400).json({ success: false, message: 'Cash can only be recorded for Completed bookings.' });
       }
 
-      await BookingModel.updatePaymentStatus(bookingId, 'PAID');
+      const codeSuffix = (booking.booking_code || '').replace(/^BK-/, '');
+      const cashTxnRef = `TXN-CSH-${codeSuffix}-COLLECTED`;
+      const cashAmount = parseFloat(booking.final_fare || booking.fare_amount || 0);
+
+      await BookingModel.updatePaymentStatus(bookingId, 'PAID', cashTxnRef, null, cashAmount);
       const updated = await BookingModel.findById(bookingId);
 
       res.json({

@@ -377,6 +377,10 @@
 
     /* Print Stylesheet for Official Paid Receipt - Clean single page without extra blank pages */
     @media print {
+      @page {
+        size: auto;
+        margin: 12mm 15mm;
+      }
       html, body {
         background: #ffffff !important;
         color: #000000 !important;
@@ -398,14 +402,18 @@
         padding: 0 !important;
         background: #ffffff !important;
         box-shadow: none !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
       }
       #printable-receipt-modal .modal-box {
         box-shadow: none !important;
         border: none !important;
         max-width: 100% !important;
         width: 100% !important;
-        padding: 10px 0 !important;
+        padding: 6px 0 !important;
         margin: 0 !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
       }
       .no-print {
         display: none !important;
@@ -1000,6 +1008,12 @@
       return `http://${window.location.hostname || 'localhost'}:5000`;
     })();
 
+    function safeCreateIcons() {
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        try { window.lucide.createIcons(); } catch (_) {}
+      }
+    }
+
     let currentUser = null;
     let customerBookings = [];
 
@@ -1292,8 +1306,8 @@
                 </button>
               ` : ''}
 
-              ${pStatus === 'PAID' ? `
-                <button type="button" class="btn-outline-sm" onclick="openReceiptModal('${b.booking_code}')" title="View payment receipt (Transaction successful)">
+              ${(['PAID', 'REFUNDED'].includes(pStatus) || parseFloat(b.paid_amount || 0) > 0) ? `
+                <button type="button" class="btn-outline-sm" onclick="openReceiptModal('${b.booking_code}')" title="View official payment receipt and transaction history">
                   <i data-lucide="receipt" style="width: 14px; height: 14px;"></i> View Receipt
                 </button>
               ` : ''}
@@ -1323,7 +1337,7 @@
         `;
       }).join('');
 
-      lucide.createIcons();
+      safeCreateIcons();
       highlightTargetBooking();
     }
 
@@ -1585,8 +1599,8 @@
       const footer = document.getElementById('booking-detail-modal-footer');
       footer.innerHTML = `
         <button type="button" class="btn-outline-sm" onclick="closeBookingDetailModal()">Close</button>
-        ${pStatus === 'PAID' ? `
-          <button type="button" class="btn-outline-sm" style="background: rgba(22, 75, 59, 0.08); color: var(--primary); font-weight: 600;" onclick="closeBookingDetailModal(); openReceiptModal('${b.booking_code}')" title="View payment receipt (Transaction successful)">
+        ${(['PAID', 'REFUNDED'].includes(pStatus) || parseFloat(b.paid_amount || 0) > 0) ? `
+          <button type="button" class="btn-outline-sm" style="background: rgba(22, 75, 59, 0.08); color: var(--primary); font-weight: 600;" onclick="closeBookingDetailModal(); openReceiptModal('${b.booking_code}')" title="View official payment receipt and transaction history">
             <i data-lucide="receipt" style="width: 14px; height: 14px;"></i> View Receipt
           </button>
         ` : ''}
@@ -1604,7 +1618,7 @@
       `;
 
       document.getElementById('booking-detail-modal').classList.add('open');
-      lucide.createIcons();
+      safeCreateIcons();
     }
 
     function closeBookingDetailModal() {
@@ -1616,19 +1630,40 @@
       const b = customerBookings.find(x => x.booking_code === bookingCode);
       if (!b) return;
 
+      const codeSuffix = (b.booking_code || '').replace(/^BK-/, '');
       const pickupDate = window.formatBookingDateTime 
         ? window.formatBookingDateTime(b.pickup_time, { withWeekday: true })
         : new Date(b.pickup_time).toLocaleString('en-GB');
+
       const isPaid = (b.payment_status || '').toUpperCase() === 'PAID';
+      const isRefunded = (b.payment_status || '').toUpperCase() === 'REFUNDED';
       const baseFare = parseFloat(b.base_fare || b.fare_amount || 0).toFixed(2);
       const onlineDiscount = parseFloat(b.discount_amount || 0).toFixed(2);
       const promoDiscount = parseFloat(b.promo_discount || 0).toFixed(2);
       const finalFare = parseFloat(b.final_fare || (b.base_fare ? Math.max(0, b.base_fare - onlineDiscount - promoDiscount) : b.fare_amount) || 0).toFixed(2);
-      let paymentRef = b.payment_reference || b.card_ref_used || `TXN-${b.booking_code}`;
+
+      const normMethod = (b.payment_method || 'CARD').toUpperCase();
+      let defaultTxnPrefix = 'TXN-CARD-';
+      if (normMethod === 'CASH') defaultTxnPrefix = 'TXN-CSH-';
+      else if (normMethod === 'PAYPAL') defaultTxnPrefix = 'TXN-PP-';
+
+      let paymentRef = b.payment_reference || `${defaultTxnPrefix}${codeSuffix}`;
 
       const renderReceiptHtml = (receiptData) => {
+        const curPaymentRef = (receiptData && receiptData.paymentReference) || paymentRef;
+        const curReceiptNo = (receiptData && receiptData.receiptNumber) || `REC-${codeSuffix}`;
+        const curMethod = (receiptData && receiptData.pricing && receiptData.pricing.paymentMethod) || b.payment_method || 'CARD';
+        const curMethodUpper = curMethod.toUpperCase();
+        const curCardRef = (receiptData && receiptData.pricing) 
+          ? receiptData.pricing.cardRefUsed 
+          : ((curMethodUpper === 'CARD' || curMethodUpper === 'MOCK_CARD') ? (b.card_ref_used || '•••• •••• •••• 4242') : null);
+
+        const curPaidAmount = (receiptData && receiptData.pricing && receiptData.pricing.actualPaidAmount !== undefined)
+          ? parseFloat(receiptData.pricing.actualPaidAmount).toFixed(2)
+          : (parseFloat(b.paid_amount || (isPaid ? finalFare : 0)).toFixed(2));
+
         const pHistory = (receiptData && receiptData.paymentHistory) || [
-          { type: 'CHARGE', method: b.payment_method || 'CARD', reference: paymentRef, amount: parseFloat(finalFare), status: isPaid ? 'PAID' : 'UNPAID', date: b.updated_at || b.created_at }
+          { type: 'CHARGE', method: curMethod, reference: curPaymentRef, amount: parseFloat(curPaidAmount), status: isPaid ? 'PAID' : (isRefunded ? 'REFUNDED' : 'UNPAID'), date: b.updated_at || b.created_at }
         ];
         const rHistory = (receiptData && receiptData.refundHistory) || [];
 
@@ -1636,8 +1671,8 @@
         <div style="text-align: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 16px;">
           <h2 style="font-family: var(--font-heading); font-size: 20px; font-weight: 800; color: var(--primary);">PRIVATEHIRE CARS LONDON</h2>
           <p style="font-size: 12px; color: var(--text-muted);">Licensed London Minicab Dispatch Service</p>
-          <div style="margin-top: 8px; font-family: var(--font-mono); font-size: 13px; font-weight: 700;">
-            Receipt No: REC-${b.booking_code.replace('BK-', '')}
+          <div style="margin-top: 8px; font-family: var(--font-mono); font-size: 13.5px; font-weight: 700; color: var(--primary);">
+            Receipt No: ${escapeHtml(curReceiptNo)}
           </div>
         </div>
 
@@ -1648,7 +1683,7 @@
           </div>
           <div style="display: flex; justify-content: space-between;">
             <span style="color: var(--text-muted);">Payment Reference:</span>
-            <strong style="font-family: var(--font-mono); color: var(--primary);">${escapeHtml(paymentRef)}</strong>
+            <strong style="font-family: var(--font-mono); color: var(--primary);">${escapeHtml(curPaymentRef)}</strong>
           </div>
           <div style="display: flex; justify-content: space-between;">
             <span style="color: var(--text-muted);">Journey Date &amp; Time:</span>
@@ -1672,12 +1707,12 @@
           </div>
           <div style="display: flex; justify-content: space-between;">
             <span style="color: var(--text-muted);">Payment Method:</span>
-            <span>${escapeHtml(b.payment_method || 'CARD')} ${b.card_ref_used ? `(${escapeHtml(b.card_ref_used)})` : ''}</span>
+            <span><strong>${escapeHtml(curMethod)}</strong>${curCardRef ? ` (${escapeHtml(curCardRef)})` : ''}</span>
           </div>
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <span style="color: var(--text-muted);">Payment Status:</span>
-            <span style="background: ${isPaid ? '#D1E7DD' : '#FFF3CD'}; color: ${isPaid ? '#0F5132' : '#856404'}; padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 12px;">
-              ${isPaid ? 'PAID ✓ (Transaction Approved)' : 'UNPAID (Pending Cash Collection)'}
+            <span style="background: ${isPaid ? '#D1E7DD' : (isRefunded ? '#E2E3E5' : '#FFF3CD')}; color: ${isPaid ? '#0F5132' : (isRefunded ? '#41464B' : '#856404')}; padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 12px;">
+              ${isPaid ? 'PAID ✓ (Transaction Approved)' : (isRefunded ? 'REFUNDED (Cancelled & Returned)' : 'UNPAID (Pending Cash Collection)')}
             </span>
           </div>
           ${b.staff_name ? `
@@ -1706,11 +1741,11 @@
             </div>
           ` : ''}
           <div style="border-top: 1px solid var(--border-subtle); padding-top: 8px; margin-top: 6px; display: flex; justify-content: space-between; font-size: 16px; font-weight: 800; color: var(--primary);">
-            <span>${isPaid ? 'Amount Recorded as Paid:' : 'Total Amount Due at End of Journey:'}</span>
-            <span>£${finalFare} GBP</span>
+            <span>${isPaid ? 'Amount Recorded as Paid:' : (isRefunded ? 'Original Amount Paid (Now Refunded):' : 'Total Amount Due at End of Journey:')}</span>
+            <span>£${curPaidAmount} GBP</span>
           </div>
           <div style="display: flex; justify-content: flex-end; font-size: 11.5px; color: var(--text-muted); margin-top: 4px;">
-            (Includes 20% UK VAT: £${(parseFloat(finalFare) * 0.20).toFixed(2)} GBP)
+            (Includes 20% UK VAT: £${(parseFloat(curPaidAmount) * 0.20).toFixed(2)} GBP)
           </div>
         </div>
 
@@ -1733,21 +1768,26 @@
               ${pHistory.map(p => `
                 <tr style="border-bottom: 1px dashed var(--border-subtle);">
                   <td style="padding: 6px;"><span style="color: var(--accent-emerald); font-weight: 600;">CHARGE</span></td>
-                  <td style="padding: 6px; font-family: var(--font-mono);">${escapeHtml(p.reference || paymentRef)}</td>
+                  <td style="padding: 6px; font-family: var(--font-mono);">${escapeHtml(p.reference || curPaymentRef)}</td>
                   <td style="padding: 6px; font-weight: 600;">£${parseFloat(p.amount || 0).toFixed(2)}</td>
-                  <td style="padding: 6px;"><span class="badge ${p.status === 'PAID' ? 'badge-completed' : 'badge-pending'}">${escapeHtml(p.status)}</span></td>
+                  <td style="padding: 6px;"><span class="badge ${p.status === 'PAID' ? 'badge-completed' : (p.status === 'REFUNDED' ? 'badge-refunded' : 'badge-pending')}">${escapeHtml(p.status)}</span></td>
                   <td style="padding: 6px; color: var(--text-muted);">${new Date(p.date).toLocaleDateString('en-GB')}</td>
                 </tr>
               `).join('')}
               ${rHistory.map(r => `
                 <tr style="border-bottom: 1px dashed var(--border-subtle);">
                   <td style="padding: 6px;"><span style="color: var(--accent-gold); font-weight: 600;">REFUND</span></td>
-                  <td style="padding: 6px; font-family: var(--font-mono);">REF-${r.id}</td>
+                  <td style="padding: 6px; font-family: var(--font-mono);">${escapeHtml(r.reference || `REF-${r.id}`)}</td>
                   <td style="padding: 6px; font-weight: 600; color: var(--text-error);">-£${parseFloat(r.amount || 0).toFixed(2)}</td>
                   <td style="padding: 6px;"><span class="badge ${r.status === 'PROCESSED' ? 'badge-completed' : 'badge-pending'}">${escapeHtml(r.status)}</span></td>
                   <td style="padding: 6px; color: var(--text-muted);">${new Date(r.date).toLocaleDateString('en-GB')}</td>
                 </tr>
               `).join('')}
+              ${(pHistory.length === 0 && rHistory.length === 0) ? `
+                <tr>
+                  <td colspan="5" style="text-align: center; padding: 10px; color: var(--text-muted);">No transaction records recorded yet.</td>
+                </tr>
+              ` : ''}
             </tbody>
           </table>
         </div>
@@ -1756,7 +1796,7 @@
 
       document.getElementById('receipt-modal-content').innerHTML = renderReceiptHtml();
       document.getElementById('printable-receipt-modal').classList.add('open');
-      lucide.createIcons();
+      safeCreateIcons();
 
       try {
         const token = localStorage.getItem('sessionToken') || '';
@@ -1768,7 +1808,7 @@
           if (data.success && data.receipt) {
             paymentRef = data.receipt.paymentReference || paymentRef;
             document.getElementById('receipt-modal-content').innerHTML = renderReceiptHtml(data.receipt);
-            lucide.createIcons();
+            safeCreateIcons();
           }
         }
       } catch (_) {}
@@ -1822,7 +1862,7 @@
       if (fb) fb.style.display = 'none';
 
       document.getElementById('amend-booking-modal').classList.add('open');
-      lucide.createIcons();
+      safeCreateIcons();
 
       // Load vehicles and recalculate quote
       loadAmendVehicles(b.vehicle_id);
@@ -2136,7 +2176,7 @@
       const commentInput = document.getElementById('rev-comment');
       if (commentInput) commentInput.value = '';
       document.getElementById('review-modal').classList.add('open');
-      lucide.createIcons();
+      safeCreateIcons();
     }
     function closeReviewModal() {
       document.getElementById('review-modal').classList.remove('open');
@@ -2176,7 +2216,7 @@
       }
 
       document.getElementById('view-review-modal').classList.add('open');
-      lucide.createIcons();
+      safeCreateIcons();
     }
 
     function closeViewReviewModal() {
@@ -2287,7 +2327,7 @@
       document.getElementById('chk-due-amount').textContent = `£${due} GBP`;
 
       document.getElementById('pending-checkout-modal').classList.add('open');
-      lucide.createIcons();
+      safeCreateIcons();
     }
 
     function closePendingCheckoutModal() {
@@ -2353,7 +2393,7 @@
       let iconName = type === 'error' ? 'alert-circle' : 'check-circle';
       toast.innerHTML = `<i data-lucide="${iconName}" style="width:16px;height:16px;color:${iconColor};"></i> <span>${msg}</span>`;
       rack.appendChild(toast);
-      lucide.createIcons();
+      safeCreateIcons();
       setTimeout(() => { toast.remove(); }, 3500);
     }
 

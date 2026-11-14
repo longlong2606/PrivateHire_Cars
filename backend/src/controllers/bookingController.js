@@ -333,6 +333,26 @@ const createBooking = async (req, res) => {
     } else {
       // Create new booking
       const bookingCode = 'BK-' + Math.floor(100000 + Math.random() * 900000);
+      const codeSuffix = bookingCode.replace(/^BK-/, '');
+
+      let initialPaymentRef = null;
+      let initialCardRef = null;
+      const normMethod = (resolvedPaymentMethod || 'CARD').toUpperCase();
+
+      if (normMethod === 'CASH') {
+        initialPaymentRef = `TXN-CSH-${codeSuffix}`;
+        initialCardRef = null;
+      } else if (normMethod === 'PAYPAL') {
+        initialPaymentRef = `TXN-PP-${codeSuffix}-${Math.floor(1000 + Math.random() * 9000)}`;
+        initialCardRef = null;
+      } else {
+        // CARD
+        initialPaymentRef = `TXN-CARD-${codeSuffix}-${Math.floor(1000 + Math.random() * 9000)}`;
+        initialCardRef = customer.mockCardRef || '•••• •••• •••• 4242';
+      }
+
+      const initialPaidAmount = resolvedPaymentStatus === 'PAID' ? finalFare : 0.00;
+
       booking = await BookingModel.create({
         bookingCode,
         accountId: customer.id,
@@ -344,7 +364,9 @@ const createBooking = async (req, res) => {
         carType: carType || (resolvedCapacity === 7 ? 'Seven-Passenger Executive MPV' : 'Four-Passenger Executive Saloon'),
         fareAmount: baseFare,
         paymentMethod: resolvedPaymentMethod,
-        cardRefUsed: customer.mockCardRef || '•••• •••• •••• 4242 (Visa Test Card)',
+        cardRefUsed: initialCardRef,
+        paymentReference: initialPaymentRef,
+        paidAmount: initialPaidAmount,
         status: finalBookingStatus,
         paymentStatus: resolvedPaymentStatus,
         notes: notes || null,
@@ -406,7 +428,9 @@ const createBooking = async (req, res) => {
       booking: {
         id: booking.id,
         bookingCode: booking.booking_code,
+        booking_code: booking.booking_code,
         accountId: booking.account_id,
+        account_id: booking.account_id,
         passengerName: booking.passenger_name,
         passengerPhone: booking.passenger_phone,
         pickupAddress: booking.pickup_address,
@@ -425,8 +449,15 @@ const createBooking = async (req, res) => {
         fareCurrency: booking.fare_currency || 'GBP',
         occupiedDurationMinutes: booking.occupied_duration_minutes,
         paymentMethod: booking.payment_method,
+        payment_method: booking.payment_method,
         paymentStatus: booking.payment_status,
+        payment_status: booking.payment_status,
+        paymentReference: booking.payment_reference,
+        payment_reference: booking.payment_reference,
+        paidAmount: booking.paid_amount,
+        paid_amount: booking.paid_amount,
         cardRefUsed: booking.card_ref_used,
+        card_ref_used: booking.card_ref_used,
         status: booking.status,
         vehicleId: booking.vehicle_id,
         createdAt: booking.created_at,
@@ -573,8 +604,25 @@ const simulatePayment = async (req, res) => {
 
     // Branch 2: Simulated Payment Success
     const isCash = paymentMethod === 'CASH';
+    const isPayPal = paymentMethod === 'PAYPAL';
     const newPaymentStatus = isCash ? 'UNPAID' : 'PAID';
     const newStatus = 'CONFIRMED';
+    const codeSuffix = (booking.booking_code || '').replace(/^BK-/, '');
+
+    let paymentReference = null;
+    let cardRefUsed = null;
+
+    if (isCash) {
+      paymentReference = `TXN-CSH-${codeSuffix}`;
+      cardRefUsed = null; // Cash must NEVER show Visa Card strings
+    } else if (isPayPal) {
+      paymentReference = `TXN-PP-${codeSuffix}-${Math.floor(1000 + Math.random() * 9000)}`;
+      cardRefUsed = null;
+    } else {
+      // CARD
+      paymentReference = `TXN-CARD-${codeSuffix}-${Math.floor(1000 + Math.random() * 9000)}`;
+      cardRefUsed = (req.user && req.user.mockCardRef) || booking.card_ref_used || '•••• •••• •••• 4242';
+    }
 
     // Reserve vehicle and requested chauffeur
     // Note: driver_id remains NULL until staff officially assigns/confirms allocation!
@@ -583,10 +631,12 @@ const simulatePayment = async (req, res) => {
       SET status = $1, 
           payment_status = $2, 
           payment_method = $3,
-          requested_driver_id = COALESCE(requested_driver_id, $4),
+          payment_reference = $4,
+          card_ref_used = $5,
+          requested_driver_id = COALESCE(requested_driver_id, $6),
           paid_amount = CASE WHEN $2 = 'PAID' THEN COALESCE(final_fare, fare_amount, 0.00) ELSE 0.00 END
-      WHERE id = $5
-    `, [newStatus, newPaymentStatus, paymentMethod, requestedDriverId || null, booking.id]);
+      WHERE id = $7
+    `, [newStatus, newPaymentStatus, paymentMethod, paymentReference, cardRefUsed, requestedDriverId || null, booking.id]);
 
     // If promo code was used, mark it used
     if (validVoucher) {
@@ -1134,17 +1184,6 @@ const getPrintableReceipt = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Forbidden' });
     }
 
-    if (booking.status === 'PENDING' || booking.payment_status !== 'PAID') {
-      return res.status(400).json({
-        success: false,
-        message: 'Receipt is available only after payment has been completed on a confirmed booking.',
-      });
-    }
-
-    const netAmount = parseFloat(booking.final_fare || booking.fare_amount);
-    const vat = Math.round(netAmount * 0.20 * 100) / 100;
-    const totalWithVat = netAmount;
-
     // Retrieve refund requests history if any
     let refundHistory = [];
     try {
@@ -1155,12 +1194,51 @@ const getPrintableReceipt = async (req, res) => {
       refundHistory = refundRes.rows || [];
     } catch (_) {}
 
-    const paymentRef = booking.payment_reference || booking.card_ref_used || `TXN-${booking.booking_code}`;
+    // Check payment / receipt eligibility:
+    // User requirement: "Sau Cancelled/Refunded, owner vẫn xem được lịch sử thanh toán và hoàn tiền sau reload. Không chặn toàn bộ lịch sử vì payment status không còn Paid."
+    const isPaidOrRefunded = ['PAID', 'REFUNDED', 'COMPLETED'].includes((booking.payment_status || '').toUpperCase()) 
+      || parseFloat(booking.paid_amount || 0) > 0 
+      || refundHistory.length > 0;
+
+    if (!isPaidOrRefunded) {
+      return res.status(400).json({
+        success: false,
+        message: 'Receipt is available only after payment has been recorded or on a confirmed/paid journey.',
+      });
+    }
+
+    const netAmount = parseFloat(booking.final_fare || booking.fare_amount || 0);
+    const recordedPaidAmount = parseFloat(booking.paid_amount || (['PAID', 'REFUNDED'].includes(booking.payment_status) ? netAmount : 0));
+    const vat = Math.round(recordedPaidAmount * 0.20 * 100) / 100;
+    const codeSuffix = (booking.booking_code || '').replace(/^BK-/, '');
+
+    const receiptNumber = `REC-${codeSuffix}`;
+    const normMethod = (booking.payment_method || 'CARD').toUpperCase();
+
+    let defaultTxnPrefix = 'TXN-CARD-';
+    if (normMethod === 'CASH') defaultTxnPrefix = 'TXN-CSH-';
+    else if (normMethod === 'PAYPAL') defaultTxnPrefix = 'TXN-PP-';
+
+    const paymentRef = booking.payment_reference || `${defaultTxnPrefix}${codeSuffix}`;
+    const maskedCardRef = (normMethod === 'CASH' || normMethod === 'PAYPAL') ? null : (booking.card_ref_used || '•••• •••• •••• 4242');
+
+    // Build chronological payment history
+    const paymentHistory = [];
+    if (recordedPaidAmount > 0 || ['PAID', 'REFUNDED'].includes(booking.payment_status)) {
+      paymentHistory.push({
+        type: 'CHARGE',
+        method: booking.payment_method || 'CARD',
+        reference: paymentRef,
+        amount: recordedPaidAmount > 0 ? recordedPaidAmount : netAmount,
+        status: booking.payment_status === 'REFUNDED' ? 'REFUNDED' : 'PAID',
+        date: booking.updated_at || booking.created_at,
+      });
+    }
 
     res.json({
       success: true,
       receipt: {
-        receiptNumber: `REC-${booking.booking_code}`,
+        receiptNumber,
         issuedAt: new Date().toISOString(),
         paymentReference: paymentRef,
         customer: {
@@ -1178,35 +1256,28 @@ const getPrintableReceipt = async (req, res) => {
           driverName: booking.driver_name || 'Assigned Executive Chauffeur',
         },
         pricing: {
-          baseFare: parseFloat(booking.base_fare || booking.fare_amount),
+          baseFare: parseFloat(booking.base_fare || booking.fare_amount || 0),
           onlineDiscount: parseFloat(booking.discount_amount || 0.00),
           promoDiscount: parseFloat(booking.promo_discount || 0.00),
-          netPaid: netAmount,
-          actualPaidAmount: netAmount,
+          netPaid: recordedPaidAmount,
+          actualPaidAmount: recordedPaidAmount,
           paymentReference: paymentRef,
           currency: booking.fare_currency || 'GBP',
           vatIncluded: vat,
-          paymentMethod: booking.payment_method,
-          cardRefUsed: booking.card_ref_used,
+          paymentMethod: booking.payment_method || 'CARD',
+          cardRefUsed: maskedCardRef,
         },
-        paymentHistory: [
-          {
-            type: 'CHARGE',
-            method: booking.payment_method || 'CARD',
-            reference: paymentRef,
-            amount: netAmount,
-            status: booking.payment_status || 'PAID',
-            date: booking.updated_at || booking.created_at,
-          }
-        ],
+        paymentHistory,
         refundHistory: refundHistory.map(r => ({
           type: 'REFUND',
           id: r.id,
+          reference: `REF-${r.id}`,
           amount: parseFloat(r.amount),
           reason: r.reason,
           status: r.status,
           date: r.created_at,
           processedAt: r.processed_at,
+          staffNotes: r.staff_notes,
         })),
       },
     });

@@ -263,6 +263,7 @@ ALTER TABLE bookings ADD COLUMN IF NOT EXISTS approaching_alert BOOLEAN DEFAULT 
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS staff_id INTEGER;
 ALTER TABLE bookings DROP CONSTRAINT IF EXISTS bookings_staff_id_fkey;
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS staff_name VARCHAR(100);
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS payment_reference VARCHAR(100);
 
 -- ===================================================================
 -- 8. SPECIAL OFFERS & LOYALTY (P09)
