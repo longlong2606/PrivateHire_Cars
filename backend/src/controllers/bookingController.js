@@ -480,28 +480,38 @@ const createBooking = async (req, res) => {
 /**
  * [P03]: Mô phỏng thanh toán (Simulated Electronic Payment & Cash Confirmation)
  * Hỗ trợ Visa, Mastercard, Amex, PayPal và Cash với 2 nhánh: Success và Fail (Visa check fail)
+ * Sử dụng PostgreSQL transaction và row-level lock (FOR UPDATE) để chặn double-click và race condition.
  */
 const simulatePayment = async (req, res) => {
+  const client = await db.getClient();
   try {
-    const bookingId = req.params.id;
+    const bookingId = req.params.bookingCode || req.params.id;
     const { paymentMethod = 'CARD', simulationResult = 'SUCCESS', voucherCode = null } = req.body;
     const customer = req.user;
 
-    const booking = /^\d+$/.test(bookingId)
-      ? await BookingModel.findById(bookingId)
-      : await BookingModel.findByCode(bookingId);
+    await client.query('BEGIN');
+
+    // Khóa dòng cuốc xe (Row-level lock) để chặn double-click và duplicate confirmation
+    const lockSql = /^\d+$/.test(bookingId)
+      ? 'SELECT * FROM bookings WHERE id = $1 FOR UPDATE'
+      : 'SELECT * FROM bookings WHERE booking_code = $1 FOR UPDATE';
+    const lockRes = await client.query(lockSql, [bookingId]);
+    const booking = lockRes.rows[0];
 
     if (!booking) {
+      await client.query('ROLLBACK');
       return res.status(404).json({ success: false, message: 'Booking not found' });
     }
 
     const isStaff = customer.role === 'STAFF' || customer.role === 'ADMIN';
     if (booking.account_id !== customer.id && !isStaff) {
+      await client.query('ROLLBACK');
       return res.status(403).json({ success: false, message: 'Forbidden access' });
     }
 
     // Branch 1: Simulated Payment Failure (e.g. Visa Check / Card Declined)
     if (simulationResult === 'FAIL') {
+      await client.query('ROLLBACK');
       return res.status(400).json({
         success: false,
         code: 'PAYMENT_DECLINED',
@@ -511,6 +521,7 @@ const simulatePayment = async (req, res) => {
 
     // Idempotency: if already CONFIRMED, ASSIGNED, or COMPLETED
     if (booking.status === 'CONFIRMED' || booking.status === 'ASSIGNED' || booking.status === 'COMPLETED') {
+      await client.query('COMMIT');
       return res.json({
         success: true,
         message: 'Booking is already confirmed.',
@@ -519,6 +530,7 @@ const simulatePayment = async (req, res) => {
     }
 
     if (booking.status !== 'PENDING') {
+      await client.query('ROLLBACK');
       return res.status(400).json({
         success: false,
         message: `Cannot confirm booking in ${booking.status} status.`,
@@ -528,6 +540,7 @@ const simulatePayment = async (req, res) => {
     // Verify pickup time is still in the future
     const pickupDate = new Date(booking.pickup_time);
     if (pickupDate.getTime() < Date.now() - 60000) {
+      await client.query('ROLLBACK');
       return res.status(400).json({
         success: false,
         code: 'PICKUP_EXPIRED',
@@ -539,8 +552,13 @@ const simulatePayment = async (req, res) => {
     const codeToCheck = voucherCode || booking.voucher_code || booking.promo_code;
     let validVoucher = null;
     if (codeToCheck) {
-      const offer = await SpecialOfferModel.findByCode(codeToCheck.trim().toUpperCase());
+      const offerRes = await client.query(
+        'SELECT * FROM special_offers WHERE UPPER(code) = UPPER($1) FOR UPDATE',
+        [codeToCheck.trim()]
+      );
+      const offer = offerRes.rows[0];
       if (!offer || offer.is_used) {
+        await client.query('ROLLBACK');
         return res.status(400).json({
           success: false,
           code: 'VOUCHER_INVALID',
@@ -555,8 +573,9 @@ const simulatePayment = async (req, res) => {
     const requestedDriverId = booking.requested_driver_id || booking.driver_id;
 
     if (vehicleId) {
-      const vehicleCheck = await db.query('SELECT * FROM vehicles WHERE id = $1', [vehicleId]);
+      const vehicleCheck = await client.query('SELECT * FROM vehicles WHERE id = $1', [vehicleId]);
       if (!vehicleCheck.rows[0] || vehicleCheck.rows[0].status !== 'ACTIVE') {
+        await client.query('ROLLBACK');
         return res.status(400).json({
           success: false,
           code: 'RESOURCE_UNAVAILABLE',
@@ -570,6 +589,7 @@ const simulatePayment = async (req, res) => {
         excludeBookingId: booking.id,
       });
       if (hasVConflict) {
+        await client.query('ROLLBACK');
         return res.status(400).json({
           success: false,
           code: 'RESOURCE_CONFLICT',
@@ -579,8 +599,9 @@ const simulatePayment = async (req, res) => {
     }
 
     if (requestedDriverId) {
-      const driverCheck = await db.query('SELECT * FROM drivers WHERE id = $1', [requestedDriverId]);
+      const driverCheck = await client.query('SELECT * FROM drivers WHERE id = $1', [requestedDriverId]);
       if (!driverCheck.rows[0] || driverCheck.rows[0].status !== 'ACTIVE') {
+        await client.query('ROLLBACK');
         return res.status(400).json({
           success: false,
           code: 'RESOURCE_UNAVAILABLE',
@@ -594,6 +615,7 @@ const simulatePayment = async (req, res) => {
         excludeBookingId: booking.id,
       });
       if (hasDConflict) {
+        await client.query('ROLLBACK');
         return res.status(400).json({
           success: false,
           code: 'RESOURCE_CONFLICT',
@@ -603,8 +625,8 @@ const simulatePayment = async (req, res) => {
     }
 
     // Branch 2: Simulated Payment Success
-    const isCash = paymentMethod === 'CASH';
-    const isPayPal = paymentMethod === 'PAYPAL';
+    const isCash = (paymentMethod || '').toUpperCase() === 'CASH';
+    const isPayPal = (paymentMethod || '').toUpperCase() === 'PAYPAL';
     const newPaymentStatus = isCash ? 'UNPAID' : 'PAID';
     const newStatus = 'CONFIRMED';
     const codeSuffix = (booking.booking_code || '').replace(/^BK-/, '');
@@ -619,14 +641,19 @@ const simulatePayment = async (req, res) => {
       paymentReference = `TXN-PP-${codeSuffix}-${Math.floor(1000 + Math.random() * 9000)}`;
       cardRefUsed = null;
     } else {
-      // CARD
+      // CARD / MOCK_CARD
       paymentReference = `TXN-CARD-${codeSuffix}-${Math.floor(1000 + Math.random() * 9000)}`;
       cardRefUsed = (req.user && req.user.mockCardRef) || booking.card_ref_used || '•••• •••• •••• 4242';
     }
 
+    const resolvedPaidAmount = newPaymentStatus === 'PAID'
+      ? parseFloat(booking.final_fare || booking.fare_amount || 0.00)
+      : 0.00;
+
     // Reserve vehicle and requested chauffeur
-    // Note: driver_id remains NULL until staff officially assigns/confirms allocation!
-    await db.query(`
+    // Sửa lỗi PostgreSQL: loại bỏ CASE WHEN $2 = 'PAID' gây "inconsistent types deduced for parameter $2"
+    // Truyền trực tiếp resolvedPaidAmount đã tính toán chính xác
+    await client.query(`
       UPDATE bookings 
       SET status = $1, 
           payment_status = $2, 
@@ -634,16 +661,36 @@ const simulatePayment = async (req, res) => {
           payment_reference = $4,
           card_ref_used = $5,
           requested_driver_id = COALESCE(requested_driver_id, $6),
-          paid_amount = CASE WHEN $2 = 'PAID' THEN COALESCE(final_fare, fare_amount, 0.00) ELSE 0.00 END
-      WHERE id = $7
-    `, [newStatus, newPaymentStatus, paymentMethod, paymentReference, cardRefUsed, requestedDriverId || null, booking.id]);
+          paid_amount = $7
+      WHERE id = $8
+    `, [
+      newStatus,
+      newPaymentStatus,
+      paymentMethod,
+      paymentReference,
+      cardRefUsed,
+      requestedDriverId || null,
+      resolvedPaidAmount,
+      booking.id
+    ]);
 
-    // If promo code was used, mark it used
+    // If promo code was used, mark it used within the same transaction
     if (validVoucher) {
-      await SpecialOfferModel.markUsed(validVoucher.code).catch(() => {});
+      await client.query(
+        'UPDATE special_offers SET is_used = TRUE, used_at = CURRENT_TIMESTAMP WHERE UPPER(code) = UPPER($1)',
+        [validVoucher.code]
+      );
     } else if (booking.promo_code) {
-      await SpecialOfferModel.markUsed(booking.promo_code).catch(() => {});
+      await client.query(
+        'UPDATE special_offers SET is_used = TRUE, used_at = CURRENT_TIMESTAMP WHERE UPPER(code) = UPPER($1)',
+        [booking.promo_code]
+      );
     }
+
+    await client.query('COMMIT');
+
+    // Sau khi transaction commit thành công, lấy thông tin cập nhật mới nhất
+    const updated = await BookingModel.findById(booking.id);
 
     // Send real confirmation email to the actual customer
     let customerAccount = null;
@@ -677,9 +724,7 @@ const simulatePayment = async (req, res) => {
       type: 'BOOKING_CONFIRMED',
     }).catch(err => console.error('Error creating booking confirmation notification:', err));
 
-    const updated = await BookingModel.findById(booking.id);
-
-    res.json({
+    return res.json({
       success: true,
       message: isCash 
         ? 'Cash payment chosen. Booking is Confirmed and reserved. Please pay driver upon journey completion.' 
@@ -687,8 +732,11 @@ const simulatePayment = async (req, res) => {
       booking: updated,
     });
   } catch (error) {
+    await client.query('ROLLBACK').catch(() => {});
     console.error('Error in simulatePayment:', error);
-    res.status(500).json({ success: false, message: 'Server error simulating payment', error: error.message });
+    return res.status(500).json({ success: false, message: 'Server error simulating payment', error: error.message });
+  } finally {
+    client.release();
   }
 };
 

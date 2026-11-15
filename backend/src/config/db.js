@@ -104,17 +104,33 @@ const initConnection = async () => {
   }
 };
 
-// Hàm query đa năng
-const query = async (text, params) => {
+// Hàm query mặc định
+const defaultQuery = async (text, params) => {
   if (!activePool) {
     await initConnection();
   }
   return activePool.query(text, params);
 };
 
-module.exports = {
-  query,
+const dbExport = {
+  query: defaultQuery,
+  // Hàm lấy client kết nối (hỗ trợ transaction, row-level locking và tương thích mock test)
+  getClient: async () => {
+    // Nếu test suite ghi đè db.query bằng in-memory pool (pg-mem)
+    if (dbExport.query !== defaultQuery) {
+      return {
+        query: (sql, params) => dbExport.query(sql, params),
+        release: () => {},
+      };
+    }
+    if (!activePool) {
+      await initConnection();
+    }
+    return activePool.connect();
+  },
   initConnection,
   getDbStatus: () => ({ ...dbStatus }),
   getPool: () => activePool,
 };
+
+module.exports = dbExport;
