@@ -2641,13 +2641,15 @@
       }
       const paymentMethod = document.getElementById('asst-payment-method').value;
       const promoCode = appliedAssistedPromo ? appliedAssistedPromo.code : document.getElementById('asst-promo-code').value.trim();
-      const pickupTime = document.getElementById('asst-pickup-time').value;
+      const rawPickupTime = document.getElementById('asst-pickup-time').value;
       const vehicleId = document.getElementById('asst-vehicle-id').value || undefined;
 
-      if (!pickupTime) {
+      if (!rawPickupTime) {
         triggerToast("Please select a scheduled pickup date and time.", "error");
         return;
       }
+      const pDateObj = new Date(rawPickupTime);
+      const pickupTime = !isNaN(pDateObj.getTime()) ? pDateObj.toISOString() : rawPickupTime;
 
       const createBtn = document.getElementById('btn-asst-create');
       if (createBtn) createBtn.disabled = true;

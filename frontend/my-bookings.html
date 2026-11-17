@@ -1908,7 +1908,7 @@
     async function loadAmendVehicles(preferredVehicleId) {
       if (!currentAmendBooking) return;
 
-      const pTime = document.getElementById('amend-pickup-time').value;
+      const pTimeRaw = document.getElementById('amend-pickup-time').value;
       const service = document.getElementById('amend-service').value;
       const capacity = parseInt(document.getElementById('amend-capacity').value, 10) || 4;
       const pax = parseInt(document.getElementById('amend-passengers').value, 10) || 1;
@@ -1918,7 +1918,10 @@
       const vCard = document.getElementById('amend-vehicle-card');
       const btnSave = document.getElementById('btn-save-amend');
 
-      if (!pTime) return;
+      if (!pTimeRaw) return;
+
+      const pDateObj = new Date(pTimeRaw);
+      const pTime = !isNaN(pDateObj.getTime()) ? pDateObj.toISOString() : pTimeRaw;
 
       vBadge.textContent = 'Checking...';
       vBadge.style.background = 'rgba(20,63,51,0.1)';
@@ -2063,7 +2066,7 @@
       const bookingCode = document.getElementById('amend-booking-code').value;
       const pickupAddress = document.getElementById('amend-pickup-address').value.trim();
       const dropoffAddress = document.getElementById('amend-dropoff-address').value.trim();
-      const pickupTime = document.getElementById('amend-pickup-time').value;
+      const pickupTimeRaw = document.getElementById('amend-pickup-time').value;
       const service = document.getElementById('amend-service').value;
       const capacity = parseInt(document.getElementById('amend-capacity').value, 10) || 4;
       const pax = parseInt(document.getElementById('amend-passengers').value, 10) || 1;
@@ -2072,10 +2075,17 @@
       const fb = document.getElementById('amend-feedback');
       if (fb) fb.style.display = 'none';
 
-      if (!pickupAddress || !dropoffAddress || !pickupTime) {
+      if (!pickupAddress || !dropoffAddress || !pickupTimeRaw) {
         triggerToast("Please fill in all required amendment fields.", "error");
         return;
       }
+
+      const pDateObj = new Date(pickupTimeRaw);
+      if (isNaN(pDateObj.getTime())) {
+        triggerToast("Invalid pickup date and time format.", "error");
+        return;
+      }
+      const pickupTime = pDateObj.toISOString();
 
       if (pax > capacity) {
         triggerToast(`Passenger count (${pax}) exceeds capacity (${capacity} seats). Please choose 7-Seat MPV.`, "error");
