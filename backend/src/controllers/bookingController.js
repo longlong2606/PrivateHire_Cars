@@ -522,10 +522,13 @@ const simulatePayment = async (req, res) => {
     // Idempotency: if already CONFIRMED, ASSIGNED, or COMPLETED
     if (booking.status === 'CONFIRMED' || booking.status === 'ASSIGNED' || booking.status === 'COMPLETED') {
       await client.query('COMMIT');
+      const codeSuffix = (booking.booking_code || '').replace(/^BK-/, '');
+      const isPaid = (booking.payment_status || '').toUpperCase() === 'PAID';
       return res.json({
         success: true,
         message: 'Booking is already confirmed.',
         booking,
+        receiptNumber: isPaid ? `REC-${codeSuffix}` : null,
       });
     }
 
@@ -735,12 +738,16 @@ const simulatePayment = async (req, res) => {
       type: 'BOOKING_CONFIRMED',
     }).catch(err => console.error('Error creating booking confirmation notification:', err));
 
+    const finalCodeSuffix = (updated.booking_code || booking.booking_code || codeSuffix || '').replace(/^BK-/, '');
+    const receiptNumber = !isCash ? `REC-${finalCodeSuffix}` : null;
+
     return res.json({
       success: true,
       message: isCash 
         ? 'Cash payment chosen. Booking is Confirmed and reserved. Please pay driver upon journey completion.' 
         : 'Payment successfully simulated and accepted! Booking Confirmed.',
       booking: updated,
+      receiptNumber,
     });
   } catch (error) {
     await client.query('ROLLBACK').catch(() => {});

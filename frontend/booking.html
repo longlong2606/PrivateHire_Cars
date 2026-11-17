@@ -1942,6 +1942,8 @@
           // Clear draft form persistence
           localStorage.removeItem('saved_booking_draft');
           closePaymentModal();
+          const confirmedBookingId = window.activePendingBookingId || booking.id;
+          const confirmedBookingCode = window.activePendingBookingCode || booking.booking_code || booking.bookingCode;
           window.activePendingBookingId = null;
 
           if (method === 'CASH') {
@@ -1953,6 +1955,9 @@
             // Electronic Payment Success (MOCK_CARD / PAYPAL) -> Display Payment Receipt!
             triggerToast("🎉 Payment transaction successful! Loading official receipt...");
             showSuccessfulPaymentReceipt(booking, {
+              receiptNumber: data.receiptNumber,
+              fallbackBookingId: confirmedBookingId,
+              fallbackBookingCode: confirmedBookingCode,
               pickupAddress: booking.pickup_address,
               dropoffAddress: booking.dropoff_address,
               serviceName: booking.service_name,
@@ -1978,19 +1983,31 @@
       const content = document.getElementById('receipt-modal-content');
       if (!modal || !content) return;
 
-      const pickupDate = window.formatBookingDateTime 
-        ? window.formatBookingDateTime(b.pickupTime || payload.pickupTime, { withWeekday: true })
-        : new Date(b.pickupTime || payload.pickupTime).toLocaleString('en-GB');
+      const bookingId = b.id || (payload && payload.fallbackBookingId);
+      const bookingCode = b.booking_code || b.bookingCode || (payload && payload.fallbackBookingCode) || (bookingId ? `BK-${bookingId}` : '');
+      const codeSuffix = (bookingCode || '').replace(/^BK-/, '') || (bookingId ? String(bookingId) : '');
+      const receiptNo = b.receiptNumber || b.receipt_number || (payload && payload.receiptNumber) || (codeSuffix ? `REC-${codeSuffix}` : `REC-${bookingId || Date.now()}`);
 
-      const bookingCode = b.bookingCode || 'BK-SUCCESS';
-      const receiptNo = 'REC-' + bookingCode.replace('BK-', '');
-      const baseFare = parseFloat(b.fareAmount || b.baseFare || document.getElementById('price-base-fare')?.textContent.replace(/[^0-9.]/g, '') || 45).toFixed(2);
-      const onlineDiscount = parseFloat(b.discountAmount || document.getElementById('price-online-discount')?.textContent.replace(/[^0-9.]/g, '') || 0).toFixed(2);
-      const promoDiscount = parseFloat(b.promoDiscount || (appliedOffer ? appliedOffer.discount_amount : 0) || 0).toFixed(2);
-      const finalFare = parseFloat(b.finalFare || document.getElementById('price-final-total')?.textContent.replace(/[^0-9.]/g, '') || baseFare).toFixed(2);
+      const payMethod = b.payment_method || b.paymentMethod || (payload && payload.paymentMethod) || 'MOCK_CARD';
+      const defaultTxnPrefix = payMethod === 'CASH' ? 'TXN-CSH-' : (payMethod === 'PAYPAL' ? 'TXN-PP-' : 'TXN-CARD-');
+      const paymentRef = b.payment_reference || b.paymentReference || (codeSuffix ? `${defaultTxnPrefix}${codeSuffix}` : `${defaultTxnPrefix}${Date.now()}`);
+
+      const rawPickupTime = b.pickup_time || b.pickupTime || (payload && payload.pickupTime);
+      const pickupDate = window.formatBookingDateTime 
+        ? window.formatBookingDateTime(rawPickupTime, { withWeekday: true })
+        : (rawPickupTime ? new Date(rawPickupTime).toLocaleString('en-GB') : '');
+
+      const passengerName = b.passenger_name || b.passengerName || currentUser?.name || 'Customer';
+      const serviceName = (payload && payload.serviceName) || b.service_name || b.serviceName || 'Executive Journey';
+      const pickupAddress = (payload && payload.pickupAddress) || b.pickup_address || b.pickupAddress || '';
+      const dropoffAddress = (payload && payload.dropoffAddress) || b.dropoff_address || b.dropoffAddress || '';
+
+      const baseFare = parseFloat(b.base_fare || b.fare_amount || b.fareAmount || b.baseFare || document.getElementById('price-base-fare')?.textContent.replace(/[^0-9.]/g, '') || 45).toFixed(2);
+      const onlineDiscount = parseFloat(b.discount_amount || b.discountAmount || document.getElementById('price-online-discount')?.textContent.replace(/[^0-9.]/g, '') || 0).toFixed(2);
+      const promoDiscount = parseFloat(b.promo_discount || b.promoDiscount || (appliedOffer ? appliedOffer.discount_amount : 0) || 0).toFixed(2);
+      const finalFare = parseFloat(b.paid_amount || b.final_fare || b.finalFare || document.getElementById('price-final-total')?.textContent.replace(/[^0-9.]/g, '') || baseFare).toFixed(2);
       const vatIncluded = (parseFloat(finalFare) * 0.20).toFixed(2);
-      const cardRef = b.cardRefUsed || currentUser?.mockCardRef || '•••• •••• •••• 4242 (Visa Test Card)';
-      const payMethod = b.paymentMethod || payload.paymentMethod || 'MOCK_CARD';
+      const cardRef = (payMethod === 'CASH' || payMethod === 'PAYPAL') ? null : (b.card_ref_used || b.cardRefUsed || currentUser?.mockCardRef || '•••• •••• •••• 4242 (Visa Test Card)');
 
       const html = `
         <div style="background: rgba(46, 125, 50, 0.08); border: 1px solid rgba(46, 125, 50, 0.25); border-radius: 8px; padding: 12px 16px; margin-bottom: 18px; display: flex; align-items: center; gap: 12px;">
@@ -2004,39 +2021,39 @@
         <div style="text-align: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 16px;">
           <h2 style="font-family: var(--font-heading); font-size: 20px; font-weight: 800; color: var(--primary); margin: 0;">PRIVATEHIRE CARS LONDON</h2>
           <p style="font-size: 12px; color: var(--text-muted); margin: 4px 0 0 0;">Licensed London Minicab Dispatch Service &bull; Transport for London</p>
-          <div style="margin-top: 10px; font-family: var(--font-mono); font-size: 13.5px; font-weight: 700; color: var(--primary);">
-            Receipt No: ${receiptNo}
+          <div style="margin-top: 10px; font-family: var(--font-mono); font-size: 13.5px; font-weight: 700; color: var(--primary);" id="receipt-rendered-no">
+            Receipt No: ${escapeHtml(receiptNo)}
           </div>
         </div>
 
         <div style="font-size: 13px; line-height: 1.8; margin-bottom: 20px;">
           <div style="display: flex; justify-content: space-between;">
             <span style="color: var(--text-muted);">Booking Reference:</span>
-            <strong style="color: var(--primary);">${escapeHtml(bookingCode)}</strong>
+            <strong style="color: var(--primary);" id="receipt-rendered-booking-ref">${escapeHtml(bookingCode)}</strong>
           </div>
           <div style="display: flex; justify-content: space-between;">
             <span style="color: var(--text-muted);">Payment Reference:</span>
-            <strong style="font-family: var(--font-mono); color: var(--primary);">${escapeHtml(b.paymentReference || ('TXN-' + (payMethod === 'CASH' ? 'CSH-' : (payMethod === 'PAYPAL' ? 'PP-' : 'CARD-')) + bookingCode.replace('BK-', '')))}</strong>
+            <strong style="font-family: var(--font-mono); color: var(--primary);" id="receipt-rendered-payment-ref">${escapeHtml(paymentRef)}</strong>
           </div>
           <div style="display: flex; justify-content: space-between;">
             <span style="color: var(--text-muted);">Passenger Name:</span>
-            <strong>${escapeHtml(currentUser?.name || b.passengerName || 'Customer')}</strong>
+            <strong>${escapeHtml(passengerName)}</strong>
           </div>
           <div style="display: flex; justify-content: space-between;">
             <span style="color: var(--text-muted);">Journey Date &amp; Time:</span>
-            <span>${pickupDate}</span>
+            <span>${escapeHtml(pickupDate)}</span>
           </div>
           <div style="display: flex; justify-content: space-between;">
             <span style="color: var(--text-muted);">Service Type:</span>
-            <span>${escapeHtml(payload.serviceName || b.serviceName || 'Executive Journey')}</span>
+            <span>${escapeHtml(serviceName)}</span>
           </div>
           <div style="display: flex; justify-content: space-between;">
             <span style="color: var(--text-muted);">Pickup Address:</span>
-            <span>${escapeHtml(payload.pickupAddress || b.pickupAddress)}</span>
+            <span>${escapeHtml(pickupAddress)}</span>
           </div>
           <div style="display: flex; justify-content: space-between;">
             <span style="color: var(--text-muted);">Dropoff Destination:</span>
-            <span>${escapeHtml(payload.dropoffAddress || b.dropoffAddress)}</span>
+            <span>${escapeHtml(dropoffAddress)}</span>
           </div>
           <div style="display: flex; justify-content: space-between;">
             <span style="color: var(--text-muted);">Payment Method:</span>
@@ -2061,7 +2078,7 @@
           ` : ''}
           ${parseFloat(promoDiscount) > 0 ? `
             <div style="display: flex; justify-content: space-between; font-size: 13px; color: #8F6B27; font-weight: 600; margin-bottom: 6px;">
-              <span>Loyalty Voucher (${escapeHtml(appliedOffer?.code || b.promoCode || 'VOUCHER')}):</span>
+              <span>Loyalty Voucher (${escapeHtml(appliedOffer?.code || b.promoCode || b.promo_code || 'VOUCHER')}):</span>
               <span>-£${promoDiscount} GBP</span>
             </div>
           ` : ''}
@@ -2078,6 +2095,26 @@
       content.innerHTML = html;
       modal.classList.add('open');
       lucide.createIcons();
+
+      // Asynchronously fetch authoritative receipt endpoint to ensure real-time server consistency
+      if (bookingId) {
+        fetch(`${API_BASE}/api/bookings/${bookingId}/receipt`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('sessionToken') || ''}` }
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.success && data.receipt) {
+            const r = data.receipt;
+            const rNoElem = document.getElementById('receipt-rendered-no');
+            if (rNoElem && r.receiptNumber) rNoElem.textContent = `Receipt No: ${r.receiptNumber}`;
+            const pRefElem = document.getElementById('receipt-rendered-payment-ref');
+            if (pRefElem && r.paymentReference) pRefElem.textContent = r.paymentReference;
+            const bRefElem = document.getElementById('receipt-rendered-booking-ref');
+            if (bRefElem && r.journey?.bookingCode) bRefElem.textContent = r.journey.bookingCode;
+          }
+        })
+        .catch(() => {});
+      }
     }
 
     function closeReceiptModalAndRedirect() {

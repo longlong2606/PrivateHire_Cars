@@ -209,4 +209,47 @@ test('Sprint Feature: Official Receipt, Distinct Payment Reference & Payment/Ref
     assert.equal(receipt.refundHistory[0].reference, `REF-${targetRefund.id}`);
     assert.equal(receipt.refundHistory[0].amount, parseFloat(bk.finalFare || bk.final_fare));
   });
+
+  await t.test('6. Confirm Booking endpoint returns real receiptNumber and booking_code, never placeholders', async () => {
+    const pickupTime = new Date(Date.now() + 48 * 3600000);
+    // Create PENDING booking
+    const createReq = {
+      user: testCustomer,
+      body: {
+        pickupAddress: 'Paddington Station, London W2',
+        dropoffAddress: 'Gatwick Airport South Terminal',
+        pickupTime: pickupTime.toISOString(),
+        service: 'Airport transfer',
+        vehicleCapacity: 4,
+        paymentMethod: 'MOCK_CARD',
+        status: 'PENDING',
+      },
+    };
+    const createRes = createMockRes();
+    await bookingController.createBooking(createReq, createRes);
+    assert.equal(createRes.statusCode, 201);
+    const pendingBk = createRes.body.booking;
+
+    // Confirm booking via simulatePayment
+    const confirmReq = {
+      user: testCustomer,
+      params: { id: pendingBk.id },
+      body: {
+        paymentMethod: 'MOCK_CARD',
+        simulationResult: 'SUCCESS',
+      },
+    };
+    const confirmRes = createMockRes();
+    await bookingController.simulatePayment(confirmReq, confirmRes);
+
+    assert.equal(confirmRes.statusCode, 200);
+    assert.equal(confirmRes.body.success, true);
+    assert.ok(confirmRes.body.booking, 'Expected confirmed booking in response');
+    assert.ok(confirmRes.body.receiptNumber, 'Expected receiptNumber in response');
+
+    const expectedSuffix = confirmRes.body.booking.booking_code.replace(/^BK-/, '');
+    assert.equal(confirmRes.body.receiptNumber, `REC-${expectedSuffix}`);
+    assert.ok(!confirmRes.body.receiptNumber.includes('SUCCESS'), 'receiptNumber MUST NOT contain SUCCESS placeholder');
+    assert.ok(!confirmRes.body.booking.booking_code.includes('SUCCESS'), 'booking_code MUST NOT contain SUCCESS placeholder');
+  });
 });

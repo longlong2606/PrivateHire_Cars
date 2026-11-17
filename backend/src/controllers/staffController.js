@@ -475,6 +475,7 @@ class StaffController {
         success: true,
         message: 'Cash payment confirmed and recorded by staff. Receipt is now generated.',
         booking: updated,
+        receiptNumber: `REC-${codeSuffix}`,
       });
     } catch (error) {
       res.status(500).json({ success: false, message: error.message });
