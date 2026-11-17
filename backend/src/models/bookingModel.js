@@ -34,6 +34,7 @@ class BookingModel {
     finalFare = 45.00,
     vehicleId = null,
     driverId = null,
+    driverName = null,
     staffId = null,
     staffName = null,
     passengerCount = 1,
@@ -48,6 +49,26 @@ class BookingModel {
     const resolvedPaidAmount = paidAmount !== null && paidAmount !== undefined 
       ? paidAmount 
       : (paymentStatus === 'PAID' ? finalFare : 0.00);
+
+    let resolvedDriverName = driverName || null;
+    if (!resolvedDriverName) {
+      const targetDriverId = driverId || requestedDriverId;
+      if (targetDriverId) {
+        const dRes = await db.query('SELECT name FROM drivers WHERE id = $1', [targetDriverId]);
+        if (dRes.rows && dRes.rows[0]) {
+          resolvedDriverName = dRes.rows[0].name;
+        }
+      } else if (vehicleId) {
+        const vdRes = await db.query(
+          'SELECT d.name FROM vehicles v JOIN drivers d ON v.driver_id = d.id WHERE v.id = $1',
+          [vehicleId]
+        );
+        if (vdRes.rows && vdRes.rows[0]) {
+          resolvedDriverName = vdRes.rows[0].name;
+        }
+      }
+    }
+
     const sql = `
       INSERT INTO bookings (
         booking_code,
@@ -79,6 +100,7 @@ class BookingModel {
         final_fare,
         vehicle_id,
         driver_id,
+        driver_name,
         staff_id,
         staff_name,
         passenger_count,
@@ -88,7 +110,7 @@ class BookingModel {
         payment_reference,
         paid_amount
       ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38
       )
       RETURNING *
     `;
@@ -122,6 +144,7 @@ class BookingModel {
       finalFare,
       vehicleId,
       driverId,
+      resolvedDriverName,
       staffId,
       staffName,
       parseInt(passengerCount, 10) || 1,
@@ -287,23 +310,41 @@ class BookingModel {
   }
 
   static async assignDriverAndVehicle(id, driverId, vehicleId) {
+    let driverName = null;
+    if (driverId) {
+      const dRes = await db.query('SELECT name FROM drivers WHERE id = $1', [driverId]);
+      driverName = dRes.rows[0]?.name || null;
+    }
     const res = await db.query(
       `UPDATE bookings 
-       SET driver_id = $1, vehicle_id = $2, status = 'ASSIGNED', assigned_at = NOW() 
-       WHERE id = $3 
+       SET driver_id = $1, 
+           vehicle_id = $2, 
+           driver_name = COALESCE($3, driver_name),
+           status = 'ASSIGNED', 
+           assigned_at = NOW() 
+       WHERE id = $4 
        RETURNING *`,
-      [driverId, vehicleId, id]
+      [driverId, vehicleId, driverName, id]
     );
     return res.rows[0];
   }
 
   static async assignDriver({ id, driverId, staffId = null }) {
+    let driverName = null;
+    if (driverId) {
+      const dRes = await db.query('SELECT name FROM drivers WHERE id = $1', [driverId]);
+      driverName = dRes.rows[0]?.name || null;
+    }
     const res = await db.query(
       `UPDATE bookings 
-       SET driver_id = $1, status = 'ASSIGNED', assigned_staff_id = $2, assigned_at = NOW() 
-       WHERE id = $3 
+       SET driver_id = $1, 
+           driver_name = COALESCE($2, driver_name),
+           status = 'ASSIGNED', 
+           assigned_staff_id = $3, 
+           assigned_at = NOW() 
+       WHERE id = $4 
        RETURNING *`,
-      [driverId, staffId, id]
+      [driverId, driverName, staffId, id]
     );
     return res.rows[0];
   }
@@ -326,9 +367,17 @@ class BookingModel {
     finalFare,
     vehicleId,
     requestedDriverId,
+    driverName,
     passengerCount,
     notes,
   }) {
+    let resolvedDriverName = driverName || null;
+    if (!resolvedDriverName && requestedDriverId) {
+      const dRes = await db.query('SELECT name FROM drivers WHERE id = $1', [requestedDriverId]);
+      if (dRes.rows && dRes.rows[0]) {
+        resolvedDriverName = dRes.rows[0].name;
+      }
+    }
     const sql = `
       UPDATE bookings
       SET pickup_address = $1,
@@ -349,8 +398,9 @@ class BookingModel {
           vehicle_id = $16,
           requested_driver_id = $17,
           passenger_count = $18,
-          notes = $19
-      WHERE id = $20 AND status = 'PENDING'
+          notes = $19,
+          driver_name = COALESCE($20, driver_name)
+      WHERE id = $21 AND status = 'PENDING'
       RETURNING *
     `;
     const res = await db.query(sql, [
@@ -373,6 +423,7 @@ class BookingModel {
       requestedDriverId,
       passengerCount,
       notes,
+      resolvedDriverName,
       id,
     ]);
     return res.rows[0];
@@ -438,7 +489,15 @@ class BookingModel {
     return res.rows[0];
   }
 
-  static async amendBooking(id, { pickupAddress, dropoffAddress, pickupTime, serviceId, serviceName, vehicleCapacity, carType, baseFare, discountAmount, finalFare, occupiedDurationMinutes, vehicleId, requestedDriverId, driverId, passengerCount, paymentStatus, paidAmount }) {
+  static async amendBooking(id, { pickupAddress, dropoffAddress, pickupTime, serviceId, serviceName, vehicleCapacity, carType, baseFare, discountAmount, finalFare, occupiedDurationMinutes, vehicleId, requestedDriverId, driverId, driverName, passengerCount, paymentStatus, paidAmount }) {
+    let resolvedDriverName = driverName || null;
+    const targetDriverId = driverId || requestedDriverId;
+    if (!resolvedDriverName && targetDriverId) {
+      const dRes = await db.query('SELECT name FROM drivers WHERE id = $1', [targetDriverId]);
+      if (dRes.rows && dRes.rows[0]) {
+        resolvedDriverName = dRes.rows[0].name;
+      }
+    }
     const sql = `
       UPDATE bookings
       SET pickup_address = COALESCE($1, pickup_address),
@@ -458,8 +517,9 @@ class BookingModel {
           passenger_count = COALESCE($14, passenger_count),
           payment_status = COALESCE($15, payment_status),
           paid_amount = COALESCE($16, paid_amount),
-          car_type = COALESCE($17, car_type)
-      WHERE id = $18
+          car_type = COALESCE($17, car_type),
+          driver_name = COALESCE($18, driver_name)
+      WHERE id = $19
       RETURNING *
     `;
     const res = await db.query(sql, [
@@ -480,6 +540,7 @@ class BookingModel {
       paymentStatus || null,
       paidAmount !== undefined ? paidAmount : null,
       carType || null,
+      resolvedDriverName || null,
       id,
     ]);
     return res.rows[0];
@@ -488,7 +549,7 @@ class BookingModel {
   static async cancelBooking(id) {
     const res = await db.query(
       `UPDATE bookings 
-       SET status = 'CANCELLED', vehicle_id = NULL, driver_id = NULL, requested_driver_id = NULL 
+       SET status = 'CANCELLED', vehicle_id = NULL, driver_id = NULL, requested_driver_id = NULL, driver_name = NULL 
        WHERE id = $1 
        RETURNING *`,
       [id]

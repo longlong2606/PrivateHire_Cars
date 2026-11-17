@@ -650,6 +650,15 @@ const simulatePayment = async (req, res) => {
       ? parseFloat(booking.final_fare || booking.fare_amount || 0.00)
       : 0.00;
 
+    let driverName = booking.driver_name || null;
+    const effectiveDriverId = requestedDriverId || booking.driver_id;
+    if (!driverName && effectiveDriverId) {
+      const dRes = await client.query('SELECT name FROM drivers WHERE id = $1', [effectiveDriverId]);
+      if (dRes.rows && dRes.rows[0]) {
+        driverName = dRes.rows[0].name;
+      }
+    }
+
     // Reserve vehicle and requested chauffeur
     // Sửa lỗi PostgreSQL: loại bỏ CASE WHEN $2 = 'PAID' gây "inconsistent types deduced for parameter $2"
     // Truyền trực tiếp resolvedPaidAmount đã tính toán chính xác
@@ -661,8 +670,9 @@ const simulatePayment = async (req, res) => {
           payment_reference = $4,
           card_ref_used = $5,
           requested_driver_id = COALESCE(requested_driver_id, $6),
-          paid_amount = $7
-      WHERE id = $8
+          driver_name = COALESCE(driver_name, $7),
+          paid_amount = $8
+      WHERE id = $9
     `, [
       newStatus,
       newPaymentStatus,
@@ -670,6 +680,7 @@ const simulatePayment = async (req, res) => {
       paymentReference,
       cardRefUsed,
       requestedDriverId || null,
+      driverName || null,
       resolvedPaidAmount,
       booking.id
     ]);
